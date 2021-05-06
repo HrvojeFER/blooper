@@ -7,7 +7,7 @@ include_guard()
 cmake_minimum_required(VERSION 3.17...3.20)
 
 project(blooper
-        DESCRIPTION "Loopstation made with JUCE."
+        DESCRIPTION "LoopStation made with JUCE."
         VERSION 1.0.0
         LANGUAGES CXX C)
 
@@ -19,25 +19,25 @@ include(EnvFunc)
 # -----------------------------------------------------------------------------
 # Fetch
 
-#env_fetch(
-#        asio
-#        FROM
-#        URL https://www.steinberg.net/asiosdk
-#
-#        SCAFFOLD
-#        INCLUDE_DIRS
-#        "/common"
-#        "/host"
-#        "/host/pc")
-#
-#env_fetch(
-#        engine
-#        FROM
-#        GIT_REPOSITORY https://github.com/Hrle97/tracktion_engine.git
-#        GIT_TAG cmake
-#
-#        SCAFFOLD
-#        OPTIONS)
+env_fetch(
+        asio
+        FROM
+        URL https://www.steinberg.net/asiosdk
+
+        SCAFFOLD
+        INCLUDE_DIRS
+        "/common"
+        "/host"
+        "/host/pc")
+
+env_fetch(
+        engine
+        FROM
+        GIT_REPOSITORY https://github.com/Hrle97/tracktion_engine.git
+        GIT_TAG cmake
+
+        SCAFFOLD
+        OPTIONS)
 
 
 # -----------------------------------------------------------------------------
