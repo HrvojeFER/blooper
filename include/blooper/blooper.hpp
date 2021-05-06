@@ -1,0 +1,4 @@
+#ifndef BLOOPER_INCLUDED
+#define BLOOPER_INCLUDED
+
+#endif // BLOOPER_INCLUDED
