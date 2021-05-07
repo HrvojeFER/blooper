@@ -32,6 +32,7 @@
 // env
 
 #include <env/env.hpp>
+#include <env/macros.hpp>
 
 #include <juce_core/juce_core.h>
 #include <juce_events/juce_events.h>

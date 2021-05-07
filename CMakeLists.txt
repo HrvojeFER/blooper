@@ -42,10 +42,11 @@ env_fetch(asio
 env_fetch(engine
           FROM
           GIT_REPOSITORY https://github.com/Hrle97/tracktion_engine.git
-          GIT_TAG cmake
+          GIT_TAG cmake-v0.0.2
 
           SCAFFOLD
-          OPTIONS)
+          OPTIONS
+          "JUCE_BUILD_EXAMPLES ON")
 
 
 # -----------------------------------------------------------------------------

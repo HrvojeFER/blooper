@@ -1,12 +1,12 @@
-#include <blooper/blooper.hpp>
+#include <blooper/MainComponent.hpp>
 
 
 namespace blooper
 {
-class app : public audio::JUCEApplication
+class App : public juce::JUCEApplication
 {
 public:
-    app() = default;
+    App() = default;
 
     const juce::String getApplicationName() override // NOLINT(readability-const-return-type)
     {
@@ -21,14 +21,15 @@ public:
         return true;
     }
 
+
     void initialise(const juce::String&) override
     {
-        if (audio::RuntimePermissions::isRequired(
+        if (juce::RuntimePermissions::isRequired(
                     juce::RuntimePermissions::recordAudio) &&
-            !audio::RuntimePermissions::isGranted(
+            !juce::RuntimePermissions::isGranted(
                     juce::RuntimePermissions::recordAudio))
         {
-            audio::RuntimePermissions::request(
+            juce::RuntimePermissions::request(
                     juce::RuntimePermissions::recordAudio,
                     [this](bool is_granted) {
                         if (!is_granted)
@@ -38,12 +39,14 @@ public:
                     });
         }
 
-        _window = std::make_unique<window>(getApplicationName());
+        window = std::make_unique<Window>(getApplicationName());
+        juce::ignoreUnused(window);
     }
 
     void shutdown() override
     {
-        _window = nullptr;
+        window = nullptr;
+        juce::ignoreUnused(window);
     }
 
     [[maybe_unused]] void systemRequestedQuit() override
@@ -55,12 +58,14 @@ public:
     {
     }
 
-    class window : public juce::DocumentWindow
+
+private:
+    class Window : public juce::DocumentWindow
     {
     public:
-        explicit window(const juce::String& name)
+        explicit Window(juce::String name)
             : DocumentWindow(
-                      name,
+                      std::move(name),
                       juce::Desktop::getInstance()
                               .getDefaultLookAndFeel()
                               .findColour(
@@ -69,7 +74,7 @@ public:
         {
             setUsingNativeTitleBar(true);
             setContentOwned(
-                    new main_component(),
+                    new MainComponent(),
                     true);
 
 #if JUCE_IOS || JUCE_ANDROID
@@ -79,7 +84,7 @@ public:
             centreWithSize(getWidth(), getHeight());
 #endif
 
-            // this is from JUCE, so it should work i guess...
+            // this is JUCE code
             setVisible(true);
         }
 
@@ -89,13 +94,12 @@ public:
         }
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(window)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Window)
     };
 
-private:
-    std::unique_ptr<window> _window;
+    [[maybe_unused]] std::unique_ptr<Window> window;
 };
 } // namespace blooper
 
 
-START_JUCE_APPLICATION(blooper::app)
+START_JUCE_APPLICATION(blooper::App)
