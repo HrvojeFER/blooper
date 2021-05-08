@@ -5,11 +5,7 @@
 #include <blooper/internal/internal.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 static inline bool isDPIAware(te::Plugin&)
 {
@@ -20,17 +16,18 @@ static inline bool isDPIAware(te::Plugin&)
 }
 
 
-class PluginEditor : public Component
+class PluginEditor : public juce::Component
 {
 public:
-    virtual bool                        allowWindowResizing() = 0;
-    virtual ComponentBoundsConstrainer* getBoundsConstrainer() = 0;
+    virtual bool                              allowWindowResizing() = 0;
+    virtual juce::ComponentBoundsConstrainer* getBoundsConstrainer() = 0;
 };
 
 
 struct AudioProcessorEditorContentComp : public PluginEditor
 {
-    AudioProcessorEditorContentComp(te::ExternalPlugin& plug) : plugin(plug)
+    explicit AudioProcessorEditorContentComp(te::ExternalPlugin& plug)
+        : plugin(plug)
     {
         JUCE_AUTORELEASEPOOL
         {
@@ -39,7 +36,7 @@ struct AudioProcessorEditorContentComp : public PluginEditor
                 editor.reset(pi->createEditorIfNeeded());
 
                 if (editor == nullptr)
-                    editor = std::make_unique<GenericAudioProcessorEditor>(
+                    editor = std::make_unique<juce::GenericAudioProcessorEditor>(
                             *pi);
 
                 addAndMakeVisible(*editor);
@@ -54,7 +51,7 @@ struct AudioProcessorEditorContentComp : public PluginEditor
         return false;
     }
 
-    ComponentBoundsConstrainer* getBoundsConstrainer() override
+    juce::ComponentBoundsConstrainer* getBoundsConstrainer() override
     {
         if (editor == nullptr || allowWindowResizing())
             return {};
@@ -80,34 +77,34 @@ struct AudioProcessorEditorContentComp : public PluginEditor
     void resizeToFitEditor(bool force = false)
     {
         if (force || !allowWindowResizing())
-            setSize(jmax(
+            setSize(juce::jmax(
                             8,
                             editor != nullptr ? editor->getWidth() : 0),
-                    jmax(
+                    juce::jmax(
                             8,
                             editor != nullptr ? editor->getHeight() : 0));
     }
 
-    te::ExternalPlugin&                   plugin;
-    std::unique_ptr<AudioProcessorEditor> editor;
+    te::ExternalPlugin&                         plugin;
+    std::unique_ptr<juce::AudioProcessorEditor> editor;
 
     AudioProcessorEditorContentComp() = delete;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioProcessorEditorContentComp)
 };
 
 
-class PluginWindow : public DocumentWindow
+class PluginWindow : public juce::DocumentWindow
 {
 public:
-    PluginWindow(te::Plugin&);
+    explicit PluginWindow(te::Plugin&);
     ~PluginWindow() override;
 
     static std::unique_ptr<Component> create(te::Plugin&);
 
     void show();
 
-    void          setEditor(std::unique_ptr<PluginEditor>);
-    PluginEditor* getEditor() const
+    void                        setEditor(std::unique_ptr<PluginEditor>);
+    [[nodiscard]] PluginEditor* getEditor() const
     {
         return editor.get();
     }
@@ -125,7 +122,7 @@ private:
     {
         userTriedToCloseWindow();
     }
-    float getDesktopScaleFactor() const override
+    [[nodiscard]] float getDesktopScaleFactor() const override
     {
         return 1.0f;
     }
@@ -144,7 +141,7 @@ class ExtendedUIBehaviour : public te::UIBehaviour
 public:
     ExtendedUIBehaviour() = default;
 
-    std::unique_ptr<Component> createPluginWindow(
+    std::unique_ptr<juce::Component> createPluginWindow(
             te::PluginWindowState& pws) override
     {
         if (auto ws = dynamic_cast<te::Plugin::WindowState*>(&pws))
@@ -163,6 +160,8 @@ public:
         UIBehaviour::recreatePluginWindowContentAsync(p);
     }
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
+
 
 #endif // BLOOPER_PLUGIN_WINDOW_HPP

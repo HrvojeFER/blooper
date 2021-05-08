@@ -5,16 +5,16 @@
 #include <blooper/internal/internal.hpp>
 
 
-namespace blooper
-{
-class ClipComponent : public Component
+BLOOPER_NAMESPACE_BEGIN
+
+class ClipComponent : public juce::Component
 {
 public:
     ClipComponent(EditViewState&, te::Clip::Ptr);
 
 
-    void paint(Graphics& g) override;
-    void mouseDown(const MouseEvent& e) override;
+    void paint(juce::Graphics& g) override;
+    void mouseDown(const juce::MouseEvent& e) override;
 
 
     te::Clip& getClip()
@@ -35,7 +35,7 @@ public:
     AudioClipComponent(EditViewState&, te::Clip::Ptr);
 
 
-    void paint(Graphics& g) override;
+    void paint(juce::Graphics& g) override;
 
 
     te::WaveAudioClip* getWaveAudioClip()
@@ -49,10 +49,10 @@ private:
 
 
     void drawWaveform(
-            Graphics&           g,
+            juce::Graphics&     g,
             te::AudioClipBase&  c,
             te::SmartThumbnail& thumb,
-            Colour              colour,
+            juce::Colour        colour,
 
             int left,
             int right,
@@ -61,10 +61,10 @@ private:
             int xOffset);
 
     static void drawChannels(
-            Graphics&           g,
-            te::SmartThumbnail& thumb,
-            Rectangle<int>      area,
-            bool                useHighRes,
+            juce::Graphics&      g,
+            te::SmartThumbnail&  thumb,
+            juce::Rectangle<int> area,
+            bool                 useHighRes,
 
             te::EditTimeRange time,
 
@@ -88,16 +88,16 @@ public:
         return dynamic_cast<te::MidiClip*>(clip.get());
     }
 
-    void paint(Graphics& g) override;
+    void paint(juce::Graphics& g) override;
 };
 
 
-class RecordingClipComponent : public Component, private Timer
+class RecordingClipComponent : public juce::Component, private juce::Timer
 {
 public:
     RecordingClipComponent(te::Track::Ptr t, EditViewState&);
 
-    void paint(Graphics& g) override;
+    void paint(juce::Graphics& g) override;
 
 
 private:
@@ -107,9 +107,13 @@ private:
 
     void initialiseThumbnailAndPunchTime();
 
-    void drawThumbnail(Graphics& g, Colour waveformColour) const;
+    void drawThumbnail(
+            juce::Graphics& g,
+            juce::Colour    waveformColour) const;
 
-    bool getBoundsAndTime(Rectangle<int>& bounds, Range<double>& times) const;
+    bool getBoundsAndTime(
+            juce::Rectangle<int>& bounds,
+            juce::Range<double>&  times) const;
 
 
     te::Track::Ptr track;
@@ -119,7 +123,8 @@ private:
 
     double punchInTime = -1.0;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_CLIP_COMPONENTS_HPP

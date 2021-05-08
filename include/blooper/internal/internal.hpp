@@ -4,7 +4,7 @@
 
 #include <blooper/internal/utilities.hpp>
 
-#include <blooper/internal/IDs.hpp>
+#include <blooper/internal/id.hpp>
 #include <blooper/internal/EditViewState.hpp>
 
 

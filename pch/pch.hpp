@@ -63,6 +63,17 @@
 #include <tracktion_engine/tracktion_engine.h>
 
 
+// namespaces
+
+namespace te = tracktion_engine;
+
+#define BLOOPER_NAMESPACE_BEGIN \
+    namespace blooper           \
+    {
+#define BLOOPER_NAMESPACE_END \
+    } // namespace blooper
+
+
 // pop warning suppression
 
 #if defined(__clang__) // clang

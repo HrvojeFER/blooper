@@ -5,20 +5,17 @@
 #include <blooper/internal/internal.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
+BLOOPER_NAMESPACE_BEGIN
 
-inline constexpr auto internalPluginFormatName = "BlooperInternal";
-inline constexpr auto internalPluginUniqueIdSuffix = "_blooper_internal";
+static inline constexpr auto internalPluginFormatName = "BlooperInternal";
+static inline constexpr auto internalPluginUniqueIdSuffix = "_blooper_internal";
 
 
 class PluginTreeBase
 {
 public:
     virtual ~PluginTreeBase() = default;
-    [[nodiscard]] virtual String getUniqueName() const = 0;
+    [[nodiscard]] virtual juce::String getUniqueName() const = 0;
 
     void addSubItem(PluginTreeBase* itm)
     {
@@ -34,24 +31,24 @@ public:
     }
 
 private:
-    OwnedArray<PluginTreeBase> sub_items;
+    juce::OwnedArray<PluginTreeBase> sub_items;
 };
 
 
 class PluginTreeItem : public PluginTreeBase
 {
 public:
-    explicit PluginTreeItem(const PluginDescription&);
+    explicit PluginTreeItem(const juce::PluginDescription&);
 
-    PluginTreeItem(const String& uniqueId,
-                   const String& name,
-                   String        xmlType,
-                   bool          isSynth,
-                   bool          isPlugin);
+    PluginTreeItem(const juce::String& uniqueId,
+                   const juce::String& name,
+                   juce::String        xmlType,
+                   bool                isSynth,
+                   bool                isPlugin);
 
     te::Plugin::Ptr create(te::Edit&) const;
 
-    [[nodiscard]] String getUniqueName() const override
+    [[nodiscard]] juce::String getUniqueName() const override
     {
         if (desc.fileOrIdentifier.startsWith(
                     te::RackType::getRackPresetPrefix()))
@@ -60,9 +57,9 @@ public:
         return desc.createIdentifierString();
     }
 
-    PluginDescription desc;
-    String            xmlType;
-    bool              isPlugin = true;
+    juce::PluginDescription desc;
+    juce::String            xmlType;
+    bool                    isPlugin = true;
 
     JUCE_LEAK_DETECTOR(PluginTreeItem)
 };
@@ -71,31 +68,31 @@ public:
 class PluginTreeGroup : public PluginTreeBase
 {
 public:
-    explicit PluginTreeGroup(String);
+    explicit PluginTreeGroup(juce::String);
 
     PluginTreeGroup(
             te::Edit&,
-            KnownPluginList::PluginTree&,
+            juce::KnownPluginList::PluginTree&,
             te::Plugin::Type);
 
 
-    [[nodiscard]] String getUniqueName() const override
+    [[nodiscard]] juce::String getUniqueName() const override
     {
         return name;
     }
 
-    String name;
+    juce::String name;
 
 
 private:
-    void populateFrom(KnownPluginList::PluginTree&);
+    void populateFrom(juce::KnownPluginList::PluginTree&);
     void createBuiltInItems(int& num, te::Plugin::Type);
 
 
     JUCE_LEAK_DETECTOR(PluginTreeGroup)
 };
 
-class PluginMenu : public PopupMenu
+class PluginMenu : public juce::PopupMenu
 {
 public:
     PluginMenu() = default;
@@ -163,7 +160,8 @@ static inline te::Plugin::Ptr showMenuAndCreatePlugin(te::Edit& edit)
 
     return {};
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_PLUGIN_MENU_HPP

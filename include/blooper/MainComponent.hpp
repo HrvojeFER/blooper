@@ -10,8 +10,8 @@
 #include <blooper/rack/RackComponent.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 class MainComponent final :
     public juce::Component,
     public juce::ChangeListener
@@ -56,7 +56,7 @@ public:
         deleteButton.setEnabled(false);
 
 
-        auto d = File::getSpecialLocation(File::tempDirectory)
+        auto d = juce::File::getSpecialLocation(juce::File::tempDirectory)
                          .getChildFile("Blooper");
         d.createDirectory();
 
@@ -89,11 +89,11 @@ public:
                 .deleteRecursively();
     }
 
-    void paint(Graphics& g) override
+    void paint(juce::Graphics& g) override
     {
         g.fillAll(
                 getLookAndFeel().findColour(
-                        ResizableWindow::backgroundColourId));
+                        juce::ResizableWindow::backgroundColourId));
     }
 
     void resized() override
@@ -146,7 +146,7 @@ private:
     std::unique_ptr<tracktion_engine::Edit> edit;
     std::unique_ptr<EditComponent>          editComponent;
 
-    TextButton
+    juce::TextButton
             settingsButton{"Settings"},
             pluginsButton{"Plugins"},
             newEditButton{"New"},
@@ -157,8 +157,8 @@ private:
             clearTracksButton{"Clear Tracks"},
             deleteButton{"Delete"};
 
-    Label        editNameLabel{"No Edit Loaded"};
-    ToggleButton showWaveformButton{"Show Waveforms"};
+    juce::Label        editNameLabel{"No Edit Loaded"};
+    juce::ToggleButton showWaveformButton{"Show Waveforms"};
 
 
     void setupButtons()
@@ -217,7 +217,7 @@ private:
             evs.drawWaveforms = !evs.drawWaveforms.get();
             showWaveformButton.setToggleState(
                     evs.drawWaveforms,
-                    dontSendNotification);
+                    juce::dontSendNotification);
         };
     }
 
@@ -354,7 +354,8 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_MAIN_COMPONENT_HPP

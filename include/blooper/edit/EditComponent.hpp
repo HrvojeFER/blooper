@@ -8,17 +8,13 @@
 #include <blooper/edit/PlayheadComponent.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 class EditComponent :
-    public Component,
+    public juce::Component,
     private te::ValueTreeAllEventListener,
     private FlaggedAsyncUpdater,
-    private ChangeListener
+    private juce::ChangeListener
 {
 public:
     EditComponent(te::Edit&, te::SelectionManager&);
@@ -48,7 +44,7 @@ private:
     void handleAsyncUpdate() override;
     void resized() override;
 
-    void changeListenerCallback(ChangeBroadcaster*) override
+    void changeListenerCallback(juce::ChangeBroadcaster*) override
     {
         repaint();
     }
@@ -60,16 +56,17 @@ private:
 
     EditViewState editViewState;
 
-    PlayheadComponent                playhead{edit, editViewState};
-    OwnedArray<TrackComponent>       tracks;
-    OwnedArray<TrackHeaderComponent> headers;
-    OwnedArray<TrackFooterComponent> footers;
+    PlayheadComponent                      playhead{edit, editViewState};
+    juce::OwnedArray<TrackComponent>       tracks;
+    juce::OwnedArray<TrackHeaderComponent> headers;
+    juce::OwnedArray<TrackFooterComponent> footers;
 
 
     bool updateTracks = false,
          updateZoom = false;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_EDIT_COMPONENT_HPP

@@ -2,15 +2,17 @@
 #define BLOOPER_RACK_COMPONENT_HPP
 
 
-#include <blooper/internal/utilities.hpp>
+#include <blooper/internal/internal.hpp>
+#include <blooper/plugins/plugins.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 class RackComponent
 {
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_RACK_COMPONENT_HPP

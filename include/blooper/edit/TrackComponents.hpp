@@ -8,14 +8,10 @@
 #include <blooper/edit/ClipComponents.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 class TrackHeaderComponent :
-    public Component,
+    public juce::Component,
     private te::ValueTreeAllEventListener
 {
 public:
@@ -23,8 +19,8 @@ public:
     ~TrackHeaderComponent() override;
 
 
-    void paint(Graphics& g) override;
-    void mouseDown(const MouseEvent& e) override;
+    void paint(juce::Graphics& g) override;
+    void mouseDown(const juce::MouseEvent& e) override;
     void resized() override;
 
 
@@ -39,10 +35,10 @@ private:
     EditViewState& editViewState;
     te::Track::Ptr track;
 
-    ValueTree inputsState;
-    Label     trackName;
+    juce::ValueTree inputsState;
+    juce::Label     trackName;
 
-    TextButton
+    juce::TextButton
             armButton{"A"},
             muteButton{"M"},
             soloButton{"S"},
@@ -51,7 +47,7 @@ private:
 
 
 class TrackFooterComponent :
-    public Component,
+    public juce::Component,
     private FlaggedAsyncUpdater,
     private te::ValueTreeAllEventListener
 {
@@ -59,8 +55,8 @@ public:
     TrackFooterComponent(EditViewState&, te::Track::Ptr);
     ~TrackFooterComponent() override;
 
-    void paint(Graphics& g) override;
-    void mouseDown(const MouseEvent& e) override;
+    void paint(juce::Graphics& g) override;
+    void mouseDown(const juce::MouseEvent& e) override;
     void resized() override;
 
 
@@ -89,29 +85,29 @@ private:
     EditViewState& editViewState;
     te::Track::Ptr track;
 
-    TextButton                  addButton{"+"};
-    OwnedArray<PluginComponent> plugins;
+    juce::TextButton                  addButton{"+"};
+    juce::OwnedArray<PluginComponent> plugins;
 
     bool updatePlugins = false;
 };
 
 
 class TrackComponent :
-    public Component,
+    public juce::Component,
     private te::ValueTreeAllEventListener,
     private FlaggedAsyncUpdater,
-    private ChangeListener
+    private juce::ChangeListener
 {
 public:
     TrackComponent(EditViewState&, te::Track::Ptr);
     ~TrackComponent() override;
 
-    void paint(Graphics& g) override;
-    void mouseDown(const MouseEvent& e) override;
+    void paint(juce::Graphics& g) override;
+    void mouseDown(const juce::MouseEvent& e) override;
     void resized() override;
 
 private:
-    void changeListenerCallback(ChangeBroadcaster*) override;
+    void changeListenerCallback(juce::ChangeBroadcaster*) override;
 
     void valueTreeChanged() override { }
 
@@ -141,14 +137,15 @@ private:
     EditViewState& editViewState;
     te::Track::Ptr track;
 
-    OwnedArray<ClipComponent>               clips;
+    juce::OwnedArray<ClipComponent>         clips;
     std::unique_ptr<RecordingClipComponent> recordingClip;
 
     bool updateClips = false,
          updatePositions = false,
          updateRecordClips = false;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_TRACK_COMPONENTS_HPP

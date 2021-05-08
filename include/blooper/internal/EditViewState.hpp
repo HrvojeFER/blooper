@@ -3,15 +3,10 @@
 
 
 #include <blooper/internal/utilities.hpp>
+#include <blooper/internal/id.hpp>
 
-#include <blooper/internal/IDs.hpp>
 
-
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 class EditViewState
 {
@@ -21,7 +16,7 @@ public:
           selectionManager(s)
     {
         state = edit.state.getOrCreateChildWithName(
-                IDs::EDITVIEWSTATE,
+                id::editViewState,
                 nullptr);
 
         auto um = &edit.getUndoManager();
@@ -29,73 +24,73 @@ public:
 
         showGlobalTrack.referTo(
                 state,
-                IDs::showGlobalTrack,
+                id::showGlobalTrack,
                 um,
                 false);
         showMarkerTrack.referTo(
                 state,
-                IDs::showMarkerTrack,
+                id::showMarkerTrack,
                 um,
                 false);
 
         showChordTrack.referTo(
                 state,
-                IDs::showChordTrack,
+                id::showChordTrack,
                 um,
                 false);
 
         showArrangerTrack.referTo(
                 state,
-                IDs::showArranger,
+                id::showArranger,
                 um,
                 false);
 
         drawWaveforms.referTo(
                 state,
-                IDs::drawWaveforms,
+                id::drawWaveforms,
                 um,
                 true);
 
         showHeaders.referTo(
                 state,
-                IDs::showHeaders,
+                id::showHeaders,
                 um,
                 true);
 
         showFooters.referTo(
                 state,
-                IDs::showFooters,
+                id::showFooters,
                 um,
                 false);
 
         showMidiDevices.referTo(
                 state,
-                IDs::showMidiDevices,
+                id::showMidiDevices,
                 um,
                 false);
 
         showWaveDevices.referTo(
                 state,
-                IDs::showWaveDevices,
+                id::showWaveDevices,
                 um,
                 true);
 
 
         viewX1.referTo(
                 state,
-                IDs::viewX1,
+                id::viewX1,
                 um,
                 0);
 
         viewX2.referTo(
                 state,
-                IDs::viewX2,
+                id::viewX2,
                 um,
                 60);
 
         viewY.referTo(
                 state,
-                IDs::viewY,
+                id::viewY,
                 um,
                 0);
     }
@@ -103,7 +98,7 @@ public:
 
     [[nodiscard]] int timeToX(double time, int width) const
     {
-        return roundToInt(((time - viewX1) * width) / (viewX2 - viewX1));
+        return juce::roundToInt(((time - viewX1) * width) / (viewX2 - viewX1));
     }
 
     [[nodiscard]] double xToTime(int x, int width) const
@@ -121,7 +116,7 @@ public:
     te::Edit&             edit;
     te::SelectionManager& selectionManager;
 
-    CachedValue<bool>
+    juce::CachedValue<bool>
             showGlobalTrack,
             showMarkerTrack,
             showChordTrack,
@@ -132,14 +127,15 @@ public:
             showMidiDevices,
             showWaveDevices;
 
-    CachedValue<double>
+    juce::CachedValue<double>
             viewX1,
             viewX2,
             viewY;
 
-    ValueTree state;
+    juce::ValueTree state;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_EDIT_VIEW_STATE_HPP

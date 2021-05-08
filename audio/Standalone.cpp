@@ -1,8 +1,8 @@
 #include <blooper/MainComponent.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 class App : public juce::JUCEApplication
 {
 public:
@@ -68,9 +68,8 @@ private:
                       std::move(name),
                       juce::Desktop::getInstance()
                               .getDefaultLookAndFeel()
-                              .findColour(
-                                      ResizableWindow::backgroundColourId),
-                      DocumentWindow::allButtons)
+                              .findColour(juce::ResizableWindow::backgroundColourId),
+                      juce::DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar(true);
             setContentOwned(
@@ -80,8 +79,12 @@ private:
 #if JUCE_IOS || JUCE_ANDROID
             setFullScreen(true);
 #else
-            setResizable(true, true);
-            centreWithSize(getWidth(), getHeight());
+            setResizable(
+                    true,
+                    true);
+            centreWithSize(
+                    getWidth(),
+                    getHeight());
 #endif
 
             // this is JUCE code
@@ -99,7 +102,8 @@ private:
 
     [[maybe_unused]] std::unique_ptr<Window> window;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 START_JUCE_APPLICATION(blooper::App)

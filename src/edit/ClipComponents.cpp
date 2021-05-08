@@ -1,27 +1,27 @@
 #include <blooper/edit/ClipComponents.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 ClipComponent::ClipComponent(EditViewState& evs, te::Clip::Ptr c)
     : editViewState(evs), clip(std::move(c))
 {
 }
 
-void ClipComponent::paint(Graphics& g)
+void ClipComponent::paint(juce::Graphics& g)
 {
     g.fillAll(clip->getColour().withAlpha(0.5f));
-    g.setColour(Colours::black);
+    g.setColour(juce::Colours::black);
     g.drawRect(getLocalBounds());
 
     if (editViewState.selectionManager.isSelected(clip.get()))
     {
-        g.setColour(Colours::red);
+        g.setColour(juce::Colours::red);
         g.drawRect(getLocalBounds(), 2);
     }
 }
 
-void ClipComponent::mouseDown(const MouseEvent&)
+void ClipComponent::mouseDown(const juce::MouseEvent&)
 {
     editViewState.selectionManager.selectOnly(clip.get());
 }
@@ -33,7 +33,7 @@ AudioClipComponent::AudioClipComponent(EditViewState& evs, te::Clip::Ptr c)
     updateThumbnail();
 }
 
-void AudioClipComponent::paint(Graphics& g)
+void AudioClipComponent::paint(juce::Graphics& g)
 {
     ClipComponent::paint(g);
 
@@ -42,7 +42,7 @@ void AudioClipComponent::paint(Graphics& g)
                 g,
                 *getWaveAudioClip(),
                 *thumbnail,
-                Colours::black.withAlpha(0.5f),
+                juce::Colours::black.withAlpha(0.5f),
                 0,
                 getWidth(),
                 0,
@@ -51,10 +51,10 @@ void AudioClipComponent::paint(Graphics& g)
 }
 
 void AudioClipComponent::drawWaveform(
-        Graphics&           g,
+        juce::Graphics&     g,
         te::AudioClipBase&  c,
         te::SmartThumbnail& thumb,
-        Colour              colour,
+        juce::Colour        colour,
 
         int left,
         int right,
@@ -93,7 +93,11 @@ void AudioClipComponent::drawWaveform(
 
     if (usesTimeStretchedProxy)
     {
-        const Rectangle<int> area(left + xOffset, y, right - left, h);
+        const juce::Rectangle<int> area(
+                left + xOffset,
+                y,
+                right - left,
+                h);
 
         if (!thumb.isOutOfDate())
         {
@@ -119,10 +123,10 @@ void AudioClipComponent::drawWaveform(
 }
 
 void AudioClipComponent::drawChannels(
-        Graphics&           g,
-        te::SmartThumbnail& thumb,
-        Rectangle<int>      area,
-        bool                useHighRes,
+        juce::Graphics&      g,
+        te::SmartThumbnail&  thumb,
+        juce::Rectangle<int> area,
+        bool                 useHighRes,
 
         te::EditTimeRange time,
 
@@ -209,7 +213,7 @@ MidiClipComponent::MidiClipComponent(EditViewState& evs, te::Clip::Ptr c)
 {
 }
 
-void MidiClipComponent::paint(Graphics& g)
+void MidiClipComponent::paint(juce::Graphics& g)
 {
     ClipComponent::paint(g);
 
@@ -233,7 +237,7 @@ void MidiClipComponent::paint(Graphics& g)
                         (1.0 - double(n->getNoteNumber()) / 127.0) *
                         getHeight();
 
-                g.setColour(Colours::white.withAlpha(
+                g.setColour(juce::Colours::white.withAlpha(
                         static_cast<float>(n->getVelocity()) /
                         127.0f));
 
@@ -273,26 +277,26 @@ void RecordingClipComponent::initialiseThumbnailAndPunchTime()
     }
 }
 
-void RecordingClipComponent::paint(Graphics& g)
+void RecordingClipComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(Colours::red.withAlpha(0.5f));
-    g.setColour(Colours::black);
+    g.fillAll(juce::Colours::red.withAlpha(0.5f));
+    g.setColour(juce::Colours::black);
     g.drawRect(getLocalBounds());
 
     if (editViewState.drawWaveforms)
         drawThumbnail(
                 g,
-                Colours::black.withAlpha(0.5f));
+                juce::Colours::black.withAlpha(0.5f));
 }
 
 void RecordingClipComponent::drawThumbnail(
-        Graphics& g, Colour waveformColour) const
+        juce::Graphics& g, juce::Colour waveformColour) const
 {
     if (thumbnail == nullptr)
         return;
 
-    Rectangle<int> bounds;
-    Range<double>  times;
+    juce::Rectangle<int> bounds;
+    juce::Range<double>  times;
     getBoundsAndTime(bounds, times);
     auto w = bounds.getWidth();
 
@@ -309,7 +313,7 @@ void RecordingClipComponent::drawThumbnail(
 }
 
 bool RecordingClipComponent::getBoundsAndTime(
-        Rectangle<int>& bounds, Range<double>& times) const
+        juce::Rectangle<int>& bounds, juce::Range<double>& times) const
 {
     auto editTimeToX = [this](double t) {
         if (auto p = getParentComponent())
@@ -340,30 +344,35 @@ bool RecordingClipComponent::getBoundsAndTime(
         {
             hasLooped = true;
 
-            t1 = jmin(t1, playhead->getLoopTimes().start);
+            t1 = juce::jmin(t1, playhead->getLoopTimes().start);
             t2 = playhead->getPosition();
 
-            t1 = jmax(editViewState.viewX1.get(), t1);
-            t2 = jmin(editViewState.viewX2.get(), t2);
+            t1 = juce::jmax(editViewState.viewX1.get(), t1);
+            t2 = juce::jmin(editViewState.viewX2.get(), t2);
         }
         else if (edit.recordingPunchInOut)
         {
             const double in = thumbnail->punchInTime;
             const double out = edit.getTransport().getLoopRange().getEnd();
 
-            t1 = jlimit(in, out, t1);
-            t2 = jlimit(in, out, t2);
+            t1 = juce::jlimit(in, out, t1);
+            t2 = juce::jlimit(in, out, t2);
         }
 
-        bounds = localBounds.withX(jmax(localBounds.getX(), editTimeToX(t1)))
-                         .withRight(jmin(localBounds.getRight(), editTimeToX(t2)));
+        bounds = localBounds
+                         .withX(juce::jmax(
+                                 localBounds.getX(),
+                                 editTimeToX(t1)))
+                         .withRight(juce::jmin(
+                                 localBounds.getRight(),
+                                 editTimeToX(t2)));
 
         auto         loopRange = playhead->getLoopTimes();
         const double recordedTime = unloopedPos - playhead->getLoopTimes().start;
         const int    numLoops = (int) (recordedTime / loopRange.getLength());
 
-        const Range<double> editTimes(xToEditTime(bounds.getX()),
-                                      xToEditTime(bounds.getRight()));
+        const juce::Range<double> editTimes(xToEditTime(bounds.getX()),
+                                            xToEditTime(bounds.getRight()));
 
         times = (editTimes + (numLoops * loopRange.getLength())) - timeStarted;
     }
@@ -386,7 +395,7 @@ void RecordingClipComponent::updatePosition()
                 punchInTime >= 0 ?
                         punchInTime :
                         edit.getTransport().getTimeWhenStarted();
-        double t2 = jmax(t1, playhead->getUnloopedPosition());
+        double t2 = juce::jmax(t1, playhead->getUnloopedPosition());
 
         if (playhead->isLooping())
         {
@@ -394,7 +403,7 @@ void RecordingClipComponent::updatePosition()
 
             if (t2 >= loopTimes.end)
             {
-                t1 = jmin(t1, loopTimes.start);
+                t1 = juce::jmin(t1, loopTimes.start);
                 t2 = loopTimes.end;
             }
         }
@@ -404,12 +413,12 @@ void RecordingClipComponent::updatePosition()
             auto in = mr.getStart();
             auto out = mr.getEnd();
 
-            t1 = jlimit(in, out, t1);
-            t2 = jlimit(in, out, t2);
+            t1 = juce::jlimit(in, out, t1);
+            t2 = juce::jlimit(in, out, t2);
         }
 
-        t1 = jmax(t1, editViewState.viewX1.get());
-        t2 = jmin(t2, editViewState.viewX2.get());
+        t1 = juce::jmax(t1, editViewState.viewX1.get());
+        t2 = juce::jmin(t2, editViewState.viewX2.get());
 
         if (auto p = getParentComponent())
         {
@@ -423,4 +432,5 @@ void RecordingClipComponent::updatePosition()
 
     setBounds({});
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

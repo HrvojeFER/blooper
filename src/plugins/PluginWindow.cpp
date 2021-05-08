@@ -1,11 +1,7 @@
 #include <blooper/plugins/PluginWindow.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 #if JUCE_LINUX
 constexpr bool shouldAddPluginWindowToDesktop = false;
@@ -16,7 +12,7 @@ constexpr bool shouldAddPluginWindowToDesktop = true;
 PluginWindow::PluginWindow(te::Plugin& plug)
     : DocumentWindow(
               plug.getName(),
-              Colours::black,
+              juce::Colours::black,
               DocumentWindow::closeButton,
               shouldAddPluginWindowToDesktop),
       plugin(plug),
@@ -82,7 +78,7 @@ void PluginWindow::setEditor(std::unique_ptr<PluginEditor> newEditor)
     }
 }
 
-std::unique_ptr<Component> PluginWindow::create(te::Plugin& plugin)
+std::unique_ptr<juce::Component> PluginWindow::create(te::Plugin& plugin)
 {
     if (auto externalPlugin = dynamic_cast<te::ExternalPlugin*>(&plugin))
         if (externalPlugin->getAudioPluginInstance() == nullptr)
@@ -102,7 +98,7 @@ std::unique_ptr<Component> PluginWindow::create(te::Plugin& plugin)
 #if JUCE_WINDOWS && JUCE_WIN_PER_MONITOR_DPI_AWARE
         if (!isDPIAware(plugin))
         {
-            ScopedDPIAwarenessDisabler disableDPIAwareness;
+            juce::ScopedDPIAwarenessDisabler disableDPIAwareness;
             w = std::make_unique<PluginWindow>(plugin);
         }
         else
@@ -138,7 +134,7 @@ void PluginWindow::recreateEditorAsync()
 {
     setEditor(nullptr);
 
-    Timer::callAfterDelay(50, [this, sp = SafePointer<Component>(this)] {
+    juce::Timer::callAfterDelay(50, [this, sp = SafePointer<Component>(this)] {
         if (sp != nullptr)
             recreateEditor();
     });
@@ -149,4 +145,5 @@ void PluginWindow::moved()
     plugin.windowState->lastWindowBounds = getBounds();
     plugin.edit.pluginChanged(plugin);
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

@@ -1,7 +1,8 @@
 #include <blooper/plugins/PluginComponent.hpp>
 
-namespace blooper
-{
+
+BLOOPER_NAMESPACE_BEGIN
+
 PluginComponent::PluginComponent(EditViewState& evs, te::Plugin::Ptr p)
     : editViewState(evs), plugin(std::move(p))
 {
@@ -11,12 +12,12 @@ PluginComponent::PluginComponent(EditViewState& evs, te::Plugin::Ptr p)
                     1));
 }
 
-void PluginComponent::clicked(const ModifierKeys& modifiers)
+void PluginComponent::clicked(const juce::ModifierKeys& modifiers)
 {
     editViewState.selectionManager.selectOnly(plugin.get());
     if (modifiers.isPopupMenu())
     {
-        PopupMenu m;
+        juce::PopupMenu m;
         m.addItem("Delete",
                   [this] { plugin->deleteFromParent(); });
         m.showAt(this);
@@ -26,4 +27,5 @@ void PluginComponent::clicked(const ModifierKeys& modifiers)
         plugin->showWindowExplicitly();
     }
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

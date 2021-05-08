@@ -1,11 +1,7 @@
 #include <blooper/edit/EditComponent.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 EditComponent::EditComponent(te::Edit& e, te::SelectionManager& sm)
     : edit(e), editViewState(e, sm)
@@ -27,17 +23,17 @@ EditComponent::~EditComponent()
 void EditComponent::valueTreePropertyChanged(
         juce::ValueTree& v, const juce::Identifier& i)
 {
-    if (v.hasType(IDs::EDITVIEWSTATE))
+    if (v.hasType(id::editViewState))
     {
-        if (i == IDs::viewX1 ||
-            i == IDs::viewX2 ||
-            i == IDs::showHeaders ||
-            i == IDs::showFooters ||
-            i == IDs::viewY)
+        if (i == id::viewX1 ||
+            i == id::viewX2 ||
+            i == id::showHeaders ||
+            i == id::showFooters ||
+            i == id::viewY)
         {
             markAndUpdate(updateZoom);
         }
-        else if (i == IDs::drawWaveforms)
+        else if (i == id::drawWaveforms)
         {
             repaint();
         }
@@ -92,8 +88,10 @@ void EditComponent::resized()
                     .withTrimmedLeft(headerWidth)
                     .withTrimmedRight(footerWidth));
 
-    int y = roundToInt(editViewState.viewY.get());
-    for (int i = 0; i < jmin(headers.size(), tracks.size()); i++)
+    int y = juce::roundToInt(editViewState.viewY.get());
+    for (int i = 0;
+         i < juce::jmin(headers.size(), tracks.size());
+         i++)
     {
         auto h = headers[i];
         auto t = tracks[i];
@@ -171,4 +169,5 @@ void EditComponent::buildTracks()
     playhead.toFront(false);
     resized();
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

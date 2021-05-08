@@ -1,9 +1,9 @@
 #include <blooper/plugins/PluginMenu.hpp>
 
 
-namespace blooper
-{
-PluginTreeItem::PluginTreeItem(const PluginDescription& d)
+BLOOPER_NAMESPACE_BEGIN
+
+PluginTreeItem::PluginTreeItem(const juce::PluginDescription& d)
     : desc(d),
       xmlType(te::ExternalPlugin::xmlTypeName),
       isPlugin(true)
@@ -12,11 +12,11 @@ PluginTreeItem::PluginTreeItem(const PluginDescription& d)
 }
 
 PluginTreeItem::PluginTreeItem(
-        const String& uniqueId,
-        const String& name,
-        String        xmlType_,
-        bool          isSynth,
-        bool          isPlugin_)
+        const juce::String& uniqueId,
+        const juce::String& name,
+        juce::String        xmlType_,
+        bool                isSynth,
+        bool                isPlugin_)
     : xmlType(std::move(xmlType_)),
       isPlugin(isPlugin_)
 {
@@ -27,7 +27,7 @@ PluginTreeItem::PluginTreeItem(
             (uniqueId.endsWith(internalPluginUniqueIdSuffix) ||
              xmlType == te::RackInstance::xmlTypeName) ?
                     internalPluginFormatName :
-                    String();
+                    juce::String();
     desc.category = xmlType;
     desc.isInstrument = isSynth;
 }
@@ -39,9 +39,9 @@ te::Plugin::Ptr PluginTreeItem::create(te::Edit& ed) const
 
 
 PluginTreeGroup::PluginTreeGroup(
-        te::Edit&                    edit,
-        KnownPluginList::PluginTree& tree,
-        te::Plugin::Type             types)
+        te::Edit&                          edit,
+        juce::KnownPluginList::PluginTree& tree,
+        te::Plugin::Type                   types)
     : name("Plugins")
 {
     {
@@ -60,7 +60,9 @@ PluginTreeGroup::PluginTreeGroup(
 
         racksFolder->addSubItem(
                 new PluginTreeItem(
-                        String(te::RackType::getRackPresetPrefix()) + "-1",
+                        juce::String(
+                                te::RackType::getRackPresetPrefix()) +
+                                "-1",
                         TRANS("Create New Empty Rack"),
                         te::RackInstance::xmlTypeName,
                         false,
@@ -70,7 +72,7 @@ PluginTreeGroup::PluginTreeGroup(
         for (auto rf : edit.getRackList().getTypes())
             racksFolder->addSubItem(
                     new PluginTreeItem(
-                            "RACK__" + String(i++),
+                            "RACK__" + juce::String(i++),
                             rf->rackName,
                             te::RackInstance::xmlTypeName,
                             false,
@@ -80,12 +82,12 @@ PluginTreeGroup::PluginTreeGroup(
     populateFrom(tree);
 }
 
-PluginTreeGroup::PluginTreeGroup(String s) : name(std::move(s))
+PluginTreeGroup::PluginTreeGroup(juce::String s) : name(std::move(s))
 {
     jassert(name.isNotEmpty());
 }
 
-void PluginTreeGroup::populateFrom(KnownPluginList::PluginTree& tree)
+void PluginTreeGroup::populateFrom(juce::KnownPluginList::PluginTree& tree)
 {
     for (auto subTree : tree.subFolders)
     {
@@ -108,7 +110,7 @@ void addInternalPlugin(PluginTreeBase& item, int& num, bool synth = false)
 {
     item.addSubItem(
             new PluginTreeItem(
-                    String(num++) + internalPluginUniqueIdSuffix,
+                    juce::String(num++) + internalPluginUniqueIdSuffix,
                     TRANS(FilterClass::getPluginName()),
                     FilterClass::xmlTypeName,
                     synth,
@@ -153,4 +155,5 @@ void PluginTreeGroup::createBuiltInItems(int& num, te::Plugin::Type types)
             addSubItem(new PluginTreeItem(d));
 #endif
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

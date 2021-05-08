@@ -2,26 +2,22 @@
 #define BLOOPER_UTILITIES_HPP
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 namespace Helpers
 {
 static inline void addAndMakeVisible(
-        Component&               parent,
-        const Array<Component*>& children)
+        juce::Component&                     parent,
+        const juce::Array<juce::Component*>& children)
 {
     for (auto c : children)
         parent.addAndMakeVisible(c);
 }
 
-static inline File findRecentEdit(const File& dir)
+static inline juce::File findRecentEdit(const juce::File& dir)
 {
     auto files = dir.findChildFiles(
-            File::findFiles,
+            juce::File::findFiles,
             false,
             "*.tracktionedit");
 
@@ -40,14 +36,14 @@ namespace EngineHelpers
 {
 static inline void showAudioDeviceSettings(te::Engine& engine)
 {
-    DialogWindow::LaunchOptions o;
+    juce::DialogWindow::LaunchOptions o;
     o.dialogTitle = TRANS("Audio Settings");
     o.dialogBackgroundColour =
-            LookAndFeel::getDefaultLookAndFeel()
-                    .findColour(ResizableWindow::backgroundColourId);
+            juce::LookAndFeel::getDefaultLookAndFeel()
+                    .findColour(juce::ResizableWindow::backgroundColourId);
 
     o.content.setOwned(
-            new AudioDeviceSelectorComponent(
+            new juce::AudioDeviceSelectorComponent(
                     engine.getDeviceManager().deviceManager,
                     0,
                     512,
@@ -64,15 +60,15 @@ static inline void showAudioDeviceSettings(te::Engine& engine)
 
 static inline void showPluginSettings(te::Engine& engine)
 {
-    DialogWindow::LaunchOptions o;
+    juce::DialogWindow::LaunchOptions o;
     o.dialogTitle = TRANS("Plugins");
-    o.dialogBackgroundColour = Colours::black;
+    o.dialogBackgroundColour = juce::Colours::black;
     o.escapeKeyTriggersCloseButton = true;
     o.useNativeTitleBar = true;
     o.resizable = true;
     o.useBottomRightCornerResizer = true;
 
-    auto v = new PluginListComponent(
+    auto v = new juce::PluginListComponent(
             engine.getPluginManager().pluginFormatManager,
             engine.getPluginManager().knownPluginList,
             engine.getTemporaryFileManager()
@@ -175,9 +171,9 @@ createPluginTree(te::Engine& engine)
 {
     auto& list = engine.getPluginManager().knownPluginList;
 
-    if (auto tree = KnownPluginList::createTree(
+    if (auto tree = juce::KnownPluginList::createTree(
                 list.getTypes(),
-                KnownPluginList::sortByManufacturer))
+                juce::KnownPluginList::sortByManufacturer))
         return tree;
 
     return {};
@@ -187,7 +183,7 @@ createPluginTree(te::Engine& engine)
 
 namespace
 {
-class FlaggedAsyncUpdater : public AsyncUpdater
+class FlaggedAsyncUpdater : public juce::AsyncUpdater
 {
 public:
     void markAndUpdate(bool& flag)
@@ -206,7 +202,8 @@ public:
     }
 };
 } // namespace
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_UTILITIES_HPP

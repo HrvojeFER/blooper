@@ -1,8 +1,8 @@
 #include <blooper/edit/TrackComponents.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 TrackHeaderComponent::TrackHeaderComponent(
         EditViewState& evs,
         te::Track::Ptr t)
@@ -16,18 +16,24 @@ TrackHeaderComponent::TrackHeaderComponent(
              &soloButton,
              &inputButton});
 
-    armButton.setColour(TextButton::buttonOnColourId, Colours::red);
-    muteButton.setColour(TextButton::buttonOnColourId, Colours::red);
-    soloButton.setColour(TextButton::buttonOnColourId, Colours::green);
+    armButton.setColour(
+            juce::TextButton::buttonOnColourId,
+            juce::Colours::red);
+    muteButton.setColour(
+            juce::TextButton::buttonOnColourId,
+            juce::Colours::red);
+    soloButton.setColour(
+            juce::TextButton::buttonOnColourId,
+            juce::Colours::green);
 
     trackName.setText(
             track->getName(),
-            dontSendNotification);
+            juce::dontSendNotification);
 
     if (auto at = dynamic_cast<te::AudioTrack*>(track.get()))
     {
         inputButton.onClick = [this, at] {
-            PopupMenu m;
+            juce::PopupMenu m;
 
             if (EngineHelpers::trackHasInput(*at))
             {
@@ -129,13 +135,15 @@ TrackHeaderComponent::TrackHeaderComponent(
                     !EngineHelpers::isTrackArmed(*at));
             armButton.setToggleState(
                     EngineHelpers::isTrackArmed(*at),
-                    dontSendNotification);
+                    juce::dontSendNotification);
         };
 
         muteButton.onClick = [at] { at->setMute(!at->isMuted(false)); };
         soloButton.onClick = [at] { at->setSolo(!at->isSolo(false)); };
 
-        armButton.setToggleState(EngineHelpers::isTrackArmed(*at), dontSendNotification);
+        armButton.setToggleState(
+                EngineHelpers::isTrackArmed(*at),
+                juce::dontSendNotification);
     }
     else
     {
@@ -170,11 +178,11 @@ void TrackHeaderComponent::valueTreePropertyChanged(
         if (i == te::IDs::mute)
             muteButton.setToggleState(
                     (bool) v[i],
-                    dontSendNotification);
+                    juce::dontSendNotification);
         else if (i == te::IDs::solo)
             soloButton.setToggleState(
                     (bool) v[i],
-                    dontSendNotification);
+                    juce::dontSendNotification);
     }
     else if (v.hasType(te::IDs::INPUTDEVICES) ||
              v.hasType(te::IDs::INPUTDEVICE) ||
@@ -186,26 +194,26 @@ void TrackHeaderComponent::valueTreePropertyChanged(
                     EngineHelpers::trackHasInput(*at));
             armButton.setToggleState(
                     EngineHelpers::isTrackArmed(*at),
-                    dontSendNotification);
+                    juce::dontSendNotification);
         }
     }
 }
 
-void TrackHeaderComponent::paint(Graphics& g)
+void TrackHeaderComponent::paint(juce::Graphics& g)
 {
-    g.setColour(Colours::grey);
+    g.setColour(juce::Colours::grey);
     g.fillRect(getLocalBounds().withTrimmedRight(2));
 
     if (editViewState.selectionManager.isSelected(track.get()))
     {
-        g.setColour(Colours::red);
+        g.setColour(juce::Colours::red);
         g.drawRect(
                 getLocalBounds().withTrimmedRight(-4),
                 2);
     }
 }
 
-void TrackHeaderComponent::mouseDown(const MouseEvent&)
+void TrackHeaderComponent::mouseDown(const juce::MouseEvent&)
 {
     editViewState.selectionManager.selectOnly(track.get());
 }
@@ -280,20 +288,19 @@ void TrackFooterComponent::valueTreeChildOrderChanged(
     markAndUpdate(updatePlugins);
 }
 
-void TrackFooterComponent::paint(Graphics& g)
+void TrackFooterComponent::paint(juce::Graphics& g)
 {
-    g.setColour(Colours::grey);
+    g.setColour(juce::Colours::grey);
     g.fillRect(getLocalBounds().withTrimmedLeft(2));
 
     if (editViewState.selectionManager.isSelected(track.get()))
     {
-        g.setColour(Colours::red);
-        g.drawRect(getLocalBounds().withTrimmedLeft(-4),
-                   2);
+        g.setColour(juce::Colours::red);
+        g.drawRect(getLocalBounds().withTrimmedLeft(-4), 2);
     }
 }
 
-void TrackFooterComponent::mouseDown(const MouseEvent&)
+void TrackFooterComponent::mouseDown(const juce::MouseEvent&)
 {
     editViewState.selectionManager.selectOnly(track.get());
 }
@@ -351,13 +358,13 @@ TrackComponent::~TrackComponent()
     track->edit.getTransport().removeChangeListener(this);
 }
 
-void TrackComponent::paint(Graphics& g)
+void TrackComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(Colours::grey);
+    g.fillAll(juce::Colours::grey);
 
     if (editViewState.selectionManager.isSelected(track.get()))
     {
-        g.setColour(Colours::red);
+        g.setColour(juce::Colours::red);
 
         auto rc = getLocalBounds();
         if (editViewState.showHeaders)
@@ -369,12 +376,12 @@ void TrackComponent::paint(Graphics& g)
     }
 }
 
-void TrackComponent::mouseDown(const MouseEvent&)
+void TrackComponent::mouseDown(const juce::MouseEvent&)
 {
     editViewState.selectionManager.selectOnly(track.get());
 }
 
-void TrackComponent::changeListenerCallback(ChangeBroadcaster*)
+void TrackComponent::changeListenerCallback(juce::ChangeBroadcaster*)
 {
     markAndUpdate(updateRecordClips);
 }
@@ -490,4 +497,5 @@ void TrackComponent::buildRecordClips()
         recordingClip = nullptr;
     }
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

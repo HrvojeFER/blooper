@@ -5,24 +5,20 @@
 #include <blooper/internal/internal.hpp>
 
 
-namespace blooper
-{
-using namespace juce;
-namespace te = tracktion_engine;
-
+BLOOPER_NAMESPACE_BEGIN
 
 class PlayheadComponent :
-    public Component,
-    private Timer
+    public juce::Component,
+    private juce::Timer
 {
 public:
     [[maybe_unused]] PlayheadComponent(te::Edit&, EditViewState&);
 
-    void paint(Graphics& g) override;
+    void paint(juce::Graphics& g) override;
     bool hitTest(int x, int y) override;
-    void mouseDrag(const MouseEvent&) override;
-    void mouseDown(const MouseEvent&) override;
-    void mouseUp(const MouseEvent&) override;
+    void mouseDrag(const juce::MouseEvent&) override;
+    void mouseDown(const juce::MouseEvent&) override;
+    void mouseUp(const juce::MouseEvent&) override;
 
 
 private:
@@ -34,7 +30,8 @@ private:
     int  xPosition = 0;
     bool firstTimer = true;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_PLAYHEAD_COMPONENT_HPP

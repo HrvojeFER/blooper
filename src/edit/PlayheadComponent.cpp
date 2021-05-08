@@ -1,8 +1,8 @@
 #include <blooper/edit/PlayheadComponent.hpp>
 
 
-namespace blooper
-{
+BLOOPER_NAMESPACE_BEGIN
+
 [[maybe_unused]] PlayheadComponent::PlayheadComponent(
         te::Edit& e, EditViewState& evs)
     : edit(e), editViewState(evs)
@@ -10,9 +10,9 @@ namespace blooper
     startTimerHz(30);
 }
 
-void PlayheadComponent::paint(Graphics& g)
+void PlayheadComponent::paint(juce::Graphics& g)
 {
-    g.setColour(Colours::yellow);
+    g.setColour(juce::Colours::yellow);
     g.drawRect(xPosition, 0, 2, getHeight());
 }
 
@@ -24,17 +24,17 @@ bool PlayheadComponent::hitTest(int x, int)
     return false;
 }
 
-void PlayheadComponent::mouseDown(const MouseEvent&)
+void PlayheadComponent::mouseDown(const juce::MouseEvent&)
 {
     edit.getTransport().setUserDragging(true);
 }
 
-void PlayheadComponent::mouseUp(const MouseEvent&)
+void PlayheadComponent::mouseUp(const juce::MouseEvent&)
 {
     edit.getTransport().setUserDragging(false);
 }
 
-void PlayheadComponent::mouseDrag(const MouseEvent& e)
+void PlayheadComponent::mouseDrag(const juce::MouseEvent& e)
 {
     double t = editViewState.xToTime(e.x, getWidth());
     edit.getTransport().setCurrentPosition(t);
@@ -48,7 +48,7 @@ void PlayheadComponent::timerCallback()
         // On Linux, don't set the mouse cursor until
         // after the Component has appeared
         firstTimer = false;
-        setMouseCursor(MouseCursor::LeftRightResizeCursor);
+        setMouseCursor(juce::MouseCursor::LeftRightResizeCursor);
     }
 
     int newX = editViewState.timeToX(
@@ -56,11 +56,14 @@ void PlayheadComponent::timerCallback()
             getWidth());
     if (newX != xPosition)
     {
-        repaint(jmin(newX, xPosition) - 1,
+        repaint(juce::jmin(newX, xPosition) - 1,
                 0,
-                jmax(newX, xPosition) - jmin(newX, xPosition) + 3,
+                juce::jmax(newX, xPosition) -
+                        juce::jmin(newX, xPosition) +
+                        3,
                 getHeight());
         xPosition = newX;
     }
 }
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END

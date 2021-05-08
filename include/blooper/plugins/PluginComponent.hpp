@@ -5,22 +5,23 @@
 #include <blooper/internal/internal.hpp>
 
 
-namespace blooper
-{
-class PluginComponent : public TextButton
+BLOOPER_NAMESPACE_BEGIN
+
+class PluginComponent : public juce::TextButton
 {
 public:
     PluginComponent(EditViewState&, te::Plugin::Ptr);
     ~PluginComponent() override = default;
 
-    void clicked(const ModifierKeys& modifiers) override;
+    void clicked(const juce::ModifierKeys& modifiers) override;
 
 
 private:
     EditViewState&  editViewState;
     te::Plugin::Ptr plugin;
 };
-} // namespace blooper
+
+BLOOPER_NAMESPACE_END
 
 
 #endif // BLOOPER_PLUGIN_COMPONENT_HPP
