@@ -2,6 +2,9 @@
 #define BLOOPER_PLUGIN_WINDOW_HPP
 
 
+#include <blooper/internal/internal.hpp>
+
+
 namespace blooper
 {
 using namespace juce;

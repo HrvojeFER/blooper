@@ -1,4 +1,4 @@
-#include <blooper/PluginWindow.hpp>
+#include <blooper/plugins/PluginWindow.hpp>
 
 
 namespace blooper

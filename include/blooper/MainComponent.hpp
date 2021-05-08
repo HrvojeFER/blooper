@@ -2,13 +2,12 @@
 #define BLOOPER_MAIN_COMPONENT_HPP
 
 
-#include <blooper/internal/utilities.hpp>
+#include <blooper/internal/internal.hpp>
+#include <blooper/plugins/plugins.hpp>
 
-#include <blooper/EditComponent.hpp>
-#include <blooper/ToolbarComponent.hpp>
-#include <blooper/RackComponent.hpp>
-
-#include <blooper/PluginWindow.hpp>
+#include <blooper/edit/EditComponent.hpp>
+#include <blooper/toolbar/ToolbarComponent.hpp>
+#include <blooper/rack/RackComponent.hpp>
 
 
 namespace blooper
