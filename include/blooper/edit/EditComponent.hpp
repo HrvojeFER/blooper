@@ -13,7 +13,7 @@ BLOOPER_NAMESPACE_BEGIN
 class EditComponent :
     public juce::Component,
     private te::ValueTreeAllEventListener,
-    private FlaggedAsyncUpdater,
+    private utils::FlaggedAsyncUpdater,
     private juce::ChangeListener
 {
 public:

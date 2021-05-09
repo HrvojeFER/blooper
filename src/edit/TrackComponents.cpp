@@ -8,9 +8,10 @@ TrackHeaderComponent::TrackHeaderComponent(
         te::Track::Ptr t)
     : editViewState(evs), track(std::move(t))
 {
-    Helpers::addAndMakeVisible(
+    utils::addAndMakeVisible(
             *this,
-            {&trackName,
+            {&addClipButton,
+             &trackName,
              &armButton,
              &muteButton,
              &soloButton,
@@ -29,15 +30,17 @@ TrackHeaderComponent::TrackHeaderComponent(
     trackName.setText(
             track->getName(),
             juce::dontSendNotification);
+    trackName.setEditable(true);
+    trackName.onTextChange = [this] { track->setName(trackName.getText()); };
 
     if (auto at = dynamic_cast<te::AudioTrack*>(track.get()))
     {
         inputButton.onClick = [this, at] {
             juce::PopupMenu m;
 
-            if (EngineHelpers::trackHasInput(*at))
+            if (ext::track::trackHasInput(*at))
             {
-                bool ticked = EngineHelpers::isInputMonitoringEnabled(*at);
+                bool ticked = ext::track::isInputMonitoringEnabled(*at);
                 m.addItem(
                         1000,
                         "Input Monitoring",
@@ -90,9 +93,9 @@ TrackHeaderComponent::TrackHeaderComponent(
 
             if (res == 1000)
             {
-                EngineHelpers::enableInputMonitoring(
+                ext::track::enableInputMonitoring(
                         *at,
-                        !EngineHelpers::isInputMonitoringEnabled(*at));
+                        !ext::track::isInputMonitoringEnabled(*at));
             }
             else if (res >= 100)
             {
@@ -130,19 +133,27 @@ TrackHeaderComponent::TrackHeaderComponent(
             }
         };
         armButton.onClick = [this, at] {
-            EngineHelpers::armTrack(
+            ext::track::armTrack(
                     *at,
-                    !EngineHelpers::isTrackArmed(*at));
+                    !ext::track::isTrackArmed(*at));
             armButton.setToggleState(
-                    EngineHelpers::isTrackArmed(*at),
+                    ext::track::isTrackArmed(*at),
                     juce::dontSendNotification);
         };
+        addClipButton.onClick = [at] {
+            ext::track::showClipLoader(*at);
+        };
 
-        muteButton.onClick = [at] { at->setMute(!at->isMuted(false)); };
-        soloButton.onClick = [at] { at->setSolo(!at->isSolo(false)); };
+
+        muteButton.onClick = [at] {
+            at->setMute(!at->isMuted(false));
+        };
+        soloButton.onClick = [at] {
+            at->setSolo(!at->isSolo(false));
+        };
 
         armButton.setToggleState(
-                EngineHelpers::isTrackArmed(*at),
+                ext::track::isTrackArmed(*at),
                 juce::dontSendNotification);
     }
     else
@@ -156,9 +167,7 @@ TrackHeaderComponent::TrackHeaderComponent(
     inputsState = track->edit.state.getChildWithName(te::IDs::INPUTDEVICES);
     inputsState.addListener(this);
 
-    // this is JUCE code so i hope its ok
-    // it shouldn't trigger any warning errors because CLion has
-    // custom inspections for this stuff
+    // this is JUCE code...
     valueTreePropertyChanged(track->state, te::IDs::mute);
     valueTreePropertyChanged(track->state, te::IDs::solo);
     valueTreePropertyChanged(inputsState, te::IDs::targetIndex);
@@ -191,9 +200,9 @@ void TrackHeaderComponent::valueTreePropertyChanged(
         if (auto at = dynamic_cast<te::AudioTrack*>(track.get()))
         {
             armButton.setEnabled(
-                    EngineHelpers::trackHasInput(*at));
+                    ext::track::trackHasInput(*at));
             armButton.setToggleState(
-                    EngineHelpers::isTrackArmed(*at),
+                    ext::track::isTrackArmed(*at),
                     juce::dontSendNotification);
         }
     }
@@ -223,12 +232,14 @@ void TrackHeaderComponent::resized()
     auto r = getLocalBounds().reduced(4);
     trackName.setBounds(
             r.removeFromTop(
-                    r.getHeight() / 2));
+                    r.getHeight() / 3));
 
     int w = r.getHeight();
     inputButton.setBounds(r.removeFromLeft(w));
     r.removeFromLeft(2);
     armButton.setBounds(r.removeFromLeft(w));
+    r.removeFromLeft(2);
+    addClipButton.setBounds(r.removeFromLeft(w));
     r.removeFromLeft(2);
     muteButton.setBounds(r.removeFromLeft(w));
     r.removeFromLeft(2);

@@ -19,8 +19,9 @@ public:
     ~TrackHeaderComponent() override;
 
 
-    void paint(juce::Graphics& g) override;
     void mouseDown(const juce::MouseEvent& e) override;
+
+    void paint(juce::Graphics& g) override;
     void resized() override;
 
 
@@ -39,6 +40,7 @@ private:
     juce::Label     trackName;
 
     juce::TextButton
+            addClipButton{"C"},
             armButton{"A"},
             muteButton{"M"},
             soloButton{"S"},
@@ -48,7 +50,7 @@ private:
 
 class TrackFooterComponent :
     public juce::Component,
-    private FlaggedAsyncUpdater,
+    private utils::FlaggedAsyncUpdater,
     private te::ValueTreeAllEventListener
 {
 public:
@@ -95,7 +97,7 @@ private:
 class TrackComponent :
     public juce::Component,
     private te::ValueTreeAllEventListener,
-    private FlaggedAsyncUpdater,
+    private utils::FlaggedAsyncUpdater,
     private juce::ChangeListener
 {
 public:

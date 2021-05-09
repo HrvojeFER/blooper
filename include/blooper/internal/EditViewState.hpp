@@ -2,7 +2,7 @@
 #define BLOOPER_EDIT_VIEW_STATE_HPP
 
 
-#include <blooper/internal/utilities.hpp>
+#include <blooper/internal/utils.hpp>
 #include <blooper/internal/id.hpp>
 
 
@@ -98,7 +98,9 @@ public:
 
     [[nodiscard]] int timeToX(double time, int width) const
     {
-        return juce::roundToInt(((time - viewX1) * width) / (viewX2 - viewX1));
+        return juce::roundToInt(
+                ((time - viewX1) * width) /
+                (viewX2 - viewX1));
     }
 
     [[nodiscard]] double xToTime(int x, int width) const

@@ -7,6 +7,7 @@
 
 #include <blooper/edit/EditComponent.hpp>
 #include <blooper/toolbar/ToolbarComponent.hpp>
+#include <blooper/browser/BrowserComponent.hpp>
 #include <blooper/rack/RackComponent.hpp>
 
 
@@ -20,12 +21,12 @@ public:
     MainComponent()
     {
         settingsButton.onClick = [this] {
-            EngineHelpers::showAudioDeviceSettings(engine);
+            ext::engine::showAudioDeviceSettings(engine);
             createTracksAndAssignInputs();
         };
 
         pluginsButton.onClick = [this] {
-            EngineHelpers::showPluginSettings(engine);
+            ext::engine::showPluginSettings(engine);
         };
 
         newEditButton.onClick = [this] {
@@ -60,7 +61,7 @@ public:
                          .getChildFile("Blooper");
         d.createDirectory();
 
-        auto f = Helpers::findRecentEdit(d);
+        auto f = utils::findRecentEdit(d);
         if (f.existsAsFile())
             createOrLoadEdit(f);
         else
@@ -165,7 +166,7 @@ private:
     {
         playPauseButton.onClick = [this] {
             bool wasRecording = edit->getTransport().isRecording();
-            EngineHelpers::togglePlay(*edit);
+            ext::edit::togglePlay(*edit);
             if (wasRecording)
                 tracktion_engine::EditFileOperations(*edit)
                         .save(true,
@@ -175,7 +176,7 @@ private:
 
         recordButton.onClick = [this] {
             bool wasRecording = edit->getTransport().isRecording();
-            EngineHelpers::toggleRecord(*edit);
+            ext::edit::toggleRecord(*edit);
             if (wasRecording)
                 tracktion_engine::EditFileOperations(*edit)
                         .save(true,
@@ -321,7 +322,7 @@ private:
             if (instance->getInputDevice().getDeviceType() ==
                 tracktion_engine::InputDevice::waveDevice)
             {
-                if (auto t = EngineHelpers::getOrInsertAudioTrackAt(
+                if (auto t = ext::edit::getOrInsertAudioTrackAt(
                             *edit, trackNum))
                 {
                     instance->setTargetTrack(*t, 0, true);

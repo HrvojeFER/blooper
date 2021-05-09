@@ -146,7 +146,7 @@ public:
 
 static inline te::Plugin::Ptr showMenuAndCreatePlugin(te::Edit& edit)
 {
-    if (auto tree = EngineHelpers::createPluginTree(edit.engine))
+    if (auto tree = ext::engine::createPluginTree(edit.engine))
     {
         PluginTreeGroup root(
                 edit,
