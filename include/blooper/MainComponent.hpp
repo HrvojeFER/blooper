@@ -8,18 +8,21 @@
 #include <blooper/edit/EditComponent.hpp>
 #include <blooper/toolbar/ToolbarComponent.hpp>
 #include <blooper/browser/BrowserComponent.hpp>
-#include <blooper/rack/RackComponent.hpp>
+#include <blooper/projects/ProjectMenu.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
 class MainComponent final :
     public juce::Component,
-    public juce::ChangeListener
+    public juce::ChangeListener,
+    private juce::Timer
 {
 public:
     MainComponent()
     {
+        startTimerHz(30);
+
         settingsButton.onClick = [this] {
             ext::engine::showAudioDeviceSettings(engine);
             createTracksAndAssignInputs();
@@ -52,6 +55,8 @@ public:
         addAndMakeVisible(clearTracksButton);
         addAndMakeVisible(deleteButton);
 
+        addAndMakeVisible(browser);
+
         addAndMakeVisible(showWaveformButton);
 
         deleteButton.setEnabled(false);
@@ -73,6 +78,17 @@ public:
 
 
         selectionManager.addChangeListener(this);
+
+        browser.onFileSelected = [this](const juce::File& file) {
+            auto sel = selectionManager.getSelectedObject(0);
+            if (auto track = dynamic_cast<te::AudioTrack*>(sel))
+                if (file.getFileExtension() == ".wav")
+                    track->insertWaveClip(
+                            file.getFileNameWithoutExtension(),
+                            file,
+                            {{0, 1.0}},
+                            false);
+        };
 
         setupButtons();
 
@@ -125,10 +141,18 @@ public:
         deleteButton.setBounds(
                 topR.removeFromLeft(w).reduced(2));
 
+        browser.setBounds(
+                r.removeFromLeft(
+                        int(r.getWidth() * 0.2)));
+
         topR = r.removeFromTop(30);
         showWaveformButton.setBounds(
                 topR.removeFromLeft(w * 2)
                         .reduced(2));
+        if (bpmProperty != nullptr)
+            bpmProperty->setBounds(
+                    topR.removeFromLeft(w * 2)
+                            .reduced(2));
 
         editNameLabel.setBounds(topR);
 
@@ -146,6 +170,14 @@ private:
 
     std::unique_ptr<tracktion_engine::Edit> edit;
     std::unique_ptr<EditComponent>          editComponent;
+
+
+    std::unique_ptr<juce::Value>                   bpmValue;
+    std::unique_ptr<juce::SliderPropertyComponent> bpmProperty;
+    double                                         bpm = 0;
+
+
+    BrowserComponent browser;
 
     juce::TextButton
             settingsButton{"Settings"},
@@ -293,6 +325,18 @@ private:
         editComponent->getEditViewState().showWaveDevices = true;
         addAndMakeVisible(*editComponent);
 
+        bpmValue = std::make_unique<juce::Value>(
+                editComponent->getEditViewState().bpm.getPropertyAsValue());
+        bpmProperty = std::make_unique<juce::SliderPropertyComponent>(
+                *bpmValue,
+                "bpm",
+                0.0,
+                200.0,
+                0.01);
+        addAndMakeVisible(*bpmProperty);
+
+        edit->getTransport().looping = true;
+
         resized();
     }
 
@@ -350,6 +394,17 @@ private:
                     dynamic_cast<te::Clip*>(sel) != nullptr ||
                     dynamic_cast<te::Track*>(sel) != nullptr ||
                     dynamic_cast<te::Plugin*>(sel));
+        }
+    }
+
+    void timerCallback() override
+    {
+        auto newBpm = double(bpmValue->getValue());
+        if (newBpm != bpm)
+        {
+            edit->getTransport().setLoopRange(
+                    {0, 60 / newBpm * 4});
+            bpm = newBpm;
         }
     }
 

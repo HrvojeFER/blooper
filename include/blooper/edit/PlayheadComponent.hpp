@@ -27,8 +27,10 @@ private:
     te::Edit&      edit;
     EditViewState& editViewState;
 
-    int  xPosition = 0;
     bool firstTimer = true;
+    int  xPosition = 0,
+        loopStart = 0,
+        loopEnd = 0;
 };
 
 BLOOPER_NAMESPACE_END

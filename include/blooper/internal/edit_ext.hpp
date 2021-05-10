@@ -32,6 +32,17 @@ static inline void toggleRecord(te::Edit& edit)
     else
         transport.record(false);
 }
+
+static inline te::Clip::Ptr getLongestClip(const te::Edit& edit)
+{
+    te::Clip::Ptr longest;
+    for (auto track : getClipTracks(edit))
+        for (auto clip : track->getClips())
+            if (clip->getLengthInBeats() > longest->getLengthInBeats())
+                longest = clip;
+
+    return longest;
+}
 } // namespace ext::edit
 
 BLOOPER_NAMESPACE_END

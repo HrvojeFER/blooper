@@ -27,6 +27,8 @@ static inline const juce::Identifier viewX1("viewX1");
 static inline const juce::Identifier viewX2("viewX2");
 static inline const juce::Identifier viewY("viewY");
 
+static inline const juce::Identifier bpm("bpm");
+
 
 #if __JETBRAINS_IDE__
     #pragma clang diagnostic pop

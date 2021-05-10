@@ -14,6 +14,10 @@ void PlayheadComponent::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::yellow);
     g.drawRect(xPosition, 0, 2, getHeight());
+
+    g.setColour(juce::Colours::red);
+    g.drawRect(loopStart, 0, 2, getHeight());
+    g.drawRect(loopEnd, 0, 2, getHeight());
 }
 
 bool PlayheadComponent::hitTest(int x, int)
@@ -54,15 +58,24 @@ void PlayheadComponent::timerCallback()
     int newX = editViewState.timeToX(
             edit.getTransport().getCurrentPosition(),
             getWidth());
-    if (newX != xPosition)
+
+    auto newLoopRange = edit.getTransport().getLoopRange();
+    auto newLoopStart = editViewState.timeToX(
+            newLoopRange.getStart(),
+            getWidth());
+    auto newLoopEnd = editViewState.timeToX(
+            newLoopRange.getEnd(),
+            getWidth());
+
+    if (newX != xPosition ||
+        newLoopStart != loopStart ||
+        newLoopEnd != loopEnd)
     {
-        repaint(juce::jmin(newX, xPosition) - 1,
-                0,
-                juce::jmax(newX, xPosition) -
-                        juce::jmin(newX, xPosition) +
-                        3,
-                getHeight());
+        repaint();
+
         xPosition = newX;
+        loopStart = newLoopStart;
+        loopEnd = newLoopEnd;
     }
 }
 

@@ -8,7 +8,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class RackComponent
+class RackComponent : public juce::Component
 {
 };
 

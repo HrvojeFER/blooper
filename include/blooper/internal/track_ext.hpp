@@ -119,6 +119,22 @@ static inline void showClipLoader(te::AudioTrack& t)
     launch.content.setOwned(clipBrowser);
     launch.launchAsync();
 }
+
+[[maybe_unused]] static inline void loopClips(
+        const te::ClipTrack& track,
+        te::EditTimeRange    range)
+{
+    for (auto clip : track.getClips())
+        clip->setLoopRange(range);
+}
+
+[[maybe_unused]] static inline void extendClips(
+        const te::ClipTrack& track,
+        double               to)
+{
+    for (auto clip : track.getClips())
+        clip->setLength(to, true);
+}
 } // namespace ext::track
 
 BLOOPER_NAMESPACE_END

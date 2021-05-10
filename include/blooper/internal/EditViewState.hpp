@@ -93,6 +93,13 @@ public:
                 id::viewY,
                 um,
                 0);
+
+
+        bpm.referTo(
+                state,
+                id::bpm,
+                um,
+                120.0);
     }
 
 
@@ -132,7 +139,9 @@ public:
     juce::CachedValue<double>
             viewX1,
             viewX2,
-            viewY;
+            viewY,
+
+            bpm;
 
     juce::ValueTree state;
 };

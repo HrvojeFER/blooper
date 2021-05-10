@@ -8,7 +8,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class ToolbarComponent
+class ToolbarComponent : public juce::Component
 {
 };
 
