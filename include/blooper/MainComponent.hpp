@@ -21,64 +21,30 @@ class MainComponent final :
 public:
     MainComponent()
     {
-        startTimerHz(30);
-
+        addAndMakeVisible(settingsButton);
         settingsButton.onClick = [this] {
             ext::engine::showAudioDeviceSettings(engine);
             createTracksAndAssignInputs();
         };
 
+        addAndMakeVisible(pluginsButton);
         pluginsButton.onClick = [this] {
             ext::engine::showPluginSettings(engine);
         };
 
-        newEditButton.onClick = [this] {
-            createOrLoadEdit();
-        };
-
-        updatePlayButtonText();
-        updateRecordButtonText();
-        editNameLabel.setJustificationType(juce::Justification::centred);
-
-
-        addAndMakeVisible(settingsButton);
-        addAndMakeVisible(pluginsButton);
-
-        addAndMakeVisible(newEditButton);
-        addAndMakeVisible(showEditButton);
-        addAndMakeVisible(editNameLabel);
-
         addAndMakeVisible(playPauseButton);
+        updatePlayButtonText();
+
         addAndMakeVisible(recordButton);
+        updateRecordButtonText();
+
+        addAndMakeVisible(deleteButton);
+        deleteButton.setEnabled(false);
 
         addAndMakeVisible(newTrackButton);
         addAndMakeVisible(clearTracksButton);
-        addAndMakeVisible(deleteButton);
 
         addAndMakeVisible(browser);
-
-        addAndMakeVisible(showWaveformButton);
-
-        deleteButton.setEnabled(false);
-
-
-        auto d = juce::File::getSpecialLocation(juce::File::tempDirectory)
-                         .getChildFile("Blooper");
-        d.createDirectory();
-
-        auto f = utils::findRecentEdit(d);
-        if (f.existsAsFile())
-            createOrLoadEdit(f);
-        else
-            createOrLoadEdit(
-                    d.getNonexistentChildFile(
-                            "Test",
-                            ".tracktionedit",
-                            false));
-
-
-        selectionManager.addChangeListener(this);
-
         browser.onFileSelected = [this](const juce::File& file) {
             auto sel = selectionManager.getSelectedObject(0);
             if (auto track = dynamic_cast<te::AudioTrack*>(sel))
@@ -90,8 +56,11 @@ public:
                             false);
         };
 
-        setupButtons();
+        addAndMakeVisible(showWaveformButton);
 
+        setupButtons();
+        selectionManager.addChangeListener(this);
+        startTimerHz(30);
         setSize(700, 500);
     }
 
@@ -101,6 +70,7 @@ public:
                 .save(true,
                       true,
                       false);
+
         engine.getTemporaryFileManager()
                 .getTempDirectory()
                 .deleteRecursively();
@@ -122,11 +92,6 @@ public:
         settingsButton.setBounds(
                 topR.removeFromLeft(w).reduced(2));
         pluginsButton.setBounds(
-                topR.removeFromLeft(w).reduced(2));
-
-        newEditButton.setBounds(
-                topR.removeFromLeft(w).reduced(2));
-        showEditButton.setBounds(
                 topR.removeFromLeft(w).reduced(2));
 
         playPauseButton.setBounds(
@@ -153,8 +118,6 @@ public:
             bpmProperty->setBounds(
                     topR.removeFromLeft(w * 2)
                             .reduced(2));
-
-        editNameLabel.setBounds(topR);
 
         if (editComponent != nullptr) editComponent->setBounds(r);
     }
@@ -272,47 +235,16 @@ private:
                             "Record");
     }
 
-    void createOrLoadEdit(juce::File editFile = {})
+    void setupEdit(te::Project& project)
     {
-        if (editFile == juce::File())
-        {
-            juce::FileChooser fc(
-                    "New Edit",
-                    juce::File::getSpecialLocation(
-                            juce::File::userDocumentsDirectory),
-                    "*.tracktionedit");
-            if (fc.browseForFileToSave(true))
-                editFile = fc.getResult();
-            else
-                return;
-        }
-
-        selectionManager.deselectAll();
-        editComponent = nullptr;
-
-        if (editFile.existsAsFile())
-            edit = tracktion_engine::loadEditFromFile(engine, editFile);
-        else
-            edit = tracktion_engine::createEmptyEdit(engine, editFile);
-
+        edit = ensureEdit(project, engine);
         edit->playInStopEnabled = true;
 
         auto& transport = edit->getTransport();
         transport.addChangeListener(this);
-
-        editNameLabel.setText(
-                editFile.getFileNameWithoutExtension(),
-                juce::dontSendNotification);
-        showEditButton.onClick = [this, editFile] {
-            tracktion_engine::EditFileOperations(*edit)
-                    .save(true,
-                          true,
-                          false);
-            editFile.revealToUser();
-        };
+        transport.looping = true;
 
         createTracksAndAssignInputs();
-
         tracktion_engine::EditFileOperations(*edit)
                 .save(true,
                       true,
@@ -334,8 +266,6 @@ private:
                 200.0,
                 0.01);
         addAndMakeVisible(*bpmProperty);
-
-        edit->getTransport().looping = true;
 
         resized();
     }
@@ -380,6 +310,7 @@ private:
         edit->restartPlayback();
     }
 
+
     void changeListenerCallback(juce::ChangeBroadcaster* source) override
     {
         if (edit != nullptr && source == &edit->getTransport())
@@ -407,6 +338,7 @@ private:
             bpm = newBpm;
         }
     }
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

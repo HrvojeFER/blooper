@@ -7,155 +7,102 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class ProjectTreeBase
+class ProjectMenu :
+    public juce::Component,
+    private juce::ListBoxModel
 {
 public:
-    virtual ~ProjectTreeBase() = default;
-    [[nodiscard]] virtual juce::String getUniqueName() const = 0;
+    explicit ProjectMenu(te::Engine& engine);
 
-    void addSubItem(ProjectTreeBase* itm)
-    {
-        subItems.add(itm);
-    }
-    int getNumSubItems()
-    {
-        return subItems.size();
-    }
-    ProjectTreeBase* getSubItem(int idx)
-    {
-        return subItems[idx];
-    }
-
-private:
-    juce::OwnedArray<ProjectTreeBase> subItems;
-};
+    using ProjectRef = te::Project::Ptr;
+    std::function<void(ProjectRef)> onOpen;
 
 
-class ProjectTreeItem : public ProjectTreeBase
-{
-public:
-    explicit ProjectTreeItem(const juce::ProjectDescription&);
+    void paint(juce::Graphics& g) override;
 
-    ProjectTreeItem(const juce::String& uniqueId,
-                    const juce::String& name,
-                    juce::String        xmlType,
-                    bool                isSynth,
-                    bool                isProject);
-
-    te::Project::Ptr create(te::Edit&) const;
-
-    [[nodiscard]] juce::String getUniqueName() const override
-    {
-        if (desc.fileOrIdentifier.startsWith(
-                    te::RackType::getRackPresetPrefix()))
-            return desc.fileOrIdentifier;
-
-        return desc.createIdentifierString();
-    }
-
-    juce::ProjectDescription desc;
-    juce::String             xmlType;
-    bool                     isProject = true;
-
-    JUCE_LEAK_DETECTOR(ProjectTreeItem)
-};
-
-
-class ProjectTreeGroup : public ProjectTreeBase
-{
-public:
-    explicit ProjectTreeGroup(juce::String);
-
-    ProjectTreeGroup(
-            te::Edit&,
-            juce::KnownProjectList::ProjectTree&,
-            te::Project::Type);
-
-
-    [[nodiscard]] juce::String getUniqueName() const override
-    {
-        return name;
-    }
-
-    juce::String name;
+    void resized() override;
 
 
 private:
-    void populateFrom(juce::KnownProjectList::ProjectTree&);
-    void createBuiltInItems(int& num, te::Project::Type);
+    te::Engine& engine;
+
+    struct ProjectWithFolder
+    {
+        juce::ValueTree  folder;
+        te::Project::Ptr project;
+    };
+
+    using ProjectArray = juce::Array<ProjectWithFolder>;
+    ProjectArray projects;
+
+    friend class juce::ListBox;
+    juce::ListBox list;
 
 
-    JUCE_LEAK_DETECTOR(ProjectTreeGroup)
+    juce::TextButton
+            addProjectButton{"Add..."},
+            deleteProjectButton{"Delete"},
+            openProjectButton{"Open..."};
+
+
+    int getNumRows() override;
+
+    void paintListBoxItem(
+            int             rowNumber,
+            juce::Graphics& g,
+            int             width,
+            int             height,
+            bool            rowIsSelected) override;
+
+
+    void listBoxItemClicked(
+            int                     row,
+            const juce::MouseEvent& event) override;
+
+    void listBoxItemDoubleClicked(
+            int                     row,
+            const juce::MouseEvent& event) override;
+
+    void deleteKeyPressed(int lastRowSelected) override;
+
+
+    friend ProjectArray findProjectsWithFolders(const juce::ValueTree& root);
+    friend ProjectArray findProjectsWithFolders(te::ProjectManager& manager);
 };
 
 
-class ProjectMenu : public juce::PopupMenu
+static ProjectMenu::ProjectArray findProjectsWithFolders(
+        const juce::ValueTree& root);
+
+static ProjectMenu::ProjectArray findProjectsWithFolders(
+        te::ProjectManager& manager);
+
+
+template<
+        typename TOnOpen,
+        decltype(std::declval<TOnOpen>()(
+                std::declval<ProjectMenu::ProjectRef>()))* = nullptr>
+[[maybe_unused]] void showProjectMenu(
+        te::Engine& engine,
+        TOnOpen     onOpen)
 {
-public:
-    ProjectMenu() = default;
+    juce::DialogWindow::LaunchOptions options;
+    options.dialogTitle = TRANS("Projects");
+    options.dialogBackgroundColour = juce::Colours::black;
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = true;
+    options.resizable = true;
+    options.useBottomRightCornerResizer = true;
 
-    explicit ProjectMenu(ProjectTreeGroup& node)
-    {
-        for (int i = 0; i < node.getNumSubItems(); ++i)
-            if (auto subNode =
-                        dynamic_cast<ProjectTreeGroup*>(node.getSubItem(i)))
-                addSubMenu(subNode->name,
-                           ProjectMenu(*subNode),
-                           true);
+    auto projectMenu = new ProjectMenu(engine);
+    projectMenu->setSize(800, 600);
+    options.content.setOwned(projectMenu);
+    auto window = options.launchAsync();
 
-        for (int i = 0; i < node.getNumSubItems(); ++i)
-            if (auto subType =
-                        dynamic_cast<ProjectTreeItem*>(node.getSubItem(i)))
-                addItem(subType->getUniqueName().hashCode(),
-                        subType->desc.name,
-                        true,
-                        false);
-    }
-
-    static ProjectTreeItem* findType(ProjectTreeGroup& node, int hash)
-    {
-        for (int i = 0; i < node.getNumSubItems(); ++i)
-            if (auto subNode =
-                        dynamic_cast<ProjectTreeGroup*>(node.getSubItem(i)))
-                if (auto* t = findType(*subNode, hash))
-                    return t;
-
-        for (int i = 0; i < node.getNumSubItems(); ++i)
-            if (auto t =
-                        dynamic_cast<ProjectTreeItem*>(node.getSubItem(i)))
-                if (t->getUniqueName().hashCode() == hash)
-                    return t;
-
-        return nullptr;
-    }
-
-    ProjectTreeItem* runMenu(ProjectTreeGroup& node)
-    {
-        int res = show();
-
-        if (res == 0)
-            return nullptr;
-
-        return findType(node, res);
-    }
-};
-
-
-static inline te::Edit showProjectMenuAndLoadEdit(te::Engine& engine)
-{
-    if (auto tree = ext::engine::createProjectTree(edit.engine))
-    {
-        ProjectTreeGroup root(
-                edit,
-                *tree,
-                te::Project::Type::allProjects);
-        ProjectMenu m(root);
-
-        if (auto type = m.runMenu(root))
-            return type->create(edit);
-    }
-
-    return {};
+    projectMenu->onOpen = [=](auto&& project) {
+        onOpen(std::forward<decltype(project)>(project));
+        window->~DialogWindow();
+    };
 }
 
 BLOOPER_NAMESPACE_END
