@@ -1,4 +1,4 @@
-#include <blooper/MainComponent.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -71,9 +71,8 @@ private:
                               .findColour(juce::ResizableWindow::backgroundColourId),
                       juce::DocumentWindow::allButtons)
         {
-            setUsingNativeTitleBar(true);
             setContentOwned(
-                    new MainComponent(),
+                    new BodyComponent(),
                     true);
 
 #if JUCE_IOS || JUCE_ANDROID

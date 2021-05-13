@@ -1,0 +1,14 @@
+#ifndef BLOOPER_INFO_COMPONENT_HPP
+#define BLOOPER_INFO_COMPONENT_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class InfoComponent : public juce::Component
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_INFO_COMPONENT_HPP

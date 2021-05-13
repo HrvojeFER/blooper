@@ -1,0 +1,14 @@
+#ifndef BLOOPER_TOOLBAR_COMPONENT_HPP
+#define BLOOPER_TOOLBAR_COMPONENT_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class HeaderToolbarComponent : public juce::Component
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif //BLOOPER_TOOLBAR_COMPONENT_HPP

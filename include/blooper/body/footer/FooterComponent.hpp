@@ -1,0 +1,14 @@
+#ifndef BLOOPER_FOOTER_COMPONENT_HPP
+#define BLOOPER_FOOTER_COMPONENT_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class FooterComponent : public juce::Component
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_FOOTER_COMPONENT_HPP

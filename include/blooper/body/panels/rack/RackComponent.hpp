@@ -1,0 +1,14 @@
+#ifndef BLOOPER_RACK_COMPONENT_HPP
+#define BLOOPER_RACK_COMPONENT_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class RackComponent : public juce::Component
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_RACK_COMPONENT_HPP

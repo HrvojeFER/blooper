@@ -1,0 +1,14 @@
+#ifndef BLOOPER_LOOK_AND_FEEL_HPP
+#define BLOOPER_LOOK_AND_FEEL_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class LookAndFeel : public juce::LookAndFeel_V4
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_LOOK_AND_FEEL_HPP

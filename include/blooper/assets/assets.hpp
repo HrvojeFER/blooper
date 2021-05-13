@@ -1,0 +1,4 @@
+#ifndef BLOOPER_ASSETS_HPP
+#define BLOOPER_ASSETS_HPP
+
+#endif // BLOOPER_ASSETS_HPP

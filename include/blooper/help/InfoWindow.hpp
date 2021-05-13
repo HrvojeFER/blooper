@@ -1,0 +1,14 @@
+#ifndef BLOOPER_INFO_WINDOW_HPP
+#define BLOOPER_INFO_WINDOW_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class InfoWindow : public juce::DocumentWindow
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_INFO_WINDOW_HPP

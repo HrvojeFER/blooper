@@ -1,0 +1,14 @@
+#ifndef BLOOPER_HEADER_COMPONENT_HPP
+#define BLOOPER_HEADER_COMPONENT_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class HeaderComponent : public juce::Component
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_HEADER_COMPONENT_HPP

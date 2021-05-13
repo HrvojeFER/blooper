@@ -1,0 +1,14 @@
+#ifndef BLOOPER_PLUGINS_MENU_WINDOW_HPP
+#define BLOOPER_PLUGINS_MENU_WINDOW_HPP
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+class PluginsMenuWindow : public juce::DocumentWindow
+{
+};
+
+BLOOPER_NAMESPACE_END
+
+
+#endif // BLOOPER_PLUGINS_MENU_WINDOW_HPP
