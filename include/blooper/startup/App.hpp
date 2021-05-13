@@ -1,4 +1,5 @@
-#include <blooper/blooper.hpp>
+#ifndef BLOOPER_APP_HPP
+#define BLOOPER_APP_HPP
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -39,14 +40,14 @@ public:
                     });
         }
 
-        window = std::make_unique<Window>(getApplicationName());
-        juce::ignoreUnused(window);
+        bodyWindow = std::make_unique<BodyWindow>(getApplicationName());
+        juce::ignoreUnused(bodyWindow);
     }
 
     void shutdown() override
     {
-        window = nullptr;
-        juce::ignoreUnused(window);
+        bodyWindow = nullptr;
+        juce::ignoreUnused(bodyWindow);
     }
 
     [[maybe_unused]] void systemRequestedQuit() override
@@ -60,49 +61,10 @@ public:
 
 
 private:
-    class Window : public juce::DocumentWindow
-    {
-    public:
-        explicit Window(juce::String name)
-            : DocumentWindow(
-                      std::move(name),
-                      juce::Desktop::getInstance()
-                              .getDefaultLookAndFeel()
-                              .findColour(juce::ResizableWindow::backgroundColourId),
-                      juce::DocumentWindow::allButtons)
-        {
-            setContentOwned(
-                    new BodyComponent(),
-                    true);
-
-#if JUCE_IOS || JUCE_ANDROID
-            setFullScreen(true);
-#else
-            setResizable(
-                    true,
-                    true);
-            centreWithSize(
-                    getWidth(),
-                    getHeight());
-#endif
-
-            // this is JUCE code
-            setVisible(true);
-        }
-
-        void closeButtonPressed() override
-        {
-            JUCEApplication::getInstance()->systemRequestedQuit();
-        }
-
-    private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Window)
-    };
-
-    [[maybe_unused]] std::unique_ptr<Window> bodyWindow;
+    [[maybe_unused]] std::unique_ptr<BodyWindow> bodyWindow;
 };
 
 BLOOPER_NAMESPACE_END
 
 
-START_JUCE_APPLICATION(blooper::App)
+#endif // BLOOPER_APP_HPP

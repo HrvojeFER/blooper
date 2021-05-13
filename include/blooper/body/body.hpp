@@ -8,4 +8,6 @@
 
 #include <blooper/body/BodyComponent.hpp>
 
+#include <blooper/body/BodyWindow.hpp>
+
 #endif // BLOOPER_BODY_HPP

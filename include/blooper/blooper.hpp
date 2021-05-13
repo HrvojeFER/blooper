@@ -14,4 +14,6 @@
 
 #include <blooper/body/body.hpp>
 
+#include <blooper/startup/startup.hpp>
+
 #endif // BLOOPER_INCLUDED
