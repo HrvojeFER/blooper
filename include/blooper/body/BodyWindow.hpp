@@ -2,42 +2,24 @@
 #define BLOOPER_BODY_WINDOW_HPP
 
 
+#include <blooper/style/LookAndFeel.hpp>
+
+#include <blooper/body/BodyComponent.hpp>
+#include <blooper/body/BodyComponentOld.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
 
 class BodyWindow : public juce::DocumentWindow
 {
 public:
-    explicit BodyWindow(juce::String name)
-        : DocumentWindow(
-                  std::move(name),
-                  juce::Desktop::getInstance()
-                          .getDefaultLookAndFeel()
-                          .findColour(juce::ResizableWindow::backgroundColourId),
-                  juce::DocumentWindow::allButtons)
-    {
-        setContentOwned(
-                new BodyComponent(),
-                true);
+    BodyWindow();
+    ~BodyWindow() override;
 
-#if JUCE_IOS || JUCE_ANDROID
-        setFullScreen(true);
-#else
-        setResizable(
-                true,
-                true);
-        centreWithSize(
-                getWidth(),
-                getHeight());
-#endif
+    std::function<void()> onClose;
 
-        // this is JUCE code
-        setVisible(true);
-    }
 
-    void closeButtonPressed() override
-    {
-        JUCEApplication::getInstance()->systemRequestedQuit();
-    }
+    void closeButtonPressed() override;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)
