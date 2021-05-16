@@ -1,6 +1,8 @@
 #ifndef BLOOPER_INCLUDED
 #define BLOOPER_INCLUDED
 
+#include <blooper/fwd.hpp>
+
 #include <blooper/assets/assets.hpp>
 
 #include <blooper/internal/internal.hpp>

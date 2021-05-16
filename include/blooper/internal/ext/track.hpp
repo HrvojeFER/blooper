@@ -6,7 +6,9 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 namespace track
 {
-static inline void armTrack(
+namespace
+{
+inline void armTrack(
         te::AudioTrack& t,
         bool            arm,
         int             position = 0)
@@ -17,7 +19,7 @@ static inline void armTrack(
             instance->setRecordingEnabled(t, arm);
 }
 
-static inline bool isTrackArmed(
+inline bool isTrackArmed(
         te::AudioTrack& t,
         int             position = 0)
 {
@@ -29,7 +31,7 @@ static inline bool isTrackArmed(
     return false;
 }
 
-static inline bool isInputMonitoringEnabled(
+inline bool isInputMonitoringEnabled(
         te::AudioTrack& t,
         int             position = 0)
 {
@@ -41,7 +43,7 @@ static inline bool isInputMonitoringEnabled(
     return false;
 }
 
-static inline void enableInputMonitoring(
+inline void enableInputMonitoring(
         te::AudioTrack& t,
         bool            im,
         int             position = 0)
@@ -55,7 +57,7 @@ static inline void enableInputMonitoring(
     }
 }
 
-static inline bool trackHasInput(te::AudioTrack& t, int position = 0)
+inline bool trackHasInput(te::AudioTrack& t, int position = 0)
 {
     auto& edit = t.edit;
     for (auto instance : edit.getAllInputDevices())
@@ -65,7 +67,7 @@ static inline bool trackHasInput(te::AudioTrack& t, int position = 0)
     return false;
 }
 
-static inline void showClipLoader(te::AudioTrack& t)
+inline void showClipLoader(te::AudioTrack& t)
 {
     class ClipBrowserListener : public juce::FileBrowserListener
     {
@@ -120,7 +122,7 @@ static inline void showClipLoader(te::AudioTrack& t)
     launch.launchAsync();
 }
 
-[[maybe_unused]] static inline void loopClips(
+[[maybe_unused]] inline void loopClips(
         const te::ClipTrack& track,
         te::EditTimeRange    range)
 {
@@ -128,13 +130,14 @@ static inline void showClipLoader(te::AudioTrack& t)
         clip->setLoopRange(range);
 }
 
-[[maybe_unused]] static inline void extendClips(
+[[maybe_unused]] inline void extendClips(
         const te::ClipTrack& track,
         double               to)
 {
     for (auto clip : track.getClips())
         clip->setLength(to, true);
 }
+} // namespace
 } // namespace track
 
 BLOOPER_EXT_NAMESPACE_END

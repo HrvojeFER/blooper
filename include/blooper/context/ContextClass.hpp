@@ -2,74 +2,123 @@
 #define BLOOPER_CONTEXT_CLASS_HPP
 
 
-#include <blooper/context/EngineBehaviour.hpp>
-#include <blooper/context/PropertyStorage.hpp>
-#include <blooper/context/UIBehaviour.hpp>
+#include <blooper/context/core/core.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-class Context
+class Context : public CoreContext
 {
 public:
-    Context();
-    virtual ~Context();
+    template<
+            typename OnInitSuccess,
+            typename OnInitFailure,
+            decltype(std::declval<OnInitSuccess>()(),
+                     std::declval<OnInitFailure>()())* = nullptr>
+    inline Context(OnInitSuccess onInitSuccess,
+                   OnInitFailure onInitFailure);
+
+    ~Context() override;
 
 
-    [[maybe_unused, nodiscard]] const te::Engine& getEngine() const noexcept
-    {
-        return *engine;
-    }
+    [[maybe_unused, nodiscard]] inline const te::Edit&
+    getEdit() const noexcept;
 
-    [[maybe_unused, nodiscard]] te::Engine& getEngine() noexcept
-    {
-        return *engine;
-    }
+    [[maybe_unused, nodiscard]] inline te::Edit&
+    getEdit() noexcept;
 
-    [[maybe_unused, nodiscard]] const te::Edit& getEdit() const noexcept
-    {
-        return *edit;
-    }
 
-    [[maybe_unused, nodiscard]] te::Edit& getEdit() noexcept
-    {
-        return *edit;
-    }
+    [[maybe_unused, nodiscard]] inline const te::TransportControl&
+    getTransport() const noexcept;
 
-    [[maybe_unused, nodiscard]] const te::TransportControl&
-    getTransport() const noexcept
-    {
-        return *transport;
-    }
+    [[maybe_unused, nodiscard]] inline te::TransportControl&
+    getTransport() noexcept;
 
-    [[maybe_unused, nodiscard]] te::TransportControl&
-    getTransport() noexcept
-    {
-        return *transport;
-    }
 
-    [[maybe_unused, nodiscard]] const te::Project& getProject() const noexcept
-    {
-        return *project;
-    }
+    [[maybe_unused, nodiscard]] inline const te::Project&
+    getProject() const noexcept;
 
-    [[maybe_unused, nodiscard]] te::Project& getProject() noexcept
-    {
-        return *project;
-    }
+    [[maybe_unused, nodiscard]] inline te::Project&
+    getProject() noexcept;
 
 
 private:
-    std::unique_ptr<te::Engine> engine;
+    te::Project::Ptr project;
 
     std::unique_ptr<te::Edit> edit;
     te::TransportControl*     transport;
 
-    te::Project::Ptr project;
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
 };
+
+
+const te::Edit& Context::getEdit() const noexcept
+{
+    return *edit;
+}
+
+te::Edit& Context::getEdit() noexcept
+{
+    return *edit;
+}
+
+
+const te::TransportControl& Context::getTransport() const noexcept
+{
+    return *transport;
+}
+
+te::TransportControl& Context::getTransport() noexcept
+{
+    return *transport;
+}
+
+
+const te::Project& Context::getProject() const noexcept
+{
+    return *project;
+}
+
+te::Project& Context::getProject() noexcept
+{
+    return *project;
+}
+
+
+template<
+        typename OnInitSuccess,
+        typename OnInitFailure,
+        decltype(std::declval<OnInitSuccess>()(),
+                 std::declval<OnInitFailure>()())*>
+Context::Context(OnInitSuccess onInitSuccess,
+                 OnInitFailure onInitFailure)
+    : CoreContext(),
+
+      project(),
+
+      edit(),
+      transport()
+{
+    auto& ui = dynamic_cast<blooper::UIBehaviour&>(
+            engine->getUIBehaviour());
+
+    ui.showProjectScreen(
+            [this, onInitSuccess](auto projectRef) {
+                this->project = std::move(projectRef);
+
+                this->edit = ext::project::ensureEdit(
+                        this->getProject(),
+                        this->getEngine());
+
+                this->transport = &getEdit().getTransport();
+
+                onInitSuccess();
+            },
+            [this, onInitFailure] {
+                onInitFailure();
+            });
+}
 
 BLOOPER_NAMESPACE_END
 

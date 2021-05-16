@@ -13,11 +13,14 @@ BLOOPER_NAMESPACE_BEGIN
 class SettingsMenuWindow : public juce::DocumentWindow
 {
 public:
-    SettingsMenuWindow(te::Engine& engine);
+    explicit SettingsMenuWindow(te::Engine& engine);
     ~SettingsMenuWindow() override;
 
 
 private:
+    te::Engine& engine;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuWindow);
 };
 

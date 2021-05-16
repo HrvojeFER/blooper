@@ -3,7 +3,10 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-SettingsMenuComponent::SettingsMenuComponent() = default;
+SettingsMenuComponent::SettingsMenuComponent(te::Engine& engine)
+    : engine(engine)
+{
+}
 
 SettingsMenuComponent::~SettingsMenuComponent() = default;
 

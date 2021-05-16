@@ -15,11 +15,12 @@ public:
     explicit ProjectsMenuComponent(te::Engine& engine);
     ~ProjectsMenuComponent() override;
 
+
     using ProjectRef = te::Project::Ptr;
     std::function<void(ProjectRef)> onOpen;
 
+    std::function<void()> onCancel;
 
-    void paint(juce::Graphics& g) override;
 
     void resized() override;
 
@@ -27,13 +28,15 @@ public:
 private:
     te::Engine& engine;
 
-    struct ProjectWithFolder
+
+    struct ProjectWithPath
     {
+        juce::String     path;
         juce::ValueTree  folder;
         te::Project::Ptr project;
     };
 
-    using ProjectArray = juce::Array<ProjectWithFolder>;
+    using ProjectArray = juce::Array<ProjectWithPath>;
     ProjectArray projects;
 
     friend class juce::ListBox;
@@ -51,9 +54,8 @@ private:
     bool isAddingProject;
 
     juce::Value
-            projectNameProperty,
-            pathProperty,
-            folderProperty;
+            projectPathProperty,
+            projectFileProperty;
 
     juce::PropertyPanel addProjectPanel;
 
@@ -82,37 +84,13 @@ private:
     void reloadProjects();
 
 
-    static ProjectArray findProjectsWithFolders(const juce::ValueTree& root);
-    static ProjectArray findProjectsWithFolders(te::ProjectManager& manager);
+    static ProjectArray findProjectsWithFolders(
+            const juce::ValueTree& folder,
+            const juce::String&    path = {});
+
+    static ProjectArray findProjectsWithFolders(
+            te::ProjectManager& manager);
 };
-
-
-template<
-        typename TOnOpen,
-        decltype(std::declval<TOnOpen>()(
-                std::declval<ProjectsMenuComponent::ProjectRef>()))* = nullptr>
-[[maybe_unused]] void showProjectsMenu(
-        te::Engine& engine,
-        TOnOpen     onOpen)
-{
-    juce::DialogWindow::LaunchOptions options;
-    options.dialogTitle = TRANS("Projects");
-    options.dialogBackgroundColour = juce::Colours::black;
-    options.escapeKeyTriggersCloseButton = true;
-    options.useNativeTitleBar = true;
-    options.resizable = true;
-    options.useBottomRightCornerResizer = true;
-
-    auto projectMenu = new ProjectsMenuComponent(engine);
-    projectMenu->setSize(800, 600);
-    options.content.setOwned(projectMenu);
-    auto window = options.launchAsync();
-
-    projectMenu->onOpen = [=](auto&& project) {
-        onOpen(std::forward<decltype(project)>(project));
-        window->~DialogWindow();
-    };
-}
 
 BLOOPER_NAMESPACE_END
 

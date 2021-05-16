@@ -13,7 +13,7 @@ BLOOPER_NAMESPACE_BEGIN
 class BodyWindow : public juce::DocumentWindow
 {
 public:
-    BodyWindow();
+    explicit BodyWindow(Context& context);
     ~BodyWindow() override;
 
     std::function<void()> onClose;
@@ -22,6 +22,9 @@ public:
     void closeButtonPressed() override;
 
 private:
+    Context& context;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)
 };
 

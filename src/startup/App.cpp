@@ -3,6 +3,11 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+App::App() = default;
+
+App::~App() = default;
+
+
 // NOLINTNEXTLINE(readability-const-return-type)
 const juce::String App::getApplicationName()
 {
@@ -38,9 +43,21 @@ void App::initialise(const juce::String&)
                 });
     }
 
-    bodyWindow = std::make_unique<BodyWindow>(getApplicationName());
-    bodyWindow->onClose = [this] { this->systemRequestedQuit(); };
-    bodyWindow->setVisible(true);
+    context = std::make_unique<Context>(
+            // on success
+            [this] {
+                this->bodyWindow = std::make_unique<BodyWindow>(
+                        *this->context);
+
+                this->bodyWindow->onClose =
+                        [this] { this->systemRequestedQuit(); };
+
+                this->bodyWindow->setVisible(true);
+            },
+            // on fail
+            [this] {
+                this->systemRequestedQuit();
+            });
 }
 
 void App::anotherInstanceStarted(const juce::String&)

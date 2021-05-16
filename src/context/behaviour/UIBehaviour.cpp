@@ -1,10 +1,17 @@
-#include <blooper/context/UIBehaviour.hpp>
+#include <blooper/context/behaviour/UIBehaviour.hpp>
+
+#include <blooper/context/core/core.hpp>
+
+#include <blooper/context/devices/devices.hpp>
+#include <blooper/context/settings/settings.hpp>
+#include <blooper/context/plugins/plugins.hpp>
+#include <blooper/context/projects/projects.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-UIBehaviour::UIBehaviour()
-    : engine(nullptr)
+UIBehaviour::UIBehaviour(CoreContext& context)
+    : context(context)
 { }
 
 UIBehaviour::~UIBehaviour() = default;
@@ -33,12 +40,20 @@ void UIBehaviour::recreatePluginWindowContentAsync(
 
 void UIBehaviour::showProjectScreen()
 {
-    auto projectWindow = std::make_unique<ProjectsMenuWindow>(getEngine());
+    auto projectWindow = new ProjectsMenuWindow(getEngine());
+    projectWindow->enterModalState(
+            true,
+            nullptr,
+            true);
 }
 
 void UIBehaviour::showSettingsScreen()
 {
-    auto projectWindow = std::make_unique<SettingsMenuWindow>(getEngine());
+    auto settingsWindow = new SettingsMenuWindow(getEngine());
+    settingsWindow->enterModalState(
+            true,
+            nullptr,
+            true);
 }
 
 BLOOPER_NAMESPACE_END

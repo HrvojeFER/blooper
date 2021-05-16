@@ -4,14 +4,20 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+class CoreContext;
+
+
 class SettingsMenuComponent : public juce::Component
 {
 public:
-    SettingsMenuComponent(te::Engine& engine);
+    explicit SettingsMenuComponent(CoreContext& context);
     ~SettingsMenuComponent() override;
 
 
 private:
+    CoreContext& engine;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuComponent);
 };
 

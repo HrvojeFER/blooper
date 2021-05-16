@@ -2,6 +2,14 @@
 #define BLOOPER_PLUGIN_PICKER_POPUP_HPP
 
 
+#include <blooper/assets/assets.hpp>
+
+#include <blooper/internal/internal.hpp>
+#include <blooper/style/style.hpp>
+
+#include <blooper/context/plugins/PluginTree.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
 
 class PluginPickerPopup : public juce::PopupMenu

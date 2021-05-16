@@ -1,6 +1,8 @@
 #ifndef BLOOPER_EXT_HPP
 #define BLOOPER_EXT_HPP
 
+#include <blooper/internal/ext/string.hpp>
+
 #include <blooper/internal/ext/track.hpp>
 
 #include <blooper/internal/ext/edit.hpp>

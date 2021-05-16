@@ -6,14 +6,16 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 namespace edit
 {
-static inline te::AudioTrack* getOrInsertAudioTrackAt(
+namespace
+{
+inline te::AudioTrack* getOrInsertAudioTrackAt(
         te::Edit& edit, int index)
 {
     edit.ensureNumberOfAudioTracks(index + 1);
     return te::getAudioTracks(edit)[index];
 }
 
-static inline void togglePlay(te::Edit& edit)
+inline void togglePlay(te::Edit& edit)
 {
     auto& transport = edit.getTransport();
 
@@ -23,7 +25,7 @@ static inline void togglePlay(te::Edit& edit)
         transport.play(false);
 }
 
-static inline void toggleRecord(te::Edit& edit)
+inline void toggleRecord(te::Edit& edit)
 {
     auto& transport = edit.getTransport();
 
@@ -33,7 +35,7 @@ static inline void toggleRecord(te::Edit& edit)
         transport.record(false);
 }
 
-static inline te::Clip::Ptr getLongestClip(const te::Edit& edit)
+inline te::Clip::Ptr getLongestClip(const te::Edit& edit)
 {
     te::Clip::Ptr longest;
     for (auto track : getClipTracks(edit))
@@ -43,6 +45,7 @@ static inline te::Clip::Ptr getLongestClip(const te::Edit& edit)
 
     return longest;
 }
+} // namespace
 } // namespace edit
 
 BLOOPER_EXT_NAMESPACE_END

@@ -10,14 +10,27 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class ProjectsMenuWindow : juce::DocumentWindow
+class ProjectsMenuWindow : public juce::DocumentWindow
 {
 public:
-    ProjectsMenuWindow(te::Engine& engine);
+    explicit ProjectsMenuWindow(te::Engine& engine);
     ~ProjectsMenuWindow() override;
 
 
+    std::function<void(ProjectsMenuComponent::ProjectRef)> onOpen;
+
+    std::function<void()> onCancel;
+
+
+    void closeButtonPressed() override;
+
+
 private:
+    te::Engine& engine;
+
+    std::unique_ptr<LookAndFeel> lookAndFeel;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuWindow);
 };
 

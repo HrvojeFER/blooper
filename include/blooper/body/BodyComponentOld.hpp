@@ -125,10 +125,7 @@ public:
 
 
 private:
-    tracktion_engine::Engine engine{
-            JUCE_APPLICATION_NAME_STRING,
-            std::make_unique<UIBehaviour>(),
-            nullptr};
+    tracktion_engine::Engine engine{JUCE_APPLICATION_NAME_STRING};
 
     tracktion_engine::SelectionManager selectionManager{engine};
 

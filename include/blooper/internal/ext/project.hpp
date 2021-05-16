@@ -6,7 +6,9 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 namespace project
 {
-static inline bool hasEdit(te::Project& project)
+namespace
+{
+inline bool hasEdit(te::Project& project)
 {
     for (int i = 0; i < project.getNumProjectItems(); ++i)
         if (project.getProjectItemAt(i)->isEdit())
@@ -15,7 +17,7 @@ static inline bool hasEdit(te::Project& project)
     return false;
 }
 
-static inline std::unique_ptr<te::Edit> getEdit(
+inline std::unique_ptr<te::Edit> getEdit(
         te::Project& project,
         te::Engine&  engine)
 {
@@ -31,7 +33,7 @@ static inline std::unique_ptr<te::Edit> getEdit(
     return nullptr;
 }
 
-static inline std::unique_ptr<te::Edit> ensureEdit(
+inline std::unique_ptr<te::Edit> ensureEdit(
         te::Project& project,
         te::Engine&  engine)
 {
@@ -42,6 +44,7 @@ static inline std::unique_ptr<te::Edit> ensureEdit(
             engine,
             project.createNewEdit()->getSourceFile());
 }
+} // namespace
 } // namespace project
 
 BLOOPER_EXT_NAMESPACE_END

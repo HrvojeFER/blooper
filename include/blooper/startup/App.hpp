@@ -2,7 +2,9 @@
 #define BLOOPER_APP_HPP
 
 
-#include <blooper/body/BodyWindow.hpp>
+#include <blooper/context/context.hpp>
+
+#include <blooper/body/body.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -10,7 +12,8 @@ BLOOPER_NAMESPACE_BEGIN
 class App : public juce::JUCEApplication
 {
 public:
-    App() = default;
+    App();
+    ~App() override;
 
 
     const juce::String getApplicationName() override;
@@ -31,6 +34,8 @@ public:
 
 
 private:
+    std::unique_ptr<Context> context;
+
     std::unique_ptr<BodyWindow> bodyWindow;
 };
 

@@ -3,14 +3,17 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-BodyWindow::BodyWindow()
+BodyWindow::BodyWindow(Context& context)
     : DocumentWindow(
               juce::String(JUCE_APPLICATION_NAME_STRING) +
                       juce::String(" ") +
                       juce::String(JUCE_APPLICATION_VERSION_STRING),
               {},
               {}),
-      onClose([] {})
+
+      context(context),
+
+      onClose()
 {
     setLookAndFeel(
             new LookAndFeel());
