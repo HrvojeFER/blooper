@@ -1,29 +1,58 @@
-#include <blooper/context/plugins/PluginComponent.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-PluginComponent::PluginComponent(te::Plugin::Ptr p)
-    : plugin(std::move(p))
+PluginComponent::PluginComponent(
+        CoreContext&               context,
+        PluginComponent::PluginRef plugin)
+    : CoreComponent(context),
+
+      plugin(std::move(plugin)),
+
+      button(this)
 {
-    setButtonText(
-            plugin->getName().substring(
+    ext::comp::addAndMakeVisible(
+            *this,
+            button);
+}
+
+void PluginComponent::resized()
+{
+    auto availableArea = getLocalBounds();
+
+    button.setBounds(availableArea);
+}
+
+
+PluginComponent::Button::Button(PluginComponent* parent)
+    : parent(parent)
+{
+    setLookAndFeel(&parent->getLookAndFeel());
+
+    this->setButtonText(
+            parent->getPlugin().getName().substring(
                     0,
                     1));
 }
 
-void PluginComponent::clicked(const juce::ModifierKeys& modifiers)
+void PluginComponent::Button::clicked(
+        const juce::ModifierKeys& modifiers)
 {
     if (modifiers.isPopupMenu())
     {
-        juce::PopupMenu m;
-        m.addItem("Delete",
-                  [this] { plugin->deleteFromParent(); });
-        m.showAt(this);
+        juce::PopupMenu menu;
+
+        menu.addItem("Delete",
+                     [this] {
+                         this->parent->getPlugin().deleteFromParent();
+                     });
+
+        menu.showAt(this);
     }
     else
     {
-        plugin->showWindowExplicitly();
+        parent->getPlugin().showWindowExplicitly();
     }
 }
 

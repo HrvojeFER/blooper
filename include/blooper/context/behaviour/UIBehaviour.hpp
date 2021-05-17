@@ -2,15 +2,15 @@
 #define BLOOPER_UI_BEHAVIOUR_HPP
 
 
+#include <blooper/abstract.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
-
-class CoreContext;
-
 
 class UIBehaviour : public te::UIBehaviour
 {
 public:
-    UIBehaviour(CoreContext& context);
+    UIBehaviour(AbstractCoreContext& context);
     ~UIBehaviour() override;
 
 
@@ -27,7 +27,7 @@ public:
 
 
 private:
-    CoreContext& context;
+    AbstractCoreContext& context;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UIBehaviour);
 };

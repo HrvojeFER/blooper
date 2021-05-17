@@ -2,10 +2,20 @@
 #define BLOOPER_PLUGINS_MENU_COMPONENT_HPP
 
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/fwd.hpp>
+
+#include <blooper/context/core/core.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
+
+class PluginsMenuComponent : CoreComponent
+{
+public:
+    explicit PluginsMenuComponent(CoreContext& context);
+
+private:
+};
 
 BLOOPER_NAMESPACE_END
 

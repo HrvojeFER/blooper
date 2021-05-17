@@ -1,4 +1,4 @@
-#include <blooper/context/projects/ProjectsMenuComponent.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -52,9 +52,11 @@ juce::ValueTree ensureProjectPath(
 }
 
 
-ProjectsMenuComponent::ProjectsMenuComponent(te::Engine& engine)
-    : engine(engine),
-      projects(findProjectsWithFolders(engine.getProjectManager())),
+ProjectsMenuComponent::ProjectsMenuComponent(CoreContext& context)
+    : CoreComponent(context),
+
+      projects(findProjectsWithFolders(
+              context.getEngine().getProjectManager())),
 
       onOpen(),
       onCancel(),
@@ -104,12 +106,12 @@ ProjectsMenuComponent::ProjectsMenuComponent(te::Engine& engine)
     addProjectButton.onClick = [this] {
         if (this->isAddingProject)
         {
-            auto& manager = this->engine.getProjectManager();
+            auto& manager = this->context.getEngine().getProjectManager();
 
             manager.createNewProject(
                     projectFileProperty.getValue().toString(),
                     ensureProjectPath(
-                            this->engine,
+                            this->context.getEngine(),
                             projectPathProperty.getValue().toString()));
 
             reloadProjects();
@@ -143,7 +145,7 @@ ProjectsMenuComponent::ProjectsMenuComponent(te::Engine& engine)
         auto row = list.getSelectedRow();
         if (row == -1) return;
 
-        auto& manager = this->engine.getProjectManager();
+        auto& manager = this->context.getEngine().getProjectManager();
 
         manager.deleteProjectFolder(projects[row].folder);
 
@@ -183,18 +185,18 @@ ProjectsMenuComponent::ProjectsMenuComponent(te::Engine& engine)
     };
 
 
-    utils::addAndMakeVisible(
+    ext::comp::addAndMakeVisible(
             *this,
-            {&list,
+            list,
 
-             &reloadProjectsButton,
-             &addProjectButton,
-             &deleteProjectButton,
+            reloadProjectsButton,
+            addProjectButton,
+            deleteProjectButton,
 
-             &cancelButton,
-             &openProjectButton,
+            cancelButton,
+            openProjectButton,
 
-             &addProjectPanel});
+            addProjectPanel);
 
     addProjectPanel.setVisible(false);
 }
@@ -210,41 +212,40 @@ ProjectsMenuComponent::~ProjectsMenuComponent()
 void ProjectsMenuComponent::resized()
 {
     auto availableArea = getLocalBounds();
-
+    auto availableButtonArea =
+            availableArea.removeFromBottom(20);
 
     if (isAddingProject)
     {
         const auto listHeight = int(availableArea.getHeight() * 0.6);
-        const auto panelHeight = int(availableArea.getHeight() * 0.35);
+        const auto panelHeight = int(availableArea.getHeight() * 0.4);
 
         list.setBounds(availableArea.removeFromTop(listHeight));
         addProjectPanel.setBounds(availableArea.removeFromTop(panelHeight));
     }
     else
     {
-        const auto listHeight = int(availableArea.getHeight() * 0.95);
-
-        list.setBounds(availableArea.removeFromTop(listHeight));
+        list.setBounds(availableArea);
     }
 
 
     const auto buttonWidth = 50;
 
     reloadProjectsButton.setBounds(
-            availableArea.removeFromLeft(buttonWidth)
+            availableButtonArea.removeFromLeft(buttonWidth)
                     .reduced(2));
     addProjectButton.setBounds(
-            availableArea.removeFromLeft(buttonWidth)
+            availableButtonArea.removeFromLeft(buttonWidth)
                     .reduced(2));
     deleteProjectButton.setBounds(
-            availableArea.removeFromLeft(buttonWidth)
+            availableButtonArea.removeFromLeft(buttonWidth)
                     .reduced(2));
 
     openProjectButton.setBounds(
-            availableArea.removeFromRight(buttonWidth)
+            availableButtonArea.removeFromRight(buttonWidth)
                     .reduced(2));
     cancelButton.setBounds(
-            availableArea.removeFromRight(buttonWidth)
+            availableButtonArea.removeFromRight(buttonWidth)
                     .reduced(2));
 }
 
@@ -307,7 +308,7 @@ void ProjectsMenuComponent::listBoxItemDoubleClicked(
 
 void ProjectsMenuComponent::deleteKeyPressed(int lastRowSelected)
 {
-    auto& manager = engine.getProjectManager();
+    auto& manager = context.getEngine().getProjectManager();
 
     manager.deleteProjectFolder(projects[lastRowSelected].folder);
     projects = findProjectsWithFolders(manager.folders);
@@ -318,7 +319,7 @@ void ProjectsMenuComponent::deleteKeyPressed(int lastRowSelected)
 
 void ProjectsMenuComponent::reloadProjects()
 {
-    auto& manager = engine.getProjectManager();
+    auto& manager = context.getEngine().getProjectManager();
 
     manager.saveList();
     manager.loadList();

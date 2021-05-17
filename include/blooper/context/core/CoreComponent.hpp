@@ -2,19 +2,23 @@
 #define BLOOPER_CORE_COMPONENT_HPP
 
 
-BLOOPER_NAMESPACE_BEGIN
+#include <blooper/fwd.hpp>
 
-class CoreContext;
+
+BLOOPER_NAMESPACE_BEGIN
 
 class CoreComponent : public juce::Component
 {
 public:
-    CoreComponent(CoreContext& context);
+    explicit CoreComponent(CoreContext& context);
     ~CoreComponent() override;
 
-private:
+
+protected:
     CoreContext& context;
 
+
+private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CoreComponent);
 };
 

@@ -1,11 +1,13 @@
-#include <blooper/context/core/CoreComponent.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
 CoreComponent::CoreComponent(CoreContext& context)
-    : context(context)
+    : juce::Component(),
+      context(context)
 {
+    setLookAndFeel(&context.getLookAndFeel());
 }
 
 CoreComponent::~CoreComponent() = default;

@@ -8,6 +8,8 @@ static inline constexpr auto internalPluginFormatName = "BlooperInternal";
 static inline constexpr auto internalPluginUniqueIdSuffix = "_blooper_internal";
 
 
+// TODO: cleanup
+
 class PluginTreeBase
 {
 public:

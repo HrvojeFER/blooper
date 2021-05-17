@@ -2,22 +2,20 @@
 #define BLOOPER_SETTINGS_MENU_COMPONENT_HPP
 
 
+#include <blooper/fwd.hpp>
+
+#include <blooper/context/core/core.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
 
-class CoreContext;
 
-
-class SettingsMenuComponent : public juce::Component
+class SettingsMenuComponent : public CoreComponent
 {
 public:
     explicit SettingsMenuComponent(CoreContext& context);
-    ~SettingsMenuComponent() override;
-
 
 private:
-    CoreContext& engine;
-
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuComponent);
 };
 

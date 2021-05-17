@@ -2,25 +2,19 @@
 #define BLOOPER_SETTINGS_MENU_WINDOW_HPP
 
 
-#include <blooper/internal/internal.hpp>
-#include <blooper/style/style.hpp>
+#include <blooper/fwd.hpp>
 
-#include <blooper/context/settings/SettingsMenuComponent.hpp>
+#include <blooper/context/core/core.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-class SettingsMenuWindow : public juce::DocumentWindow
+class SettingsMenuWindow : public CoreWindow
 {
 public:
-    explicit SettingsMenuWindow(te::Engine& engine);
-    ~SettingsMenuWindow() override;
-
+    explicit SettingsMenuWindow(CoreContext& context);
 
 private:
-    te::Engine& engine;
-
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuWindow);
 };
 

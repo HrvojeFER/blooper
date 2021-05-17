@@ -2,19 +2,20 @@
 #define BLOOPER_PROJECTS_MENU_COMPONENT_HPP
 
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/fwd.hpp>
+
+#include <blooper/context/core/core.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
 class ProjectsMenuComponent :
-    public juce::Component,
+    public CoreComponent,
     private juce::ListBoxModel
 {
 public:
-    explicit ProjectsMenuComponent(te::Engine& engine);
+    explicit ProjectsMenuComponent(CoreContext& context);
     ~ProjectsMenuComponent() override;
-
 
     using ProjectRef = te::Project::Ptr;
     std::function<void(ProjectRef)> onOpen;
@@ -26,9 +27,6 @@ public:
 
 
 private:
-    te::Engine& engine;
-
-
     struct ProjectWithPath
     {
         juce::String     path;
@@ -90,6 +88,9 @@ private:
 
     static ProjectArray findProjectsWithFolders(
             te::ProjectManager& manager);
+
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuComponent);
 };
 
 BLOOPER_NAMESPACE_END

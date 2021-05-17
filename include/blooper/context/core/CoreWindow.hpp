@@ -2,19 +2,23 @@
 #define BLOOPER_CORE_WINDOW_HPP
 
 
-BLOOPER_NAMESPACE_BEGIN
+#include <blooper/fwd.hpp>
 
-class CoreContext;
+
+BLOOPER_NAMESPACE_BEGIN
 
 class CoreWindow : public juce::DocumentWindow
 {
 public:
-    CoreWindow(CoreContext& context);
+    CoreWindow(const juce::String& name, CoreContext& context);
     ~CoreWindow() override;
 
-private:
+
+protected:
     CoreContext& context;
 
+
+private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CoreWindow);
 };
 

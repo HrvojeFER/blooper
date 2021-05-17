@@ -1,13 +1,11 @@
-#include <blooper/context/settings/SettingsMenuComponent.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-SettingsMenuComponent::SettingsMenuComponent(te::Engine& engine)
-    : engine(engine)
+SettingsMenuComponent::SettingsMenuComponent(CoreContext& context)
+    : CoreComponent(context)
 {
 }
-
-SettingsMenuComponent::~SettingsMenuComponent() = default;
 
 BLOOPER_NAMESPACE_END

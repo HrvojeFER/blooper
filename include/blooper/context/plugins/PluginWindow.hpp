@@ -5,6 +5,8 @@
 #include <blooper/internal/internal.hpp>
 
 
+// TODO: cleanup
+
 BLOOPER_NAMESPACE_BEGIN
 
 static inline bool isDPIAware(te::Plugin&)
@@ -133,32 +135,6 @@ private:
 
     te::Plugin&            plugin;
     te::PluginWindowState& windowState;
-};
-
-
-class ExtendedUIBehaviour : public te::UIBehaviour
-{
-public:
-    ExtendedUIBehaviour() = default;
-
-    std::unique_ptr<juce::Component> createPluginWindow(
-            te::PluginWindowState& pws) override
-    {
-        if (auto ws = dynamic_cast<te::Plugin::WindowState*>(&pws))
-            return PluginWindow::create(ws->plugin);
-
-        return {};
-    }
-
-    void recreatePluginWindowContentAsync(
-            te::Plugin& p) override
-    {
-        if (auto* w = dynamic_cast<PluginWindow*>(
-                    p.windowState->pluginWindow.get()))
-            return w->recreateEditorAsync();
-
-        UIBehaviour::recreatePluginWindowContentAsync(p);
-    }
 };
 
 BLOOPER_NAMESPACE_END

@@ -3,6 +3,9 @@
 
 #include <blooper/internal/ext/string.hpp>
 
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/window.hpp>
+
 #include <blooper/internal/ext/track.hpp>
 
 #include <blooper/internal/ext/edit.hpp>

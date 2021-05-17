@@ -2,10 +2,17 @@
 #define BLOOPER_DEVICES_MENU_COMPONENT_HPP
 
 
+#include <blooper/fwd.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
 
-class DevicesMenuComponent : public juce::Component
+class DevicesMenuComponent : public CoreComponent
 {
+public:
+    explicit DevicesMenuComponent(CoreContext& context);
+
+private:
 };
 
 BLOOPER_NAMESPACE_END

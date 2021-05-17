@@ -1,16 +1,9 @@
-#include <blooper/context/behaviour/UIBehaviour.hpp>
-
-#include <blooper/context/core/core.hpp>
-
-#include <blooper/context/devices/devices.hpp>
-#include <blooper/context/settings/settings.hpp>
-#include <blooper/context/plugins/plugins.hpp>
-#include <blooper/context/projects/projects.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-UIBehaviour::UIBehaviour(CoreContext& context)
+UIBehaviour::UIBehaviour(AbstractCoreContext& context)
     : context(context)
 { }
 
@@ -40,7 +33,7 @@ void UIBehaviour::recreatePluginWindowContentAsync(
 
 void UIBehaviour::showProjectScreen()
 {
-    auto projectWindow = new ProjectsMenuWindow(getEngine());
+    auto projectWindow = new ProjectsMenuWindow(context);
     projectWindow->enterModalState(
             true,
             nullptr,
@@ -49,7 +42,7 @@ void UIBehaviour::showProjectScreen()
 
 void UIBehaviour::showSettingsScreen()
 {
-    auto settingsWindow = new SettingsMenuWindow(getEngine());
+    auto settingsWindow = new SettingsMenuWindow(context);
     settingsWindow->enterModalState(
             true,
             nullptr,

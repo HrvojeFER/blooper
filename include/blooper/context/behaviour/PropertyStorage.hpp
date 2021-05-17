@@ -2,25 +2,25 @@
 #define BLOOPER_PROPERTY_STORAGE_HPP
 
 
+#include <blooper/abstract.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
-
-class CoreContext;
-
 
 class PropertyStorage : public te::PropertyStorage
 {
 public:
-    inline constexpr auto rootDataDirName = ".blooper";
-    inline constexpr auto cacheDirName = ".cache";
-    inline constexpr auto prefsDirName = "prefs";
+    inline constexpr static auto rootDirName = ".blooper";
+    inline constexpr static auto cacheDirName = ".cache";
+    inline constexpr static auto prefsDirName = "prefs";
 
-    inline constexpr auto projectsDirName = "projects";
-    inline constexpr auto mediaDirName = "media";
+    inline constexpr static auto projectsDirName = "projects";
+    inline constexpr static auto mediaDirName = "media";
 
-    inline constexpr auto settingsFileName = "settings.xml";
+    inline constexpr static auto settingsFileName = "settings.xml";
 
 
-    PropertyStorage(CoreContext& context);
+    explicit PropertyStorage(AbstractCoreContext& context);
     ~PropertyStorage() override;
 
 
@@ -92,7 +92,7 @@ public:
 
 
 private:
-    CoreContext& context;
+    AbstractCoreContext& context;
 
     juce::File
             root,

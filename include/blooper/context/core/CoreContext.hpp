@@ -2,6 +2,9 @@
 #define BLOOPER_CORE_CONTEXT_HPP
 
 
+#include <blooper/fwd.hpp>
+
+
 BLOOPER_NAMESPACE_BEGIN
 
 class CoreContext

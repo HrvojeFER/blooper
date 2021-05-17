@@ -1,4 +1,4 @@
-#include <blooper/context/core/CoreContext.hpp>
+#include <blooper/blooper.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -9,7 +9,7 @@ CoreContext::CoreContext()
               std::make_unique<UIBehaviour>(*this),
               std::make_unique<EngineBehaviour>(*this))),
 
-      lookAndFeel(std::make_unique<blooper::LookAndFeel>())
+      lookAndFeel(std::make_unique<LookAndFeel>())
 {
     engine->getProjectManager().loadList();
 }

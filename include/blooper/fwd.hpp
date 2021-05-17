@@ -2,8 +2,10 @@
 #define BLOOPER_FWD_HPP
 
 
-// TODO: more
+#include <blooper/abstract.hpp>
 
+
+// TODO: more
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -50,11 +52,20 @@ class ProjectsMenuComponent;
 class ProjectsMenuWindow;
 
 class ProjectComponent;
+class ProjectWindow;
 
 
 // ============================================================================
 // Body
 // ============================================================================
+
+// Panels
+
+// Header
+
+// Footer
+
+// Body
 
 
 BLOOPER_NAMESPACE_END

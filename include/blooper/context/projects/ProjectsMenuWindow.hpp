@@ -2,18 +2,17 @@
 #define BLOOPER_PROJECTS_MENU_WINDOW_HPP
 
 
-#include <blooper/internal/internal.hpp>
-#include <blooper/style/style.hpp>
+#include <blooper/fwd.hpp>
 
-#include <blooper/context/projects/ProjectsMenuComponent.hpp>
+#include <blooper/context/core/core.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN
 
-class ProjectsMenuWindow : public juce::DocumentWindow
+class ProjectsMenuWindow : public CoreWindow
 {
 public:
-    explicit ProjectsMenuWindow(te::Engine& engine);
+    explicit ProjectsMenuWindow(CoreContext& context);
     ~ProjectsMenuWindow() override;
 
 
@@ -26,11 +25,6 @@ public:
 
 
 private:
-    te::Engine& engine;
-
-    std::unique_ptr<LookAndFeel> lookAndFeel;
-
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuWindow);
 };
 
