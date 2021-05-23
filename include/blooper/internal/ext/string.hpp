@@ -1,51 +1,44 @@
 #ifndef BLOOPER_EXT_STRING_HPP
 #define BLOOPER_EXT_STRING_HPP
 
+#include <blooper/internal/macros/macros.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
-namespace string
+[[maybe_unused]] constexpr inline auto pathSeparator = '/';
+
+
+[[maybe_unused]] inline auto split(
+    const juce::String& string,
+    juce::juce_wchar    by)
 {
-namespace
-{
-constexpr inline auto pathSeparator = '/';
+  juce::StringArray result;
 
+  auto end = string.getCharPointer();
+  auto begin = end;
 
-inline auto split(
-        const juce::String& string,
-        juce::juce_wchar    by)
-{
-    juce::StringArray result;
-
-    auto end = string.getCharPointer();
-    auto begin = end;
-
-    while (!end.isEmpty())
+  while (!end.isEmpty())
+  {
+    if (*end == by)
     {
-        if (*end == by)
-        {
-            result.add({begin, end});
-            begin = ++end;
-        }
-        else
-        {
-            ++end;
-        }
+      result.add({begin, end});
+      begin = ++end;
     }
-    result.add({begin, end});
+    else
+    {
+      ++end;
+    }
+  }
+  result.add({begin, end});
 
-    return result;
+  return result;
 }
 
-
-inline auto splitPath(const juce::String& path)
+[[maybe_unused]] inline auto splitPath(const juce::String& path)
 {
-    return split(path, pathSeparator);
+  return split(path, pathSeparator);
 }
-} // namespace
-} // namespace string
 
 BLOOPER_EXT_NAMESPACE_END
-
 
 #endif // BLOOPER_EXT_STRING_HPP

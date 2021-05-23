@@ -1,42 +1,68 @@
 #include <blooper/blooper.hpp>
 
-
 BLOOPER_NAMESPACE_BEGIN
 
-ProjectsMenuWindow::ProjectsMenuWindow(CoreContext& context)
-    : CoreWindow("Projects", context),
+ProjectsMenuWindow::ProjectsMenuWindow(
+    AbstractCoreContext& context,
+    State                state,
+    Options              options)
+    : CoreWindowBase(
+          "Projects",
+          context,
+          std::move(state)),
 
-      onOpen(),
-      onCancel()
+      options(std::move(options))
 {
-    auto projectsMenu = new ProjectsMenuComponent(context);
+  auto component =
+      new ProjectsMenuComponent(
+          context,
+          state.getOrCreateChildWithName(
+              ProjectsMenuComponent::stateId,
+              nullptr));
 
-    projectsMenu->onOpen = [this](ProjectsMenuComponent::ProjectRef ref) {
-        this->onOpen(std::move(ref));
-    };
+  component->onOpen = [this](auto ref) {
+    this->options.onOpen(std::move(ref));
+  };
 
-    projectsMenu->onCancel = [this] {
-        this->onCancel();
-    };
+  component->onCancel = [this] {
+    this->options.onCancel();
+  };
 
-    projectsMenu->setBounds(
-            0,
-            0,
-            getWidth(),
-            getHeight());
+  component->setBounds(
+      0,
+      0,
+      this->getWidth(),
+      this->getHeight());
 
-    setContentOwned(
-            projectsMenu,
-            true);
+  setContentOwned(
+      component,
+      true);
 }
-
-ProjectsMenuWindow::~ProjectsMenuWindow() = default;
 
 
 void ProjectsMenuWindow::closeButtonPressed()
 {
-    this->onCancel();
+  this->options.onCancel();
 }
 
+
+[[maybe_unused]] void showProjectsMenu(
+    AbstractCoreContext&        context,
+    ProjectsMenuWindow::Options options)
+{
+  auto window =
+      new ProjectsMenuWindow(
+          context,
+          context.getState()
+              .getOrCreateChildWithName(
+                  ProjectsMenuWindow::stateId,
+                  nullptr),
+          std::move(options));
+
+  window->enterModalState(
+      true,
+      nullptr,
+      true);
+}
 
 BLOOPER_NAMESPACE_END

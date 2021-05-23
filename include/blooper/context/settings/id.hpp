@@ -1,9 +1,10 @@
 #ifndef BLOOPER_ID_HPP
 #define BLOOPER_ID_HPP
 
+#include <blooper/internal/abstract/abstract.hpp>
 
-namespace blooper::id
-{
+BLOOPER_ID_NAMESPACE_BEGIN
+
 #if __JETBRAINS_IDE__
     #pragma clang diagnostic push
     #pragma ide diagnostic   ignored "cert-err58-cpp"
@@ -34,7 +35,6 @@ static inline const juce::Identifier bpm("bpm");
     #pragma clang diagnostic pop
 #endif
 
-} // namespace blooper::id
-
+BLOOPER_ID_NAMESPACE_END
 
 #endif // BLOOPER_ID_HPP

@@ -1,24 +1,35 @@
 #ifndef BLOOPER_SETTINGS_MENU_WINDOW_HPP
 #define BLOOPER_SETTINGS_MENU_WINDOW_HPP
 
-
-#include <blooper/fwd.hpp>
-
-#include <blooper/context/core/core.hpp>
-
+#include <blooper/internal/abstract/abstract.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class SettingsMenuWindow : public CoreWindow
+class SettingsMenuWindow : public CoreWindowBase
 {
-public:
-    explicit SettingsMenuWindow(CoreContext& context);
+ public:
+  BLOOPER_STATE_ID(SettingsMenuWindowe);
 
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuWindow);
+
+  struct Options
+  {
+  } options;
+
+  explicit SettingsMenuWindow(
+      AbstractCoreContext& context,
+      State                state,
+      Options              options = {});
+
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsMenuWindow);
 };
 
-BLOOPER_NAMESPACE_END
 
+void showSettingsMenu(
+    AbstractCoreContext&        context,
+    SettingsMenuWindow::Options options = {});
+
+BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_SETTINGS_MENU_WINDOW_HPP

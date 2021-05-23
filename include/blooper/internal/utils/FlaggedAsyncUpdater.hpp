@@ -1,32 +1,31 @@
 #ifndef BLOOPER_FLAGGED_ASYNC_UPDATER_HPP
 #define BLOOPER_FLAGGED_ASYNC_UPDATER_HPP
 
+#include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/abstract.hpp>
 
-BLOOPER_UTILS_NAMESPACE_BEGIN
+BLOOPER_UTIL_NAMESPACE_BEGIN
 
-namespace
+class [[maybe_unused]] FlaggedAsyncUpdater :
+    public juce::AsyncUpdater
 {
-class FlaggedAsyncUpdater : public juce::AsyncUpdater
-{
-public:
-    void markAndUpdate(bool& flag)
-    {
-        flag = true;
-        triggerAsyncUpdate();
-    }
+ public:
+  void markAndUpdate(bool& flag)
+  {
+    flag = true;
+    triggerAsyncUpdate();
+  }
 
-    static bool compareAndReset(bool& flag) noexcept
-    {
-        if (!flag)
-            return false;
+  static bool compareAndReset(bool& flag) noexcept
+  {
+    if (!flag)
+      return false;
 
-        flag = false;
-        return true;
-    }
+    flag = false;
+    return true;
+  }
 };
-} // namespace
 
-BLOOPER_UTILS_NAMESPACE_END
-
+BLOOPER_UTIL_NAMESPACE_END
 
 #endif // BLOOPER_FLAGGED_ASYNC_UPDATER_HPP

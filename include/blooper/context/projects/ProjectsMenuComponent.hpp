@@ -1,99 +1,96 @@
 #ifndef BLOOPER_PROJECTS_MENU_COMPONENT_HPP
 #define BLOOPER_PROJECTS_MENU_COMPONENT_HPP
 
-
-#include <blooper/fwd.hpp>
-
-#include <blooper/context/core/core.hpp>
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
 class ProjectsMenuComponent :
-    public CoreComponent,
+    public CoreComponentBase,
     private juce::ListBoxModel
 {
-public:
-    explicit ProjectsMenuComponent(CoreContext& context);
-    ~ProjectsMenuComponent() override;
+ public:
+  BLOOPER_STATE_ID(ProjectsMenuComponent);
 
-    using ProjectRef = te::Project::Ptr;
-    std::function<void(ProjectRef)> onOpen;
+  explicit ProjectsMenuComponent(AbstractCoreContext& context, State state);
+  ~ProjectsMenuComponent() override;
 
-    std::function<void()> onCancel;
+  using ProjectRef = te::Project::Ptr;
+  std::function<void(ProjectRef)> onOpen;
 
-
-    void resized() override;
-
-
-private:
-    struct ProjectWithPath
-    {
-        juce::String     path;
-        juce::ValueTree  folder;
-        te::Project::Ptr project;
-    };
-
-    using ProjectArray = juce::Array<ProjectWithPath>;
-    ProjectArray projects;
-
-    friend class juce::ListBox;
-    juce::ListBox list;
+  std::function<void()> onCancel;
 
 
-    juce::TextButton
-            reloadProjectsButton,
-            addProjectButton,
-            deleteProjectButton,
-            cancelButton,
-            openProjectButton;
+  void resized() override;
 
 
-    bool isAddingProject;
+ private:
+  struct ProjectWithPath
+  {
+    juce::String    path;
+    juce::ValueTree folder;
+    ProjectRef      project;
+  };
 
-    juce::Value
-            projectPathProperty,
-            projectFileProperty;
+  using ProjectArray = juce::Array<ProjectWithPath>;
+  ProjectArray projects;
 
-    juce::PropertyPanel addProjectPanel;
-
-
-    int getNumRows() override;
-
-    void paintListBoxItem(
-            int             rowNumber,
-            juce::Graphics& g,
-            int             width,
-            int             height,
-            bool            rowIsSelected) override;
+  friend class juce::ListBox;
+  juce::ListBox list;
 
 
-    void listBoxItemClicked(
-            int                     row,
-            const juce::MouseEvent& event) override;
-
-    void listBoxItemDoubleClicked(
-            int                     row,
-            const juce::MouseEvent& event) override;
-
-    void deleteKeyPressed(int lastRowSelected) override;
+  juce::TextButton
+      reloadProjectsButton,
+      addProjectButton,
+      deleteProjectButton,
+      cancelButton,
+      openProjectButton;
 
 
-    void reloadProjects();
+  bool isAddingProject;
+
+  juce::Value
+      projectPathProperty,
+      projectFileProperty;
+
+  juce::PropertyPanel addProjectPanel;
 
 
-    static ProjectArray findProjectsWithFolders(
-            const juce::ValueTree& folder,
-            const juce::String&    path = {});
+  int getNumRows() override;
 
-    static ProjectArray findProjectsWithFolders(
-            te::ProjectManager& manager);
+  void paintListBoxItem(
+      int             rowNumber,
+      juce::Graphics& g,
+      int             width,
+      int             height,
+      bool            rowIsSelected) override;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuComponent);
+  void listBoxItemClicked(
+      int                     row,
+      const juce::MouseEvent& event) override;
+
+  void listBoxItemDoubleClicked(
+      int                     row,
+      const juce::MouseEvent& event) override;
+
+  void deleteKeyPressed(int lastRowSelected) override;
+
+
+  void reloadProjects();
+
+
+  static ProjectArray findProjectsWithFolders(
+      const juce::ValueTree& folder,
+      const juce::String&    path = {});
+
+  static ProjectArray findProjectsWithFolders(
+      te::ProjectManager& manager);
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuComponent);
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_PROJECTS_MENU_COMPONENT_HPP

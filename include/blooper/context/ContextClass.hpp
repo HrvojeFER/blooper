@@ -1,126 +1,213 @@
 #ifndef BLOOPER_CONTEXT_CLASS_HPP
 #define BLOOPER_CONTEXT_CLASS_HPP
 
-
-#include <blooper/context/core/core.hpp>
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class Context : public CoreContext
+class Context : public AbstractContext
 {
-public:
-    template<
-            typename OnInitSuccess,
-            typename OnInitFailure,
-            decltype(std::declval<OnInitSuccess>()(),
-                     std::declval<OnInitFailure>()())* = nullptr>
-    inline Context(OnInitSuccess onInitSuccess,
-                   OnInitFailure onInitFailure);
+ public:
+  BLOOPER_STATE_ID(Context);
 
-    ~Context() override;
+  inline constexpr static auto stateFileName = "state.xml";
+  inline constexpr static auto stateFileKey = "contextState";
 
 
-    [[maybe_unused, nodiscard]] inline const te::Edit&
-    getEdit() const noexcept;
+  struct Options
+  {
+    std::function<void()> onInitSuccess;
+    std::function<void()> onInitFailure;
+  };
 
-    [[maybe_unused, nodiscard]] inline te::Edit&
-    getEdit() noexcept;
+  Context(const Options& options);
 
-
-    [[maybe_unused, nodiscard]] inline const te::TransportControl&
-    getTransport() const noexcept;
-
-    [[maybe_unused, nodiscard]] inline te::TransportControl&
-    getTransport() noexcept;
+  ~Context() override;
 
 
-    [[maybe_unused, nodiscard]] inline const te::Project&
-    getProject() const noexcept;
+  [[maybe_unused, nodiscard]] inline const JuceEngine&
+  getEngine() const noexcept final;
 
-    [[maybe_unused, nodiscard]] inline te::Project&
-    getProject() noexcept;
-
-
-private:
-    te::Project::Ptr project;
-
-    std::unique_ptr<te::Edit> edit;
-    te::TransportControl*     transport;
+  [[maybe_unused, nodiscard]] inline JuceEngine&
+  getEngine() noexcept final;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
+  [[maybe_unused, nodiscard]] inline const State&
+  getState() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline State&
+  getState() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
+  getLookAndFeel() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
+  getLookAndFeel() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceUndoManager&
+  getUndoManager() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceUndoManager&
+  getUndoManager() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceProject&
+  getProject() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceProject&
+  getProject() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceEdit&
+  getEdit() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceEdit&
+  getEdit() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceTransport&
+  getTransport() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceTransport&
+  getTransport() noexcept final;
+
+
+ private:
+  JuceEngine engine;
+
+  JuceXmlFile stateFile;
+  State       state;
+
+  std::unique_ptr<JuceLookAndFeel> lookAndFeel;
+
+  JuceUndoManager undoManager;
+
+  JuceProject::Ptr project;
+
+  std::unique_ptr<JuceEdit> edit;
+  JuceTransport*            transport;
+
+
+  static inline JuceXmlFile ensureValidStateFile(JuceEngine& engine);
+
+  static inline State ensureValidState(JuceXmlFile& file);
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
 };
 
 
-const te::Edit& Context::getEdit() const noexcept
+const JuceEngine& Context::getEngine() const noexcept
 {
-    return *edit;
+  return engine;
 }
 
-te::Edit& Context::getEdit() noexcept
+JuceEngine& Context::getEngine() noexcept
 {
-    return *edit;
-}
-
-
-const te::TransportControl& Context::getTransport() const noexcept
-{
-    return *transport;
-}
-
-te::TransportControl& Context::getTransport() noexcept
-{
-    return *transport;
+  return engine;
 }
 
 
-const te::Project& Context::getProject() const noexcept
+const State& Context::getState() const noexcept
 {
-    return *project;
+  return state;
 }
 
-te::Project& Context::getProject() noexcept
+State& Context::getState() noexcept
 {
-    return *project;
+  return state;
 }
 
 
-template<
-        typename OnInitSuccess,
-        typename OnInitFailure,
-        decltype(std::declval<OnInitSuccess>()(),
-                 std::declval<OnInitFailure>()())*>
-Context::Context(OnInitSuccess onInitSuccess,
-                 OnInitFailure onInitFailure)
-    : CoreContext(),
-
-      project(),
-
-      edit(),
-      transport()
+const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
 {
-    auto& ui = dynamic_cast<blooper::UIBehaviour&>(
-            engine->getUIBehaviour());
+  return *lookAndFeel;
+}
 
-    ui.showProjectScreen(
-            [this, onInitSuccess](auto projectRef) {
-                this->project = std::move(projectRef);
+JuceLookAndFeel& Context::getLookAndFeel() noexcept
+{
+  return *lookAndFeel;
+}
 
-                this->edit = ext::project::ensureEdit(
-                        this->getProject(),
-                        this->getEngine());
 
-                this->transport = &getEdit().getTransport();
+const JuceUndoManager& Context::getUndoManager() const noexcept
+{
+  return undoManager;
+}
 
-                onInitSuccess();
-            },
-            [this, onInitFailure] {
-                onInitFailure();
-            });
+JuceUndoManager& Context::getUndoManager() noexcept
+{
+  return undoManager;
+}
+
+
+const JuceProject& Context::getProject() const noexcept
+{
+  return *project;
+}
+
+JuceProject& Context::getProject() noexcept
+{
+  return *project;
+}
+
+
+const JuceEdit& Context::getEdit() const noexcept
+{
+  return *edit;
+}
+
+JuceEdit& Context::getEdit() noexcept
+{
+  return *edit;
+}
+
+
+const JuceTransport& Context::getTransport() const noexcept
+{
+  return *transport;
+}
+
+JuceTransport& Context::getTransport() noexcept
+{
+  return *transport;
+}
+
+
+JuceXmlFile Context::ensureValidStateFile(JuceEngine& engine)
+{
+  JuceXmlFile::Options options;
+  options.millisecondsBeforeSaving = 2000;
+  options.storageFormat = JuceXmlFile::storeAsXML;
+  options.commonToAllUsers = false;
+
+  auto stateFile =
+      engine.getPropertyStorage()
+          .getAppPrefsFolder()
+          .getChildFile(stateFileName);
+
+  // If not valid, just delete it and it will create a new one when needed.
+  if (!JuceXmlFile(stateFile, options).isValidFile())
+    stateFile.deleteFile();
+
+  return JuceXmlFile(stateFile, options);
+}
+
+State Context::ensureValidState(JuceXmlFile& file)
+{
+  State state = State::fromXml(*file.getXmlValue(stateFileKey));
+
+  if (!state.isValid() || !state.hasType(stateId))
+  {
+    state = State(stateId);
+    file.setValue(stateFileKey, state.createXml().get());
+  }
+
+  return state;
 }
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_CONTEXT_CLASS_HPP

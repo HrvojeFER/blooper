@@ -1,22 +1,17 @@
 #ifndef BLOOPER_PLUGIN_WINDOW_HPP
 #define BLOOPER_PLUGIN_WINDOW_HPP
 
-
 #include <blooper/internal/internal.hpp>
-
 
 // TODO: cleanup
 
 BLOOPER_NAMESPACE_BEGIN
 
-static inline bool isDPIAware(te::Plugin&)
-{
-    // You should keep a DB of if plugins are DPI aware or not and recall
-    // that value here.
-    // You should let the user toggle the value if the plugin appears tiny.
-    return true;
-}
-
+#if JUCE_LINUX
+constexpr bool shouldAddPluginWindowToDesktop = false;
+#else
+constexpr bool shouldAddPluginWindowToDesktop = true;
+#endif
 
 class PluginEditor : public juce::Component
 {
@@ -138,6 +133,5 @@ private:
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_PLUGIN_WINDOW_HPP

@@ -1,52 +1,52 @@
 #include <blooper/blooper.hpp>
 
-
 BLOOPER_NAMESPACE_BEGIN
 
 UIBehaviour::UIBehaviour(AbstractCoreContext& context)
-    : context(context)
-{ }
-
-UIBehaviour::~UIBehaviour() = default;
+    : CoreContextualBase(context)
+{
+}
 
 
 std::unique_ptr<juce::Component> UIBehaviour::createPluginWindow(
-        te::PluginWindowState& windowState)
+    te::PluginWindowState& windowState)
 {
-    if (auto concreteWindowState = dynamic_cast<te::Plugin::WindowState*>(
-                &windowState))
-        return PluginWindow::create(concreteWindowState->plugin);
+  if (auto concreteWindowState = dynamic_cast<te::Plugin::WindowState*>(
+          &windowState))
+    return PluginWindow::create(concreteWindowState->plugin);
 
-    return {};
+  return {};
 }
 
 void UIBehaviour::recreatePluginWindowContentAsync(
-        te::Plugin& plugin)
+    te::Plugin& plugin)
 {
-    if (auto* pluginWindow = dynamic_cast<PluginWindow*>(
-                plugin.windowState->pluginWindow.get()))
-        return pluginWindow->recreateEditorAsync();
+  if (auto* pluginWindow = dynamic_cast<PluginWindow*>(
+          plugin.windowState->pluginWindow.get()))
+    return pluginWindow->recreateEditorAsync();
 
-    UIBehaviour::recreatePluginWindowContentAsync(plugin);
+  UIBehaviour::recreatePluginWindowContentAsync(plugin);
 }
 
 
 void UIBehaviour::showProjectScreen()
 {
-    auto projectWindow = new ProjectsMenuWindow(context);
-    projectWindow->enterModalState(
-            true,
-            nullptr,
-            true);
+  auto projectWindow = new ProjectsMenuWindow(getContext());
+
+  projectWindow->enterModalState(
+      true,
+      nullptr,
+      true);
 }
 
 void UIBehaviour::showSettingsScreen()
 {
-    auto settingsWindow = new SettingsMenuWindow(context);
-    settingsWindow->enterModalState(
-            true,
-            nullptr,
-            true);
+  auto settingsWindow = new SettingsMenuWindow(getContext());
+
+  settingsWindow->enterModalState(
+      true,
+      nullptr,
+      true);
 }
 
 BLOOPER_NAMESPACE_END

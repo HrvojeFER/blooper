@@ -1,21 +1,19 @@
 #ifndef BLOOPER_PLUGINS_MENU_WINDOW_HPP
 #define BLOOPER_PLUGINS_MENU_WINDOW_HPP
 
-
-#include <blooper/fwd.hpp>
-
-#include <blooper/context/core/core.hpp>
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class PluginsMenuWindow : public CoreWindow
+class PluginsMenuWindow : public CoreWindowBase
 {
-public:
-    explicit PluginsMenuWindow(CoreContext& context);
+ public:
+  explicit PluginsMenuWindow(AbstractCoreContext& context);
 
-private:
+ private:
 };
+
+void showPluginsMenu(AbstractCoreContext& context);
 
 BLOOPER_NAMESPACE_END
 

@@ -1,21 +1,36 @@
 #ifndef BLOOPER_DEVICES_MENU_COMPONENT_HPP
 #define BLOOPER_DEVICES_MENU_COMPONENT_HPP
 
-
-#include <blooper/fwd.hpp>
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class DevicesMenuComponent : public CoreComponent
+class DevicesMenuComponent : public CoreComponentBase
 {
-public:
-    explicit DevicesMenuComponent(CoreContext& context);
+ public:
+  BLOOPER_STATE_ID(DevicesMenuComponent);
 
-private:
+
+  struct Options
+  {
+  } options;
+
+  explicit DevicesMenuComponent(
+      AbstractCoreContext& context,
+      State                state,
+      Options              options = {});
+
+
+  void resized() override;
+
+
+ private:
+  juce::AudioDeviceSelectorComponent selector;
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevicesMenuComponent)
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_DEVICES_MENU_COMPONENT_HPP

@@ -1,184 +1,176 @@
 #ifndef BLOOPER_PROPERTY_STORAGE_HPP
 #define BLOOPER_PROPERTY_STORAGE_HPP
 
-
-#include <blooper/abstract.hpp>
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class PropertyStorage : public te::PropertyStorage
+class PropertyStorage :
+    public CoreContextualBase,
+    public te::PropertyStorage
 {
-public:
-    inline constexpr static auto rootDirName = ".blooper";
-    inline constexpr static auto cacheDirName = ".cache";
-    inline constexpr static auto prefsDirName = "prefs";
+ public:
+  inline constexpr static auto rootSpecialLocation =
+      juce::File::userHomeDirectory;
 
-    inline constexpr static auto projectsDirName = "projects";
-    inline constexpr static auto mediaDirName = "media";
+  inline constexpr static auto rootDirName = ".blooper";
+  inline constexpr static auto cacheDirName = ".cache";
+  inline constexpr static auto prefsDirName = "prefs";
 
-    inline constexpr static auto settingsFileName = "settings.xml";
+  inline constexpr static auto projectsDirName = "projects";
+  inline constexpr static auto mediaDirName = "media";
 
-
-    explicit PropertyStorage(AbstractCoreContext& context);
-    ~PropertyStorage() override;
-
-
-    juce::File getAppCacheFolder() override;
-
-    juce::File getAppPrefsFolder() override;
+  inline constexpr static auto settingsFileName = "settings.xml";
 
 
-    void flushSettingsToDisk() override;
+  explicit PropertyStorage(AbstractCoreContext& context);
 
 
-    void removeProperty(
-            te::SettingID setting_id) override;
+  juce::File getAppCacheFolder() override;
 
-    juce::var getProperty(
-            te::SettingID    setting,
-            const juce::var& defaultValue) override;
-
-    void setProperty(
-            te::SettingID    setting,
-            const juce::var& value) override;
-
-    std::unique_ptr<juce::XmlElement> getXmlProperty(
-            te::SettingID setting) override;
-
-    void setXmlProperty(
-            te::SettingID           setting,
-            const juce::XmlElement& element) override;
+  juce::File getAppPrefsFolder() override;
 
 
-    void removePropertyItem(
-            te::SettingID   setting,
-            juce::StringRef item) override;
-
-    juce::var getPropertyItem(
-            te::SettingID    setting,
-            juce::StringRef  item,
-            const juce::var& defaultValue) override;
-
-    void setPropertyItem(
-            te::SettingID    setting,
-            juce::StringRef  item,
-            const juce::var& value) override;
-
-    std::unique_ptr<juce::XmlElement> getXmlPropertyItem(
-            te::SettingID   setting,
-            juce::StringRef item) override;
-
-    void setXmlPropertyItem(
-            te::SettingID           setting,
-            juce::StringRef         item,
-            const juce::XmlElement& element) override;
+  void flushSettingsToDisk() override;
 
 
-    juce::File getDefaultLoadSaveDirectory(
-            juce::StringRef label) override;
+  void removeProperty(
+      te::SettingID setting_id) override;
 
-    void setDefaultLoadSaveDirectory(
-            juce::StringRef   label,
-            const juce::File& newPath) override;
+  juce::var getProperty(
+      te::SettingID    setting,
+      const juce::var& defaultValue) override;
 
-    juce::File getDefaultLoadSaveDirectory(
-            te::ProjectItem::Category category) override;
+  void setProperty(
+      te::SettingID    setting,
+      const juce::var& value) override;
 
+  std::unique_ptr<juce::XmlElement> getXmlProperty(
+      te::SettingID setting) override;
 
-    juce::String getApplicationName() override;
-
-    juce::String getApplicationVersion() override;
-
-
-private:
-    AbstractCoreContext& context;
-
-    juce::File
-            root,
-            cache,
-            prefs,
-
-            media,
-            projects;
-
-    juce::PropertiesFile
-            properties;
+  void setXmlProperty(
+      te::SettingID           setting,
+      const juce::XmlElement& element) override;
 
 
-    inline juce::File createRoot();
+  void removePropertyItem(
+      te::SettingID   setting,
+      juce::StringRef item) override;
 
-    inline juce::File createCache();
+  juce::var getPropertyItem(
+      te::SettingID    setting,
+      juce::StringRef  item,
+      const juce::var& defaultValue) override;
 
-    inline juce::File createPrefs();
+  void setPropertyItem(
+      te::SettingID    setting,
+      juce::StringRef  item,
+      const juce::var& value) override;
+
+  std::unique_ptr<juce::XmlElement> getXmlPropertyItem(
+      te::SettingID   setting,
+      juce::StringRef item) override;
+
+  void setXmlPropertyItem(
+      te::SettingID           setting,
+      juce::StringRef         item,
+      const juce::XmlElement& element) override;
 
 
-    inline juce::File createMedia();
+  juce::File getDefaultLoadSaveDirectory(
+      juce::StringRef label) override;
 
-    inline juce::File createProjects();
+  void setDefaultLoadSaveDirectory(
+      juce::StringRef   label,
+      const juce::File& newPath) override;
+
+  juce::File getDefaultLoadSaveDirectory(
+      te::ProjectItem::Category category) override;
 
 
-    inline juce::PropertiesFile createProperties();
+  juce::String getApplicationName() override;
+
+  juce::String getApplicationVersion() override;
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertyStorage)
+ private:
+  juce::File
+      root,
+      cache,
+      prefs,
+
+      media,
+      projects;
+
+  juce::PropertiesFile
+      properties;
+
+
+  static inline juce::File createRoot();
+
+
+  inline juce::File createCache();
+
+  inline juce::File createPrefs();
+
+
+  inline juce::File createMedia();
+
+  inline juce::File createProjects();
+
+
+  inline juce::PropertiesFile ensureValidProperties();
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertyStorage)
 };
 
 
 juce::File PropertyStorage::createRoot()
 {
-    juce::ignoreUnused(this);
+  const auto appDataRoot = juce::File::getSpecialLocation(rootSpecialLocation);
 
-    const auto appDataRoot = juce::File::getSpecialLocation(
-            juce::File::userHomeDirectory);
-
-    return appDataRoot.getChildFile(rootDirName);
+  return appDataRoot.getChildFile(rootDirName);
 }
 
 juce::File PropertyStorage::createCache()
 {
-    juce::ignoreUnused(this);
-
-    return root.getChildFile(cacheDirName);
+  return this->root.getChildFile(cacheDirName);
 }
 
 juce::File PropertyStorage::createPrefs()
 {
-    juce::ignoreUnused(this);
-
-    return root.getChildFile(prefsDirName);
+  return this->root.getChildFile(prefsDirName);
 }
 
 
 juce::File PropertyStorage::createMedia()
 {
-    juce::ignoreUnused(this);
-
-    return root.getChildFile(mediaDirName);
+  return this->root.getChildFile(mediaDirName);
 }
 
 juce::File PropertyStorage::createProjects()
 {
-    juce::ignoreUnused(this);
-
-    return root.getChildFile(projectsDirName);
+  return this->root.getChildFile(projectsDirName);
 }
 
 
-juce::PropertiesFile PropertyStorage::createProperties()
+juce::PropertiesFile PropertyStorage::ensureValidProperties()
 {
-    juce::ignoreUnused(this);
+  juce::PropertiesFile::Options options;
+  options.millisecondsBeforeSaving = 2000;
+  options.storageFormat = juce::PropertiesFile::storeAsXML;
+  options.commonToAllUsers = false;
 
-    juce::PropertiesFile::Options options;
-    options.millisecondsBeforeSaving = 2000;
-    options.storageFormat = juce::PropertiesFile::storeAsXML;
+  auto file = this->root.getChildFile(settingsFileName);
 
-    return juce::PropertiesFile(
-            root.getChildFile(settingsFileName),
-            options);
+  // If not valid, just delete it and it will create a new one when needed.
+  if (!juce::PropertiesFile(file, options).isValidFile())
+    file.deleteFile();
+
+  return juce::PropertiesFile(file, options);
 }
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_PROPERTY_STORAGE_HPP

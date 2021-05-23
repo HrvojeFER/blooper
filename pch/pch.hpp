@@ -63,41 +63,6 @@
 #include <tracktion_engine/tracktion_engine.h>
 
 
-// namespaces
-
-namespace te = tracktion_engine;
-
-#define BLOOPER_NAMESPACE_BEGIN \
-    namespace blooper           \
-    {
-#define BLOOPER_NAMESPACE_END \
-    } // namespace blooper
-
-#define BLOOPER_DEV_NAMESPACE_BEGIN \
-    namespace blooper::dev          \
-    {
-#define BLOOPER_DEV_NAMESPACE_END \
-    } // namespace blooper::dev
-
-#define BLOOPER_EXT_NAMESPACE_BEGIN \
-    namespace blooper::ext          \
-    {
-#define BLOOPER_EXT_NAMESPACE_END \
-    } // namespace blooper::ext
-
-#define BLOOPER_UTILS_NAMESPACE_BEGIN \
-    namespace blooper::utils          \
-    {
-#define BLOOPER_UTILS_NAMESPACE_END \
-    } // namespace blooper::utils
-
-#define BLOOPER_ID_NAMESPACE_BEGIN \
-    namespace blooper::id          \
-    {
-#define BLOOPER_ID_NAMESPACE_END \
-    } // namespace blooper::id
-
-
 // pop warning suppression
 
 #if defined(__clang__) // clang
