@@ -5,13 +5,23 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class PluginPickerComponent : public ContextualBase
+class PluginPickerComponent : public ComponentBase
 {
  public:
-  explicit PluginPickerComponent(AbstractContext& context);
+  BLOOPER_STATE_ID(PluginPickerComponent);
 
 
-  te::Plugin::Ptr runPopup();
+  struct Options
+  {
+  } options;
+
+  explicit PluginPickerComponent(
+      AbstractContext& context,
+      State            state,
+      Options          options = {});
+
+
+  JucePluginRef runPopup();
 
 
  private:
@@ -29,8 +39,9 @@ class PluginPickerComponent : public ContextualBase
 };
 
 
-[[maybe_unused, nodiscard]] te::Plugin::Ptr pickPlugin(
-    AbstractContext& context);
+[[maybe_unused, nodiscard]] JucePluginRef pickPlugin(
+    AbstractContext&               context,
+    PluginPickerComponent::Options options = {});
 
 BLOOPER_NAMESPACE_END
 

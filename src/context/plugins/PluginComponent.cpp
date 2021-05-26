@@ -3,14 +3,22 @@
 BLOOPER_NAMESPACE_BEGIN
 
 PluginComponent::PluginComponent(
-    AbstractCoreContext& context, PluginRef plugin)
-    : CoreComponentBase(context),
+    AbstractCoreContext& context,
+    State                state,
+    PluginRef            plugin,
+    Options              options)
+    : CoreComponentBase(
+          context,
+          std::move(state)),
+      options(std::move(options)),
 
       plugin(std::move(plugin)),
 
       button(this)
 {
-  this->addAndMakeVisible(button);
+  ext::addAndMakeVisible(
+      *this,
+      button);
 }
 
 

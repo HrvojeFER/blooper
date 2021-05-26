@@ -10,14 +10,11 @@ class ProjectsMenuWindow : public CoreWindowBase
  public:
   BLOOPER_STATE_ID(ProjectsMenuWindow);
 
-  using ProjectRef = te::Project::Ptr;
-
 
   struct Options
   {
-    std::function<void(ProjectRef)> onOpen;
-
-    std::function<void()> onCancel;
+    std::function<void(JuceProjectRef)> onOpen;
+    std::function<void()>               onCancel;
   } options;
 
   explicit ProjectsMenuWindow(
@@ -34,7 +31,7 @@ class ProjectsMenuWindow : public CoreWindowBase
 };
 
 
-[[maybe_unused]] void showProjectsMenu(
+[[maybe_unused]] ProjectsMenuWindow* showProjectsMenu(
     AbstractCoreContext&        context,
     ProjectsMenuWindow::Options options = {});
 

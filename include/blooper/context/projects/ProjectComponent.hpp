@@ -8,9 +8,24 @@ BLOOPER_NAMESPACE_BEGIN
 class ProjectComponent : public ComponentBase
 {
  public:
-  explicit ProjectComponent(AbstractContext& context);
+  BLOOPER_STATE_ID(ProjectComponent);
+
+
+  class Options
+  {
+  } options;
+
+  explicit ProjectComponent(
+      AbstractContext& context,
+      State            state,
+      JuceProjectRef   project = {},
+      Options          options = {});
+
 
  private:
+  JuceProjectRef project;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectComponent);
 };
 

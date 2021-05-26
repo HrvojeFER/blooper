@@ -8,12 +8,27 @@ BLOOPER_NAMESPACE_BEGIN
 class PluginsMenuWindow : public CoreWindowBase
 {
  public:
-  explicit PluginsMenuWindow(AbstractCoreContext& context);
+  BLOOPER_STATE_ID(PluginsMenuWindow);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit PluginsMenuWindow(
+      AbstractCoreContext& context,
+      State                state,
+      Options              options = {});
+
 
  private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginsMenuWindow)
 };
 
-void showPluginsMenu(AbstractCoreContext& context);
+
+[[maybe_unused]] PluginsMenuWindow* showPluginsMenu(
+    AbstractCoreContext&       context,
+    PluginsMenuWindow::Options options = {});
 
 BLOOPER_NAMESPACE_END
 

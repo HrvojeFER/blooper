@@ -13,20 +13,23 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 
       options(std::move(options))
 {
-  auto component =
-      new ProjectsMenuComponent(
-          context,
-          state.getOrCreateChildWithName(
-              ProjectsMenuComponent::stateId,
-              nullptr));
+  ProjectsMenuComponent::Options componentOptions{};
 
-  component->onOpen = [this](auto ref) {
+  componentOptions.onOpen = [this](auto ref) {
     this->options.onOpen(std::move(ref));
   };
 
-  component->onCancel = [this] {
+  componentOptions.onCancel = [this] {
     this->options.onCancel();
   };
+
+  auto component =
+      new ProjectsMenuComponent(
+          getContext(),
+          state.getOrCreateChildWithName(
+              ProjectsMenuComponent::stateId,
+              nullptr),
+          componentOptions);
 
   component->setBounds(
       0,
@@ -46,7 +49,7 @@ void ProjectsMenuWindow::closeButtonPressed()
 }
 
 
-[[maybe_unused]] void showProjectsMenu(
+[[maybe_unused]] ProjectsMenuWindow* showProjectsMenu(
     AbstractCoreContext&        context,
     ProjectsMenuWindow::Options options)
 {
@@ -63,6 +66,8 @@ void ProjectsMenuWindow::closeButtonPressed()
       true,
       nullptr,
       true);
+
+  return window;
 }
 
 BLOOPER_NAMESPACE_END

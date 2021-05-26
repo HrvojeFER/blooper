@@ -26,7 +26,7 @@ class DevicesMenuWindow : public CoreWindowBase
 };
 
 
-[[maybe_unused]] void showDevicesMenu(
+[[maybe_unused]] DevicesMenuWindow* showDevicesMenu(
     AbstractCoreContext&       context,
     DevicesMenuWindow::Options options = {});
 

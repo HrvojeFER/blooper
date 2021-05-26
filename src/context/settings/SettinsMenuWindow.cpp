@@ -16,7 +16,7 @@ SettingsMenuWindow::SettingsMenuWindow(
 
   setContentOwned(
       new SettingsMenuComponent(
-          context,
+          getContext(),
           getState().getOrCreateChildWithName(
               stateId,
               nullptr),
@@ -25,7 +25,7 @@ SettingsMenuWindow::SettingsMenuWindow(
 }
 
 
-void showSettingsMenu(
+[[maybe_unused]] SettingsMenuWindow* showSettingsMenu(
     AbstractCoreContext&        context,
     SettingsMenuWindow::Options options)
 {
@@ -41,6 +41,8 @@ void showSettingsMenu(
       true,
       nullptr,
       true);
+
+  return window;
 }
 
 BLOOPER_NAMESPACE_END

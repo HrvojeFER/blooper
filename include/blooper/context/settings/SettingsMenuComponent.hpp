@@ -10,6 +10,7 @@ class SettingsMenuComponent : public CoreComponentBase
  public:
   BLOOPER_STATE_ID(SettingsMenuComponent);
 
+
   struct Options
   {
   } options;

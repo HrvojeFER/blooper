@@ -31,29 +31,25 @@ void App::initialise(const juce::String&)
   util::requestRuntimePermissions(
       [this](bool granted) {
         if (!granted)
-        {
-          this->systemRequestedQuit();
-        }
-        else
-        {
-          Context::Options options;
-          options.onInitSuccess =
-              ([this] {
-                this->bodyWindow = std::make_unique<BodyWindow>(
-                    *this->context);
+          return this->systemRequestedQuit();
 
-                this->bodyWindow->onClose =
-                    [this] { this->systemRequestedQuit(); };
+        Context::Options options{};
+        options.onInitSuccess =
+            ([this] {
+              this->bodyWindow = std::make_unique<BodyWindow>(
+                  *this->context);
 
-                this->bodyWindow->setVisible(true);
-              });
-          options.onInitFailure =
-              ([this] {
-                this->systemRequestedQuit();
-              });
+              this->bodyWindow->onClose =
+                  [this] { this->systemRequestedQuit(); };
 
-          context = std::make_unique<Context>(options);
-        }
+              this->bodyWindow->setVisible(true);
+            });
+        options.onInitFailure =
+            ([this] {
+              this->systemRequestedQuit();
+            });
+
+        context = std::make_unique<Context>(options);
       });
 }
 

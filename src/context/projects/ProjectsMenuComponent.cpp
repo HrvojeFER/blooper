@@ -40,14 +40,15 @@ juce::ValueTree ensureProjectPath(
 
 ProjectsMenuComponent::ProjectsMenuComponent(
     AbstractCoreContext& context,
-    State                state)
-    : CoreComponentBase(context, std::move(state)),
+    State                state,
+    Options              options)
+    : CoreComponentBase(
+          context,
+          std::move(state)),
+      options(std::move(options)),
 
       projects(findProjectsWithFolders(
           context.getEngine().getProjectManager())),
-
-      onOpen(),
-      onCancel(),
 
       list("Projects", this),
 
@@ -167,7 +168,7 @@ ProjectsMenuComponent::ProjectsMenuComponent(
     }
     else
     {
-      this->onCancel();
+      this->options.onCancel();
     }
   };
 
@@ -175,7 +176,7 @@ ProjectsMenuComponent::ProjectsMenuComponent(
     auto row = list.getSelectedRow();
     if (row == -1) return;
 
-    this->onOpen(projects[row].project);
+    this->options.onOpen(projects[row].project);
   };
 
 
@@ -297,7 +298,7 @@ void ProjectsMenuComponent::listBoxItemDoubleClicked(
     const juce::MouseEvent&)
 {
   if (row == -1) return;
-  onOpen(projects[row].project);
+  this->options.onOpen(projects[row].project);
 }
 
 void ProjectsMenuComponent::deleteKeyPressed(

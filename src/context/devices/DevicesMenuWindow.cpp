@@ -15,7 +15,7 @@ DevicesMenuWindow::DevicesMenuWindow(
 {
   setContentOwned(
       new DevicesMenuComponent(
-          context,
+          getContext(),
           getState().getOrCreateChildWithName(
               DevicesMenuComponent::stateId,
               nullptr)),
@@ -23,7 +23,7 @@ DevicesMenuWindow::DevicesMenuWindow(
 }
 
 
-[[maybe_unused]] void showDevicesMenu(
+[[maybe_unused]] DevicesMenuWindow* showDevicesMenu(
     AbstractCoreContext&       context,
     DevicesMenuWindow::Options options)
 {
@@ -39,6 +39,8 @@ DevicesMenuWindow::DevicesMenuWindow(
       true,
       nullptr,
       true);
+
+  return window;
 }
 
 BLOOPER_NAMESPACE_END

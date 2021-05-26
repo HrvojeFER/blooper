@@ -5,12 +5,19 @@
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
-[[maybe_unused]] inline bool isDPIAware(te::Plugin&)
+#if JUCE_LINUX
+constexpr bool shouldAddPluginWindowToDesktop = false;
+#else
+constexpr bool shouldAddPluginWindowToDesktop = true;
+#endif
+
+inline constexpr auto pluginIdSuffix = "_plugin";
+
+
+[[maybe_unused]] inline juce::Identifier getId(
+    const te::Plugin& plugin) noexcept
 {
-  // You should keep a DB of if plugins are DPI aware or not and recall
-  // that value here.
-  // You should let the user toggle the value if the plugin appears tiny.
-  return true;
+  return {plugin.itemID.toString() + pluginIdSuffix};
 }
 
 BLOOPER_EXT_NAMESPACE_END

@@ -18,9 +18,9 @@ class Context : public AbstractContext
   {
     std::function<void()> onInitSuccess;
     std::function<void()> onInitFailure;
-  };
+  } options;
 
-  Context(const Options& options);
+  explicit Context(Options options = {});
 
   ~Context() override;
 
@@ -59,6 +59,12 @@ class Context : public AbstractContext
   [[maybe_unused, nodiscard]] inline JuceProject&
   getProject() noexcept final;
 
+  [[maybe_unused, nodiscard]] inline JuceProjectConstRef
+  getProjectRef() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceProjectRef
+  getProjectRef() noexcept final;
+
 
   [[maybe_unused, nodiscard]] inline const JuceEdit&
   getEdit() const noexcept final;
@@ -84,7 +90,7 @@ class Context : public AbstractContext
 
   JuceUndoManager undoManager;
 
-  JuceProject::Ptr project;
+  JuceProjectRef project;
 
   std::unique_ptr<JuceEdit> edit;
   JuceTransport*            transport;
@@ -151,6 +157,16 @@ const JuceProject& Context::getProject() const noexcept
 JuceProject& Context::getProject() noexcept
 {
   return *project;
+}
+
+JuceProjectConstRef Context::getProjectRef() const noexcept
+{
+  return project;
+}
+
+JuceProjectRef Context::getProjectRef() noexcept
+{
+  return project;
 }
 
 

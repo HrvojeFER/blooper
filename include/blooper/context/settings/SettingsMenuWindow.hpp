@@ -26,7 +26,7 @@ class SettingsMenuWindow : public CoreWindowBase
 };
 
 
-void showSettingsMenu(
+[[maybe_unused]] SettingsMenuWindow* showSettingsMenu(
     AbstractCoreContext&        context,
     SettingsMenuWindow::Options options = {});
 

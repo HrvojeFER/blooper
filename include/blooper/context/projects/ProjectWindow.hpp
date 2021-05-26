@@ -8,13 +8,32 @@ BLOOPER_NAMESPACE_BEGIN
 class ProjectWindow : public WindowBase
 {
  public:
-  explicit ProjectWindow(AbstractContext& context);
+  BLOOPER_STATE_ID(ProjectWindow);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit ProjectWindow(
+      AbstractContext& context,
+      State            state,
+      JuceProjectRef   project = {},
+      Options          options = {});
+
 
  private:
+  JuceProjectRef project;
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectWindow);
 };
 
 
-void showProject(AbstractContext& context);
+[[maybe_unused]] ProjectWindow* showProject(
+    AbstractContext&       context,
+    JuceProjectRef         project = {},
+    ProjectWindow::Options options = {});
 
 BLOOPER_NAMESPACE_END
 

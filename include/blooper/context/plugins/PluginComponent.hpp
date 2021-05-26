@@ -8,25 +8,39 @@ BLOOPER_NAMESPACE_BEGIN
 class PluginComponent : public CoreComponentBase
 {
  public:
-  using PluginRef = te::Plugin::Ptr;
+  BLOOPER_STATE_ID(PluginComponent);
 
+
+  struct Options
+  {
+  } options;
 
   [[nodiscard]] explicit PluginComponent(
       AbstractCoreContext& context,
-      PluginRef            plugin);
+      State                state,
+      JucePluginRef        plugin,
+      Options              options = {});
 
 
-  [[nodiscard]] inline const te::Plugin& getPlugin() const noexcept;
+  [[maybe_unused, nodiscard]] inline const JucePlugin&
+  getPlugin() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JucePluginConstRef
+  getPluginRef() const noexcept;
 
 
   void resized() override;
 
 
  private:
-  [[nodiscard]] inline te::Plugin& getPlugin() noexcept;
+  [[maybe_unused, nodiscard]] inline JucePlugin&
+  getPlugin() noexcept;
+
+  [[maybe_unused, nodiscard]] inline JucePluginRef
+  getPluginRef() noexcept;
 
 
-  PluginRef plugin;
+  JucePluginRef plugin;
 
 
   class Button : public juce::TextButton
@@ -44,14 +58,24 @@ class PluginComponent : public CoreComponentBase
 };
 
 
-const te::Plugin& PluginComponent::getPlugin() const noexcept
+const JucePlugin& PluginComponent::getPlugin() const noexcept
 {
   return *plugin;
 }
 
-te::Plugin& PluginComponent::getPlugin() noexcept
+JucePlugin& PluginComponent::getPlugin() noexcept
 {
   return *plugin;
+}
+
+JucePluginConstRef PluginComponent::getPluginRef() const noexcept
+{
+  return plugin;
+}
+
+JucePluginRef PluginComponent::getPluginRef() noexcept
+{
+  return plugin;
 }
 
 BLOOPER_NAMESPACE_END

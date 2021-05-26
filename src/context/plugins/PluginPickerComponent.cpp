@@ -2,8 +2,14 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-PluginPickerComponent::PluginPickerComponent(AbstractContext& context)
-    : ContextualBase(context),
+PluginPickerComponent::PluginPickerComponent(
+    AbstractContext& context,
+    State            state,
+    Options          options)
+    : ComponentBase(
+          context,
+          std::move(state)),
+      options(std::move(options)),
 
       pluginTree(),
 
@@ -42,7 +48,7 @@ PluginPickerComponent::Popup::Popup(PluginTreeBase* pluginTree)
       });
 }
 
-te::Plugin::Ptr PluginPickerComponent::runPopup()
+JucePluginRef PluginPickerComponent::runPopup()
 {
   if (!pluginTree)
     pluginTree = std::make_unique<PluginTreeGroup>(getContext());
@@ -86,9 +92,17 @@ class PluginTreeItem* PluginPickerComponent::findIn(
 }
 
 
-[[maybe_unused]] te::Plugin::Ptr pickPlugin(AbstractContext& context)
+[[maybe_unused]] JucePluginRef pickPlugin(
+    AbstractContext&               context,
+    PluginPickerComponent::Options options)
 {
-  return PluginPickerComponent(context).runPopup();
+  return PluginPickerComponent(
+             context,
+             context.getState().getOrCreateChildWithName(
+                 PluginPickerComponent::stateId,
+                 nullptr),
+             std::move(options))
+      .runPopup();
 }
 
 BLOOPER_NAMESPACE_END

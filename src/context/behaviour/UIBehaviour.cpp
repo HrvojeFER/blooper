@@ -13,40 +13,37 @@ std::unique_ptr<juce::Component> UIBehaviour::createPluginWindow(
 {
   if (auto concreteWindowState = dynamic_cast<te::Plugin::WindowState*>(
           &windowState))
-    return PluginWindow::create(concreteWindowState->plugin);
+  {
+    PluginEditorWindow::Options windowOptions{};
 
-  return {};
+    return showPluginEditorWindow(
+        getContext(),
+        concreteWindowState->plugin,
+        std::move(windowOptions));
+  }
+
+  return te::UIBehaviour::createPluginWindow(windowState);
 }
 
 void UIBehaviour::recreatePluginWindowContentAsync(
     te::Plugin& plugin)
 {
-  if (auto* pluginWindow = dynamic_cast<PluginWindow*>(
+  if (auto window = dynamic_cast<PluginEditorWindow*>(
           plugin.windowState->pluginWindow.get()))
-    return pluginWindow->recreateEditorAsync();
+    return window->recreateContentAsync();
 
-  UIBehaviour::recreatePluginWindowContentAsync(plugin);
+  return te::UIBehaviour::recreatePluginWindowContentAsync(plugin);
 }
 
 
 void UIBehaviour::showProjectScreen()
 {
-  auto projectWindow = new ProjectsMenuWindow(getContext());
-
-  projectWindow->enterModalState(
-      true,
-      nullptr,
-      true);
+  showProjectsMenu(getContext());
 }
 
 void UIBehaviour::showSettingsScreen()
 {
-  auto settingsWindow = new SettingsMenuWindow(getContext());
-
-  settingsWindow->enterModalState(
-      true,
-      nullptr,
-      true);
+  showSettingsMenu(getContext());
 }
 
 BLOOPER_NAMESPACE_END

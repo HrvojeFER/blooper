@@ -8,10 +8,21 @@ BLOOPER_NAMESPACE_BEGIN
 class PluginsMenuComponent : public CoreComponentBase
 {
  public:
-  explicit PluginsMenuComponent(AbstractCoreContext& context);
+  BLOOPER_STATE_ID(PluginsMenuComponent);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit PluginsMenuComponent(
+      AbstractCoreContext& context,
+      State                state,
+      Options              options = {});
 
 
  private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginsMenuComponent)
 };
 
 BLOOPER_NAMESPACE_END

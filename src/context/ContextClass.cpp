@@ -2,8 +2,10 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-Context::Context(const Options& options)
+Context::Context(Options options)
     : AbstractContext(),
+      options(std::move(options)),
+
       engine(
           std::make_unique<PropertyStorage>(*this),
           std::make_unique<UIBehaviour>(*this),
@@ -24,10 +26,10 @@ Context::Context(const Options& options)
   engine.getProjectManager().loadList();
 
 
-  auto projectsMenuWindow = new ProjectsMenuWindow(*this);
+  ProjectsMenuWindow::Options projectsMenuOptions{};
 
-  projectsMenuWindow->onOpen =
-      ([this, options](auto projectRef) {
+  projectsMenuOptions.onOpen =
+      ([this](auto projectRef) {
         this->project = std::move(projectRef);
 
         this->edit = ext::ensureEdit(
@@ -36,18 +38,15 @@ Context::Context(const Options& options)
 
         this->transport = &getEdit().getTransport();
 
-        options.onInitSuccess();
+        this->options.onInitSuccess();
       });
 
-  projectsMenuWindow->onCancel =
-      ([options] {
-        options.onInitFailure();
+  projectsMenuOptions.onCancel =
+      ([this] {
+        this->options.onInitFailure();
       });
 
-  projectsMenuWindow->enterModalState(
-      true,
-      nullptr,
-      true);
+  showProjectsMenu(*this, std::move(projectsMenuOptions));
 }
 
 Context::~Context()

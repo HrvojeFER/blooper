@@ -2,8 +2,14 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-PluginsMenuComponent::PluginsMenuComponent(AbstractCoreContext& context)
-    : CoreComponentBase(context)
+PluginsMenuComponent::PluginsMenuComponent(
+    AbstractCoreContext& context,
+    State                state,
+    Options              options)
+    : CoreComponentBase(
+          context,
+          std::move(state)),
+      options(std::move(options))
 {
 }
 

@@ -59,7 +59,9 @@ void PluginWindow::setEditor(std::unique_ptr<PluginEditor> newEditor)
     if (newEditor != nullptr)
     {
       editor = std::move(newEditor);
-      setContentNonOwned(editor.get(), true);
+      setContentNonOwned(
+          editor.get(),
+          true);
     }
 
     setResizable(editor == nullptr ||
@@ -89,16 +91,9 @@ std::unique_ptr<juce::Component> PluginWindow::create(te::Plugin& plugin)
     blocker.enterModalState(false);
 
 #if JUCE_WINDOWS && JUCE_WIN_PER_MONITOR_DPI_AWARE
-    if (!ext::plugin::isDPIAware(plugin))
-    {
-      juce::ScopedDPIAwarenessDisabler disableDPIAwareness;
-      w = std::make_unique<PluginWindow>(plugin);
-    }
-    else
+    juce::ScopedDPIAwarenessDisabler disableDPIAwareness;
 #endif
-    {
-      w = std::make_unique<PluginWindow>(plugin);
-    }
+    w = std::make_unique<PluginWindow>(plugin);
   }
 
   if (w == nullptr || w->getEditor() == nullptr)

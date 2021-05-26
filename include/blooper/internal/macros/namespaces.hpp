@@ -82,4 +82,18 @@ BLOOPER_UTIL_NAMESPACE_END
 BLOOPER_META_NAMESPACE_BEGIN
 BLOOPER_META_NAMESPACE_END
 
+#define BLOOPER_TRAITS_NAMESPACE_BEGIN \
+  namespace blooper::meta::traits      \
+  {                                    \
+  using namespace env::syntax;         \
+  using namespace env::meta::traits;   \
+  namespace                            \
+  {
+#define BLOOPER_TRAITS_NAMESPACE_END \
+  } /* namespace */                  \
+  } /* namespace blooper::meta::traits */
+
+BLOOPER_TRAITS_NAMESPACE_BEGIN
+BLOOPER_TRAITS_NAMESPACE_END
+
 #endif //BLOOPER_NAMESPACES_HPP

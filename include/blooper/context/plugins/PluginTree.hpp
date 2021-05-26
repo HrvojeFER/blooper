@@ -56,7 +56,7 @@ class PluginTreeBase : public ContextualBase
  public:
   explicit PluginTreeBase(AbstractContext& context);
 
-  virtual ~PluginTreeBase();
+  ~PluginTreeBase() override;
 
 
   [[nodiscard]] virtual juce::String getName() const = 0;
@@ -148,30 +148,30 @@ enum class PluginTreeVisitType
   shallow
 };
 
-template<typename TOnSubGroup, typename TOnSubItem>
+template<typename TOnGroup, typename TOnItem>
 [[maybe_unused]] static inline constexpr auto isPluginTreeVisitNoexcept =
-    noexcept(std::declval<TOnSubGroup>()(
+    noexcept(std::declval<TOnGroup>()(
                  std::declval<class PluginTreeGroup&>()),
-             std::declval<TOnSubItem>()(
+             std::declval<TOnItem>()(
                  std::declval<class PluginTreeItem&>()));
 
 template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
-         typename TOnSubGroup,
-         typename TOnSubItem>
+         typename TOnGroup,
+         typename TOnItem>
 [[maybe_unused]] void visit(
     PluginTreeBase* base,
-    TOnSubGroup     onSubGroup,
-    TOnSubItem      onSubItem) noexcept(isPluginTreeVisitNoexcept<TOnSubGroup, TOnSubItem>)
+    TOnGroup        onGroup,
+    TOnItem         onItem) noexcept(isPluginTreeVisitNoexcept<TOnGroup, TOnItem>)
 {
   static_assert(
       isInvokeable(
-          env::meta::typeid_(onSubGroup),
+          env::meta::typeid_(onGroup),
           env::meta::type_c<PluginTreeGroup&>),
       "onSubGroup must be invokable with PluginTreeGroup&.");
 
   static_assert(
       isInvokeable(
-          env::meta::typeid_(onSubItem),
+          env::meta::typeid_(onItem),
           env::meta::type_c<PluginTreeItem&>),
       "onSubItem must be invokable with PluginTreeItem&.");
 
@@ -181,19 +181,19 @@ template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
     for (auto subNode : *group)
       if (auto subGroup = dynamic_cast<class PluginTreeGroup*>(subNode))
       {
-        onSubGroup(*subGroup);
+        onGroup(*subGroup);
 
         if constexpr (VisitType == PluginTreeVisitType::deep)
-          visit(group, onSubGroup, onSubItem);
+          visit(group, onGroup, onItem);
       }
 
     for (auto subNode : *group)
       if (auto subItem = dynamic_cast<class PluginTreeItem*>(subNode))
-        onSubItem(*subItem);
+        onItem(*subItem);
   }
 
   if (auto item = dynamic_cast<PluginTreeItem*>(base))
-    onSubItem(*item);
+    onItem(*item);
 }
 
 BLOOPER_NAMESPACE_END

@@ -12,13 +12,19 @@ class ProjectsMenuComponent :
  public:
   BLOOPER_STATE_ID(ProjectsMenuComponent);
 
-  explicit ProjectsMenuComponent(AbstractCoreContext& context, State state);
+
+  struct Options
+  {
+    std::function<void(JuceProjectRef)> onOpen;
+    std::function<void()>               onCancel;
+  } options;
+
+  explicit ProjectsMenuComponent(
+      AbstractCoreContext& context,
+      State                state,
+      Options              options = {});
+
   ~ProjectsMenuComponent() override;
-
-  using ProjectRef = te::Project::Ptr;
-  std::function<void(ProjectRef)> onOpen;
-
-  std::function<void()> onCancel;
 
 
   void resized() override;
@@ -29,7 +35,7 @@ class ProjectsMenuComponent :
   {
     juce::String    path;
     juce::ValueTree folder;
-    ProjectRef      project;
+    JuceProjectRef  project;
   };
 
   using ProjectArray = juce::Array<ProjectWithPath>;
