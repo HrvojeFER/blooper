@@ -49,8 +49,6 @@ class AbstractPluginContentComponent :
 
   [[maybe_unused]] virtual void recreate() = 0;
 
-  [[maybe_unused]] virtual void recreateAsync() = 0;
-
 
  protected:
   [[maybe_unused, nodiscard]] inline virtual JucePlugin&
@@ -96,7 +94,7 @@ class PluginContentComponentBase :
 };
 
 
-// Implementations
+// implementations
 
 class NotImplementedPluginContentComponent final :
     public PluginContentComponentBase<JucePluginRef>
@@ -131,8 +129,6 @@ class NotImplementedPluginContentComponent final :
 
 
   [[maybe_unused]] void recreate() override;
-
-  [[maybe_unused]] void recreateAsync() override;
 
 
  private:
@@ -179,24 +175,19 @@ struct ExternalPluginContentComponent final :
 
   [[maybe_unused]] void recreate() override;
 
-  [[maybe_unused]] void recreateAsync() override;
-
 
  private:
   std::unique_ptr<JucePluginContent> content;
 
 
-  void resizeToFitEditor(bool force = false);
+  void resizeToFitContent(bool force = false);
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ExternalPluginContentComponent)
 };
 
 
-// TODO: internal plugins here
-
-
-// Inline implementations
+// inline implementations
 
 template<typename TPluginRef>
 [[maybe_unused]] PluginContentComponentBase<TPluginRef>::
@@ -215,28 +206,28 @@ template<typename TPluginRef>
 [[maybe_unused]] const JucePlugin&
 PluginContentComponentBase<TPluginRef>::getPlugin() const noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 template<typename TPluginRef>
 [[maybe_unused]] JucePlugin&
 PluginContentComponentBase<TPluginRef>::getPlugin() noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 template<typename TPluginRef>
 [[maybe_unused]] JucePluginConstRef
 PluginContentComponentBase<TPluginRef>::getPluginRef() const noexcept
 {
-  return plugin;
+  return this->plugin;
 }
 
 template<typename TPluginRef>
 [[maybe_unused]] JucePluginRef
 PluginContentComponentBase<TPluginRef>::getPluginRef() noexcept
 {
-  return plugin;
+  return this->plugin;
 }
 
 BLOOPER_NAMESPACE_END

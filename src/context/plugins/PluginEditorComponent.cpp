@@ -13,7 +13,13 @@ PluginEditorComponent::PluginEditorComponent(
       options(std::move(options)),
 
       plugin(std::move(plugin)),
-      content(createPluginContent(getPluginRef()))
+      content(
+          createPluginContent(
+              getContext(),
+              getPluginRef(),
+              PluginContentOptions{})),
+
+      constrainer(this->createConstrainer())
 {
   ext::addAndMakeVisible(
       *this,

@@ -38,6 +38,13 @@ class PluginEditorComponent : public CoreComponentBase
   getContent() noexcept;
 
 
+  [[maybe_unused, nodiscard]] inline const JuceConstrainer&
+  getConstrainer() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceConstrainer&
+  getConstrainer() noexcept;
+
+
   void resized() override;
 
 
@@ -53,6 +60,12 @@ class PluginEditorComponent : public CoreComponentBase
 
   std::unique_ptr<contentType> content;
 
+  std::unique_ptr<JuceConstrainer> constrainer;
+
+
+  [[maybe_unused, nodiscard]] inline std::unique_ptr<JuceConstrainer>
+  createConstrainer() const noexcept;
+
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditorComponent)
 };
@@ -61,38 +74,73 @@ class PluginEditorComponent : public CoreComponentBase
 [[maybe_unused]] const JucePlugin&
 PluginEditorComponent::getPlugin() const noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 [[maybe_unused]] JucePlugin&
 PluginEditorComponent::getPlugin() noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 [[maybe_unused]] JucePluginConstRef
 PluginEditorComponent::getPluginRef() const noexcept
 {
-  return plugin;
+  return this->plugin;
 }
 
 [[maybe_unused]] JucePluginRef
 PluginEditorComponent::getPluginRef() noexcept
 {
-  return plugin;
+  return this->plugin;
 }
 
 [[maybe_unused]] const PluginEditorComponent::contentType&
 PluginEditorComponent::getContent() const noexcept
 {
-  return *content;
+  return *this->content;
 }
 
 [[maybe_unused]] PluginEditorComponent::contentType&
 PluginEditorComponent::getContent() noexcept
 {
-  return *content;
+  return *this->content;
 }
+
+[[maybe_unused]] const JuceConstrainer&
+PluginEditorComponent::getConstrainer() const noexcept
+{
+  return *this->constrainer;
+}
+
+[[maybe_unused]] JuceConstrainer&
+PluginEditorComponent::getConstrainer() noexcept
+{
+  return *this->constrainer;
+}
+
+
+[[maybe_unused]] std::unique_ptr<JuceConstrainer>
+PluginEditorComponent::createConstrainer() const noexcept
+{
+  auto contentConstrainer = this->getContent().getConstrainer();
+
+  if (contentConstrainer)
+  {
+    auto componentConstrainer = std::make_unique<JuceConstrainer>();
+
+    util::copyConstrainer(
+        *contentConstrainer,
+        *componentConstrainer);
+
+    return componentConstrainer;
+  }
+  else
+  {
+    return {};
+  }
+}
+
 
 BLOOPER_NAMESPACE_END
 

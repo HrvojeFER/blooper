@@ -5,7 +5,7 @@ BLOOPER_NAMESPACE_BEGIN
 PluginComponent::PluginComponent(
     AbstractCoreContext& context,
     State                state,
-    PluginRef            plugin,
+    JucePluginRef        plugin,
     Options              options)
     : CoreComponentBase(
           context,
@@ -18,7 +18,7 @@ PluginComponent::PluginComponent(
 {
   ext::addAndMakeVisible(
       *this,
-      button);
+      this->button);
 }
 
 
@@ -26,17 +26,17 @@ void PluginComponent::resized()
 {
   auto availableArea = this->getLocalBounds();
 
-  button.setBounds(availableArea);
+  this->button.setBounds(availableArea);
 }
 
 
 PluginComponent::Button::Button(PluginComponent* parent)
     : parent(parent)
 {
-  setLookAndFeel(&parent->getLookAndFeel());
+  this->setLookAndFeel(&this->parent->getLookAndFeel());
 
   this->setButtonText(
-      parent->getPlugin().getName().substring(
+      this->parent->getPlugin().getName().substring(
           0,
           1));
 }
@@ -57,7 +57,7 @@ void PluginComponent::Button::clicked(const juce::ModifierKeys& modifiers)
   }
   else
   {
-    parent->getPlugin().showWindowExplicitly();
+    this->parent->getPlugin().showWindowExplicitly();
   }
 }
 

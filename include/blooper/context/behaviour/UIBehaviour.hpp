@@ -13,11 +13,9 @@ class UIBehaviour :
   explicit UIBehaviour(AbstractCoreContext& context);
 
 
-  std::unique_ptr<juce::Component> createPluginWindow(
-      te::PluginWindowState& windowState) override;
+  std::unique_ptr<JuceComponent> createPluginWindow(JucePluginWindowState& windowState) override;
 
-  void recreatePluginWindowContentAsync(
-      te::Plugin& plugin) override;
+  void recreatePluginWindowContentAsync(JucePlugin& plugin) override;
 
 
   void showProjectScreen() override;

@@ -11,6 +11,15 @@ class PluginEditorWindow : public CoreWindowBase
   BLOOPER_STATE_ID(PluginEditorWindow);
 
   using componentType = class PluginEditorComponent;
+  using contentType = class AbstractPluginContentComponent;
+
+  // closest to 100 width
+  [[maybe_unused]] inline constexpr static auto minimumWidth = 128;
+  [[maybe_unused]] inline constexpr static auto minimumHeight = 72;
+
+  // 8K
+  [[maybe_unused]] inline constexpr static auto maximumWidth = 7680;
+  [[maybe_unused]] inline constexpr static auto maximumHeight = 4320;
 
 
   struct Options
@@ -22,6 +31,8 @@ class PluginEditorWindow : public CoreWindowBase
       State                state,
       JucePluginRef        plugin,
       Options              options = {});
+
+  ~PluginEditorWindow() override;
 
 
   [[maybe_unused, nodiscard]] inline const JucePlugin&
@@ -36,8 +47,6 @@ class PluginEditorWindow : public CoreWindowBase
 
   [[maybe_unused]] void recreateContent();
 
-  [[maybe_unused]] void recreateContentAsync();
-
 
  private:
   [[maybe_unused, nodiscard]] inline JucePlugin&
@@ -47,11 +56,39 @@ class PluginEditorWindow : public CoreWindowBase
   getPluginRef() noexcept;
 
 
+  [[maybe_unused, nodiscard]] inline const JucePluginWindowState&
+  getWindowState() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JucePluginWindowState&
+  getWindowState() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceBounds&
+  getLastBounds() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceBounds&
+  getLastBounds() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceEdit&
+  getPluginEdit() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceEdit&
+  getPluginEdit() noexcept;
+
+
   [[maybe_unused, nodiscard]] inline const componentType&
   getComponent() const noexcept;
 
   [[maybe_unused, nodiscard]] inline componentType&
   getComponent() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const contentType&
+  getContent() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline contentType&
+  getContent() noexcept;
 
 
   JucePluginRef plugin;
@@ -88,37 +125,85 @@ class PluginEditorWindow : public CoreWindowBase
 [[maybe_unused]] const JucePlugin&
 PluginEditorWindow::getPlugin() const noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 [[maybe_unused]] JucePlugin&
 PluginEditorWindow::getPlugin() noexcept
 {
-  return *plugin;
+  return *this->plugin;
 }
 
 [[maybe_unused]] JucePluginConstRef
 PluginEditorWindow::getPluginRef() const noexcept
 {
-  return plugin;
+  return this->plugin;
 }
 
 [[maybe_unused]] JucePluginRef
 PluginEditorWindow::getPluginRef() noexcept
 {
-  return plugin;
+  return this->plugin;
+}
+
+[[maybe_unused]] const JucePluginWindowState&
+PluginEditorWindow::getWindowState() const noexcept
+{
+  return *this->plugin->windowState;
+}
+
+[[maybe_unused]] JucePluginWindowState&
+PluginEditorWindow::getWindowState() noexcept
+{
+  return *this->plugin->windowState;
+}
+
+[[maybe_unused]] const JuceBounds&
+PluginEditorWindow::getLastBounds() const noexcept
+{
+  return this->plugin->windowState->lastWindowBounds;
+}
+
+[[maybe_unused]] JuceBounds&
+PluginEditorWindow::getLastBounds() noexcept
+{
+  return this->plugin->windowState->lastWindowBounds;
+}
+
+[[maybe_unused]] const JuceEdit&
+PluginEditorWindow::getPluginEdit() const noexcept
+{
+  return this->plugin->edit;
+}
+
+[[maybe_unused]] JuceEdit&
+PluginEditorWindow::getPluginEdit() noexcept
+{
+  return this->plugin->edit;
 }
 
 [[maybe_unused]] const PluginEditorWindow::componentType&
 PluginEditorWindow::getComponent() const noexcept
 {
-  return *component;
+  return *this->component;
 }
 
 [[maybe_unused]] PluginEditorWindow::componentType&
 PluginEditorWindow::getComponent() noexcept
 {
-  return *component;
+  return *this->component;
+}
+
+[[maybe_unused]] const PluginEditorWindow::contentType&
+PluginEditorWindow::getContent() const noexcept
+{
+  return this->component->getContent();
+}
+
+[[maybe_unused]] PluginEditorWindow::contentType&
+PluginEditorWindow::getContent() noexcept
+{
+  return this->component->getContent();
 }
 
 [[maybe_unused]] void

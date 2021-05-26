@@ -13,6 +13,7 @@ BLOOPER_NAMESPACE_BEGIN
 using JuceString [[maybe_unused]] = juce::String;
 using JuceXml [[maybe_unused]] = juce::XmlElement;
 using JuceXmlFile [[maybe_unused]] = juce::PropertiesFile;
+using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
 
 
 // State
@@ -118,6 +119,8 @@ using JuceExternalPluginRef [[maybe_unused]] =
     juce::ReferenceCountedObjectPtr<te::ExternalPlugin>;
 using JuceExternalPluginConstRef [[maybe_unused]] =
     juce::ReferenceCountedObjectPtr<const te::ExternalPlugin>;
+
+using JucePluginWindowState [[maybe_unused]] = te::PluginWindowState;
 
 BLOOPER_STATIC_ASSERT(
     isJucePlugin(meta::type_c<JucePlugin>),

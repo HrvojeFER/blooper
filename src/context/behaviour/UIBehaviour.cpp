@@ -8,8 +8,8 @@ UIBehaviour::UIBehaviour(AbstractCoreContext& context)
 }
 
 
-std::unique_ptr<juce::Component> UIBehaviour::createPluginWindow(
-    te::PluginWindowState& windowState)
+std::unique_ptr<JuceComponent> UIBehaviour::createPluginWindow(
+    JucePluginWindowState& windowState)
 {
   if (auto concreteWindowState = dynamic_cast<te::Plugin::WindowState*>(
           &windowState))
@@ -26,11 +26,16 @@ std::unique_ptr<juce::Component> UIBehaviour::createPluginWindow(
 }
 
 void UIBehaviour::recreatePluginWindowContentAsync(
-    te::Plugin& plugin)
+    JucePlugin& plugin)
 {
   if (auto window = dynamic_cast<PluginEditorWindow*>(
           plugin.windowState->pluginWindow.get()))
-    return window->recreateContentAsync();
+    return util::callAsync(
+        [safeWindow =
+             juce::Component::SafePointer<PluginEditorWindow>(
+                 window)]() mutable {
+          if (safeWindow) safeWindow->recreateContent();
+        });
 
   return te::UIBehaviour::recreatePluginWindowContentAsync(plugin);
 }

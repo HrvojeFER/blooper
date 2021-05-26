@@ -15,94 +15,73 @@ PluginEditorWindow::PluginEditorWindow(
 
       plugin(std::move(plugin)),
 
-      component()
+      component(
+          std::make_unique<PluginEditorComponent>(
+              this->getContext(),
+              this->getState().getOrCreateChildWithName(
+                  PluginEditorComponent::stateId,
+                  nullptr),
+              this->getPluginRef(),
+              PluginEditorComponent::Options{}))
 {
-  // TODO: better
-
-  PluginEditorComponent::Options componentOptions{};
-
-  this->component =
-      std::make_unique<PluginEditorComponent>(
-          getContext(),
-          getState().getOrCreateChildWithName(
-              PluginEditorComponent::stateId,
-              nullptr),
-          getPluginRef(),
-          std::move(componentOptions));
-
-  setContentNonOwned(
-      &getComponent(),
+  this->setContentNonOwned(
+      &this->getComponent(),
       true);
-
 
   this->initialiseResizingLimits();
   this->initialiseResizingBehaviour();
   this->initialiseVisibilityBehaviour();
 }
 
+PluginEditorWindow::~PluginEditorWindow()
+{
+  this->getPluginEdit().flushPluginStateIfNeeded(this->getPlugin());
+}
+
+
 [[maybe_unused]] void PluginEditorWindow::recreateContent()
 {
-  // TODO: better
-
   JUCE_AUTORELEASEPOOL
   {
-    this->getComponent().getContent().recreate();
+    this->getContent().recreate();
     this->initialiseResizingBehaviour();
   }
 }
 
-[[maybe_unused]] void PluginEditorWindow::recreateContentAsync()
-{
-  // TODO: better
-
-  util::callAsync(
-      [safePointer =
-           SafePointer<PluginEditorWindow>(
-               this)]() mutable {
-        if (safePointer) safePointer->recreateContent();
-      });
-}
-
 [[maybe_unused]] void PluginEditorWindow::initialiseResizingLimits()
 {
-  // TODO: better
+  auto bounds = this->getLocalBounds() + this->getLastBounds().getPosition();
 
-  getConstrainer()->setMinimumOnscreenAmounts(
-      0x10000,
-      50,
-      30,
-      50);
+  auto halfHeight = bounds.getHeight() / 2;
+  auto halfWidth = bounds.getWidth() / 2;
 
-  auto bounds =
-      this->getLocalBounds() +
-      this->getPlugin().windowState->lastWindowBounds.getPosition();
+  this->getConstrainer()->setMinimumOnscreenAmounts(
+      halfHeight,
+      halfWidth,
+      halfHeight,
+      halfWidth);
 
-  setBounds(bounds);
+  this->setResizeLimits(
+      PluginEditorWindow::minimumWidth,
+      PluginEditorWindow::minimumHeight,
+      PluginEditorWindow::maximumHeight,
+      PluginEditorWindow::maximumHeight);
 
-  setResizeLimits(
-      100,
-      50,
-      4000,
-      4000);
-
-  setBoundsConstrained(bounds);
+  this->setBoundsConstrained(bounds);
 }
 
 [[maybe_unused]] void PluginEditorWindow::initialiseResizingBehaviour()
 {
-  // TODO: better
+  this->setResizable(
+      this->getContent().checkIsResizeable(),
+      false);
 
-  auto& content = getComponent().getContent();
-  auto  isResizeable = content.checkIsResizeable();
-
-  setResizable(isResizeable, false);
-  if (isResizeable) setConstrainer(content.getConstrainer());
+  this->setConstrainer(
+      &this->getComponent().getConstrainer());
 }
 
 [[maybe_unused]] void PluginEditorWindow::initialiseVisibilityBehaviour()
 {
-  // TODO: better
-
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic push
   #pragma ide diagnostic   ignored "Simplify"
@@ -115,25 +94,25 @@ PluginEditorWindow::PluginEditorWindow(
 #endif
 
   {
-    setAlwaysOnTop(true);
-    addToDesktop();
+    this->setAlwaysOnTop(true);
+    this->addToDesktop();
   }
 }
 
 void PluginEditorWindow::moved()
 {
-  getPlugin().windowState->lastWindowBounds = getBounds();
-  getPlugin().edit.pluginChanged(getPlugin());
+  this->getLastBounds() = this->getBounds();
+  this->getPluginEdit().pluginChanged(this->getPlugin());
 }
 
 void PluginEditorWindow::userTriedToCloseWindow()
 {
-  getPlugin().windowState->closeWindowExplicitly();
+  this->getWindowState().closeWindowExplicitly();
 }
 
 void PluginEditorWindow::closeButtonPressed()
 {
-  userTriedToCloseWindow();
+  this->userTriedToCloseWindow();
 }
 
 [[nodiscard]] float PluginEditorWindow::getDesktopScaleFactor() const

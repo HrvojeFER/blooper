@@ -26,6 +26,9 @@ createPluginContent(
   }
 
 
+  // TODO: solution for builtin plugin contents
+
+
   NotImplementedPluginContentComponent::Options notImplementedOptions{};
 
   return std::make_unique<NotImplementedPluginContentComponent>(
@@ -75,10 +78,6 @@ void NotImplementedPluginContentComponent::resized()
 {
 }
 
-[[maybe_unused]] void NotImplementedPluginContentComponent::recreateAsync()
-{
-}
-
 
 ExternalPluginContentComponent::ExternalPluginContentComponent(
     AbstractCoreContext&  context,
@@ -99,17 +98,17 @@ ExternalPluginContentComponent::ExternalPluginContentComponent(
 [[maybe_unused]] const JuceConstrainer*
 ExternalPluginContentComponent::getConstrainer() const noexcept
 {
-  if (!content || checkIsResizeable()) return nullptr;
+  if (!this->content || checkIsResizeable()) return nullptr;
 
-  return content->getConstrainer();
+  return this->content->getConstrainer();
 }
 
 [[maybe_unused]] JuceConstrainer*
 ExternalPluginContentComponent::getConstrainer() noexcept
 {
-  if (!content || checkIsResizeable()) return nullptr;
+  if (!this->content || checkIsResizeable()) return nullptr;
 
-  return content->getConstrainer();
+  return this->content->getConstrainer();
 }
 
 [[maybe_unused]] bool
@@ -120,23 +119,25 @@ ExternalPluginContentComponent::checkIsResizeable() const noexcept
 
 void ExternalPluginContentComponent::resized()
 {
-  auto availableArea = getLocalBounds();
+  auto availableArea = this->getLocalBounds();
 
-  if (content) content->setBounds(availableArea);
+  if (this->content) this->content->setBounds(availableArea);
 }
 
 void ExternalPluginContentComponent::childBoundsChanged(
     JuceComponent* component)
 {
-  if (component == content.get())
+  if (component == this->content.get())
   {
-    getPlugin().edit.pluginChanged(getPlugin());
-    resizeToFitEditor();
+    this->getPlugin().edit.pluginChanged(this->getPlugin());
+    this->resizeToFitContent();
   }
 }
 
 [[maybe_unused]] void ExternalPluginContentComponent::recreate()
 {
+  this->removeChildComponent(this->content.get());
+
   this->content.reset();
 
   JUCE_AUTORELEASEPOOL
@@ -147,39 +148,27 @@ void ExternalPluginContentComponent::childBoundsChanged(
 
       if (!this->content)
         this->content =
-            std::make_unique<JuceGenericPluginContent>(*instance);
+            std::make_unique<JuceGenericPluginContent>(
+                *instance);
 
-      addAndMakeVisible(*content);
+      addAndMakeVisible(*this->content);
     }
   }
 
-  resizeToFitEditor(true);
-}
-
-[[maybe_unused]] void ExternalPluginContentComponent::recreateAsync()
-{
-  util::callAsync(
-      [safePointer =
-           SafePointer<ExternalPluginContentComponent>(
-               this)]() mutable {
-        if (safePointer) safePointer->recreate();
-      });
+  this->resizeToFitContent(true);
 }
 
 
-void ExternalPluginContentComponent::resizeToFitEditor(bool force)
+void ExternalPluginContentComponent::resizeToFitContent(bool force)
 {
   if (force || !checkIsResizeable())
     setSize(
         juce::jmax(
-            minWidth,
-            content ? content->getWidth() : 0),
+            ExternalPluginContentComponent::minWidth,
+            this->content ? this->content->getWidth() : 0),
         juce::jmax(
-            minHeight,
-            content ? content->getHeight() : 0));
+            ExternalPluginContentComponent::minHeight,
+            this->content ? this->content->getHeight() : 0));
 }
-
-
-// TODO: Internal plugins here
 
 BLOOPER_NAMESPACE_END

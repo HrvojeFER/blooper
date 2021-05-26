@@ -19,7 +19,7 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
 
 
 template<typename TCallback>
-void requestRuntimePermissions(TCallback callback)
+[[maybe_unused]] void requestRuntimePermissions(TCallback callback)
 {
   static_assert(
       isInvokeable(meta::typeid_(callback), meta::type_c<bool>),
@@ -40,7 +40,7 @@ void requestRuntimePermissions(TCallback callback)
 }
 
 template<typename TCallback>
-void callAsync(TCallback callback)
+[[maybe_unused]] void callAsync(TCallback callback)
 {
   static_assert(
       isCallback(meta::typeid_(callback)),
@@ -49,6 +49,26 @@ void callAsync(TCallback callback)
   juce::Timer::callAfterDelay(
       asyncCallbackDelayMilliseconds,
       std::move(callback));
+}
+
+[[maybe_unused]] inline void copyConstrainer(
+    const JuceConstrainer& from,
+    JuceConstrainer&       to) noexcept
+{
+  to.setSizeLimits(
+      from.getMinimumWidth(),
+      from.getMinimumHeight(),
+      from.getMaximumWidth(),
+      from.getMaximumHeight());
+
+  to.setMinimumOnscreenAmounts(
+      from.getMinimumWhenOffTheTop(),
+      from.getMinimumWhenOffTheLeft(),
+      from.getMinimumWhenOffTheBottom(),
+      from.getMinimumWhenOffTheRight());
+
+  to.setFixedAspectRatio(
+      from.getFixedAspectRatio());
 }
 
 BLOOPER_UTIL_NAMESPACE_END

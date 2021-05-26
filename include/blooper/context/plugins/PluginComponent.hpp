@@ -58,22 +58,26 @@ class PluginComponent : public CoreComponentBase
 };
 
 
-const JucePlugin& PluginComponent::getPlugin() const noexcept
+[[maybe_unused]] const JucePlugin&
+PluginComponent::getPlugin() const noexcept
 {
   return *plugin;
 }
 
-JucePlugin& PluginComponent::getPlugin() noexcept
+[[maybe_unused]] JucePlugin&
+PluginComponent::getPlugin() noexcept
 {
   return *plugin;
 }
 
-JucePluginConstRef PluginComponent::getPluginRef() const noexcept
+[[maybe_unused]] JucePluginConstRef
+PluginComponent::getPluginRef() const noexcept
 {
   return plugin;
 }
 
-JucePluginRef PluginComponent::getPluginRef() noexcept
+[[maybe_unused]] JucePluginRef
+PluginComponent::getPluginRef() noexcept
 {
   return plugin;
 }
