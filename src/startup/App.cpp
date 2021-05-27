@@ -1,5 +1,4 @@
-#include <blooper/startup/App.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -36,11 +35,20 @@ void App::initialise(const juce::String&)
         Context::Options options{};
         options.onInitSuccess =
             ([this] {
-              this->bodyWindow = std::make_unique<BodyWindow>(
-                  *this->context);
+              BodyWindow::Options bodyOptions{};
 
-              this->bodyWindow->onClose =
+              bodyOptions.onClose =
                   [this] { this->systemRequestedQuit(); };
+
+              this->bodyWindow = std::make_unique<BodyWindow>(
+                  *this->context,
+                  this->context->getState().getOrCreateChildWithName(
+                      BodyWindow::stateId,
+                      nullptr),
+                  JuceString(JUCE_APPLICATION_NAME_STRING) +
+                      JuceString("_") +
+                      JuceString(JUCE_APPLICATION_VERSION_STRING),
+                  std::move(bodyOptions));
 
               this->bodyWindow->setVisible(true);
             });

@@ -1,4 +1,4 @@
-#include <blooper/body/panels/edit/PlayheadComponent.hpp>
+#include <blooper/body/panels/edit/old/PlayheadComponent.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN

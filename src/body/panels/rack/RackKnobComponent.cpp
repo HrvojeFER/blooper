@@ -2,19 +2,19 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-PanelsComponent::PanelsComponent(
+RackKnobComponent::RackKnobComponent(
     AbstractContext& context,
     State            state,
     Options          options)
     : ComponentBase(
-          context,
-          std::move(state)),
+    context,
+    std::move(state)),
       options(std::move(options))
 {
 }
 
 
-void PanelsComponent::resized()
+void RackKnobComponent::resized()
 {
 }
 

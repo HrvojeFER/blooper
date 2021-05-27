@@ -1,35 +1,70 @@
-#include <blooper/body/BodyComponent.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-BodyComponent::BodyComponent()
-    : panels(),
-      header(),
-      footer()
+BodyComponent::BodyComponent(
+    AbstractContext& context,
+    State            state,
+    Options          options)
+    : ComponentBase(
+          context,
+          std::move(state)),
+      options(std::move(options))
 {
-    addAndMakeVisible(panels);
+  PanelsComponent::Options panelsOptions{};
 
-    addAndMakeVisible(header);
-    addAndMakeVisible(footer);
+  panels =
+      std::make_unique<PanelsComponent>(
+          context,
+          state.getOrCreateChildWithName(
+              PanelsComponent::stateId,
+              nullptr),
+          std::move(panelsOptions));
+
+
+  HeaderComponent::Options headerOptions{};
+
+  header =
+      std::make_unique<HeaderComponent>(
+          context,
+          state.getOrCreateChildWithName(
+              HeaderComponent::stateId,
+              nullptr),
+          std::move(headerOptions));
+
+
+  FooterComponent::Options footerOptions{};
+
+  footer =
+      std::make_unique<FooterComponent>(
+          context,
+          state.getOrCreateChildWithName(
+              FooterComponent::stateId,
+              nullptr),
+          std::move(footerOptions));
+
+
+  ext::addAndMakeVisible(
+      *this,
+      *panels,
+      *header,
+      *footer);
 }
-
-BodyComponent::~BodyComponent() = default;
 
 
 void BodyComponent::resized()
 {
-    auto       unusedArea = getLocalBounds();
-    const auto bodyHeight = unusedArea.getHeight();
+  auto       availableArea = getLocalBounds();
+  const auto bodyHeight = availableArea.getHeight();
 
-    header.setBounds(
-            unusedArea.removeFromTop(
-                    int(bodyHeight * 0.1)));
-    footer.setBounds(
-            unusedArea.removeFromBottom(
-                    int(bodyHeight * 0.05)));
+  header->setBounds(
+      availableArea.removeFromTop(
+          int(bodyHeight * 0.1)));
+  footer->setBounds(
+      availableArea.removeFromBottom(
+          int(bodyHeight * 0.05)));
 
-    panels.setBounds(unusedArea);
+  panels->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END

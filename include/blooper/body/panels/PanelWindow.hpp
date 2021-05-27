@@ -1,14 +1,14 @@
-#ifndef BLOOPER_BODY_WINDOW_HPP
-#define BLOOPER_BODY_WINDOW_HPP
+#ifndef BLOOPER_PANEL_WINDOW_HPP
+#define BLOOPER_PANEL_WINDOW_HPP
 
 #include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class BodyWindow : public WindowBase
+class PanelWindow : public WindowBase
 {
  public:
-  BLOOPER_STATE_ID(BodyWindow);
+  BLOOPER_STATE_ID(PanelsComponent);
 
 
   struct Options
@@ -16,10 +16,11 @@ class BodyWindow : public WindowBase
     std::function<void()> onClose;
   } options;
 
-  explicit BodyWindow(
+  explicit PanelWindow(
       AbstractContext& context,
       State            state,
       JuceString       name,
+      JuceComponent&   content,
       Options          options = {});
 
 
@@ -27,12 +28,12 @@ class BodyWindow : public WindowBase
 
 
  private:
-  std::unique_ptr<class BodyComponent> component;
+  JuceComponent& content;
 
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PanelWindow)
 };
 
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_BODY_WINDOW_HPP
+#endif // BLOOPER_PANEL_WINDOW_HPP

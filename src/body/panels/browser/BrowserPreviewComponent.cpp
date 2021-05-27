@@ -2,7 +2,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-PanelsComponent::PanelsComponent(
+BrowserPreviewComponent::BrowserPreviewComponent(
     AbstractContext& context,
     State            state,
     Options          options)
@@ -14,7 +14,7 @@ PanelsComponent::PanelsComponent(
 }
 
 
-void PanelsComponent::resized()
+void BrowserPreviewComponent::resized()
 {
 }
 

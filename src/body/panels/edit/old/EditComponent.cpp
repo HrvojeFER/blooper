@@ -1,4 +1,4 @@
-#include <blooper/body/panels/edit/EditComponent.hpp>
+#include <blooper/body/panels/edit/old/EditComponent.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN

@@ -1,4 +1,4 @@
-#include <blooper/body/panels/edit/TrackComponents.hpp>
+#include <blooper/body/panels/edit/old/TrackComponents.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN

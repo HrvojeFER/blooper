@@ -1,4 +1,4 @@
-#include <blooper/body/panels/edit/ClipComponents.hpp>
+#include <blooper/body/panels/edit/old/ClipComponents.hpp>
 
 
 BLOOPER_NAMESPACE_BEGIN

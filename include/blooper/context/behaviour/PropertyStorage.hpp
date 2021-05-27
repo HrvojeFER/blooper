@@ -20,7 +20,8 @@ class PropertyStorage :
   inline constexpr static auto projectsDirName = "projects";
   inline constexpr static auto mediaDirName = "media";
 
-  inline constexpr static auto settingsFileName = "settings.xml";
+  inline constexpr static auto engineSettingsFileName =
+      "engineSettings.xml";
 
 
   explicit PropertyStorage(AbstractCoreContext& context);
@@ -162,7 +163,7 @@ juce::PropertiesFile PropertyStorage::ensureValidProperties()
   options.storageFormat = juce::PropertiesFile::storeAsXML;
   options.commonToAllUsers = false;
 
-  auto file = this->root.getChildFile(settingsFileName);
+  auto file = this->root.getChildFile(engineSettingsFileName);
 
   // If not valid, just delete it and it will create a new one when needed.
   if (!juce::PropertiesFile(file, options).isValidFile())

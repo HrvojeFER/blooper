@@ -1,46 +1,51 @@
-#include <blooper/body/BodyWindow.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-BodyWindow::BodyWindow(Context& context)
-    : DocumentWindow(
-              juce::String(JUCE_APPLICATION_NAME_STRING) +
-                      juce::String(" ") +
-                      juce::String(JUCE_APPLICATION_VERSION_STRING),
-              {},
-              {}),
-
-      context(context),
-
-      onClose()
+BodyWindow::BodyWindow(
+    AbstractContext& context,
+    State            state,
+    JuceString       name,
+    Options          options)
+    : WindowBase(
+          std::move(name),
+          context,
+          std::move(state)),
+      options(std::move(options))
 {
-    setLookAndFeel(
-            new LookAndFeel());
+  BodyComponent::Options componentOptions{};
 
-    setBackgroundColour(
-            getLookAndFeel().findColour(
-                    juce::ResizableWindow::backgroundColourId));
+  component =
+      std::make_unique<BodyComponent>(
+          getContext(),
+          getState().getOrCreateChildWithName(
+              BodyComponent::stateId,
+              nullptr),
+          std::move(componentOptions));
 
-    setTitleBarButtonsRequired(
-            juce::DocumentWindow::allButtons,
-            false);
-
-
-    setContentOwned(
-            new BodyComponentOld(),
-            true);
+  this->setContentNonOwned(
+      this->component.get(),
+      false);
 
 
-    setFullScreen(true);
+  BodyMenuBarComponent::Options menuBarOptions{};
+
+  this->setMenuBarComponent(
+      new BodyMenuBarComponent(
+          getContext(),
+          getState().getOrCreateChildWithName(
+              BodyMenuBarComponent::stateId,
+              nullptr),
+          std::move(menuBarOptions)));
+
+
+  setFullScreen(true);
 }
-
-BodyWindow::~BodyWindow() = default;
 
 
 void BodyWindow::closeButtonPressed()
 {
-    onClose();
+  this->options.onClose();
 }
 
 BLOOPER_NAMESPACE_END
