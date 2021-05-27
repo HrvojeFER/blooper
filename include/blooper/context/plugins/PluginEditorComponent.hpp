@@ -10,6 +10,7 @@ class PluginEditorComponent : public CoreComponentBase
  public:
   BLOOPER_STATE_ID(PluginEditorComponent);
 
+  // TODO: fix undefined type use in getter
   using contentType = class AbstractPluginContentComponent;
 
 

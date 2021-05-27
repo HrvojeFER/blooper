@@ -7,8 +7,8 @@
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
 inline bool needsMessageLoopBlocking(
-    AbstractCoreContext& context,
-    const te::Plugin&    plugin) noexcept
+    AbstractCoreContext&,
+    const te::Plugin&) noexcept
 {
   // TODO: plugin DB
   return true;

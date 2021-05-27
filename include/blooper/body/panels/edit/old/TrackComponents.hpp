@@ -51,7 +51,7 @@ class TrackHeaderComponent :
 
 class TrackFooterComponent :
     public juce::Component,
-    private utils::FlaggedAsyncUpdater,
+    private util::FlaggedAsyncUpdater,
     private te::ValueTreeAllEventListener
 {
  public:
@@ -98,7 +98,7 @@ class TrackFooterComponent :
 class TrackComponent :
     public juce::Component,
     private te::ValueTreeAllEventListener,
-    private utils::FlaggedAsyncUpdater,
+    private util::FlaggedAsyncUpdater,
     private juce::ChangeListener
 {
  public:

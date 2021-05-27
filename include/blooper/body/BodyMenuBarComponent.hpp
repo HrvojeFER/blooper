@@ -25,7 +25,7 @@ class BodyMenuBarComponent : public ComponentBase
 
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindowMenuBarComponent);
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyMenuBarComponent);
 };
 
 BLOOPER_NAMESPACE_END

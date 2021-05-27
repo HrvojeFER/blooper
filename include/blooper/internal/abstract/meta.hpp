@@ -7,7 +7,7 @@ BLOOPER_META_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline constexpr auto check =
     ([](auto f) {
-      return [=](auto... ts) {
+      return [f](auto... ts) {
         return decltype(is_valid(f)(
             std::declval<typename decltype(ts)::type>()...)){};
       };
@@ -15,7 +15,7 @@ BLOOPER_META_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline constexpr auto attribute =
     ([](auto f) {
-      return [=](auto... ts) {
+      return [f](auto... ts) {
         return decltype(f(
             std::declval<typename decltype(ts)::type>()...)){};
       };
@@ -29,8 +29,8 @@ BLOOPER_META_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto inherit =
     infix(
         [](auto f, auto b) {
-          return [=](auto... ts) {
-            if constexpr (b(ts...))
+          return [f, b](auto... ts) {
+            if constexpr (decltype(b(ts...)){})
               return f(ts...);
             else
               return false_c;

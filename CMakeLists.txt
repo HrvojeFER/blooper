@@ -156,4 +156,12 @@ if (BLOOPER_BUILD_STANDALONE)
             PRIVATE
             JUCE_APPLICATION_NAME_STRING="${PROJECT_NAME}"
             JUCE_APPLICATION_VERSION_STRING="${PROJECT_VERSION}")
+
+    # inheritance via dominance
+    if (ENV_MSVC)
+        env_target_safely_compile_with(
+                standalone
+                PRIVATE
+                "/wd4250")
+    endif ()
 endif ()

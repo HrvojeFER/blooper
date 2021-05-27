@@ -10,10 +10,12 @@
 #include <blooper/internal/abstract/juceTraits.hpp>
 
 
-// TODO: concepts (Core)?(Contextual|Component|Window),
+// TODO:
+//  concepts (Core)?(Contextual|Component|Window),
 //  state/listener/identifier abstractions,
 //  base construction assumptions,
-//  UndoManager management
+//  UndoManager management,
+//  fix inheritance via dominance
 
 
 BLOOPER_NAMESPACE_BEGIN
