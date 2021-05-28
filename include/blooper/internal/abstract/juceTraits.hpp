@@ -104,7 +104,16 @@ BLOOPER_STATIC_ASSERT(
 
 [[maybe_unused]] inline constexpr auto isJucePluginRef =
     meta::compose(
-        isJucePlugin,
+        meta::reverse_partial(
+            meta::traits::is_convertible,
+            meta::type_c<te::Plugin&>),
+        meta::traits::dereference);
+
+[[maybe_unused]] inline constexpr auto isJucePluginConstRef =
+    meta::compose(
+        meta::reverse_partial(
+            meta::traits::is_convertible,
+            meta::type_c<const te::Plugin&>),
         meta::traits::dereference);
 
 
@@ -135,8 +144,16 @@ BLOOPER_STATIC_ASSERT(
     "JucePluginRef must satisfy JucePluginRef.");
 
 BLOOPER_STATIC_ASSERT(
+    isJucePluginConstRef(meta::type_c<JucePluginConstRef>),
+    "JucePluginConstRef must satisfy JucePluginConstRef.");
+
+BLOOPER_STATIC_ASSERT(
     isJucePluginRef(meta::type_c<JuceExternalPluginRef>),
     "JuceExternalPluginRef must satisfy JucePluginRef.");
+
+BLOOPER_STATIC_ASSERT(
+    isJucePluginConstRef(meta::type_c<JuceExternalPluginConstRef>),
+    "JuceExternalPluginConstRef must satisfy JucePluginConstRef.");
 
 
 using JucePluginContent [[maybe_unused]] =

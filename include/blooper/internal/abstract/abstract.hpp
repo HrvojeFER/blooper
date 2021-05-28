@@ -15,7 +15,7 @@
 //  state/listener/identifier abstractions,
 //  base construction assumptions,
 //  UndoManager management,
-//  fix inheritance via dominance
+//  fix template base tests
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -53,12 +53,12 @@ using StateIdentifier [[maybe_unused]] = JuceStateIdentifier;
         [](auto&& toCheck)
             -> decltype(toCheck.getState()) {});
 
-template<typename TState>
+template<typename TStatefulTraits>
 [[maybe_unused]] inline constexpr auto isAnyStatefulBase =
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<TState>),
+            meta::type_c<typename TStatefulTraits::stateType>),
         isAnyStateful);
 
 [[maybe_unused]] inline constexpr auto isStateful =
@@ -88,9 +88,7 @@ template<typename TState>
                 isAnyStateful(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>),
-                isAnyStatefulBase<
-                    typename std::decay_t<decltype(toCheck)>::
-                        stateType>(
+                isAnyStatefulBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
     meta::inherit ^
@@ -103,10 +101,10 @@ template<typename TState>
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          baseType>) {});
 
-template<typename TState>
+template<typename TStatefulTraits>
 class AbstractAnyStateful;
 
-template<typename TState>
+template<typename TStatefulTraits>
 class AnyStatefulBase;
 
 class StatefulBase;
@@ -121,8 +119,8 @@ struct AnyStatefulTraits
 
   using stateType = TState;
 
-  using abstractType = AbstractAnyStateful<stateType>;
-  using baseType = AnyStatefulBase<stateType>;
+  using abstractType = AbstractAnyStateful<AnyStatefulTraits>;
+  using baseType = AnyStatefulBase<AnyStatefulTraits>;
 };
 
 template<>
@@ -130,17 +128,20 @@ struct AnyStatefulTraits<State>
 {
   using stateType = State;
 
-  using abstractType = AbstractAnyStateful<stateType>;
+  using abstractType = AbstractAnyStateful<AnyStatefulTraits>;
   using baseType = StatefulBase;
 };
 
 
-template<typename TState>
+template<typename TStatefulTraits>
 class [[maybe_unused]] AbstractAnyStateful
 {
+  using stateType [[maybe_unused]] = typename TStatefulTraits::stateType;
+
   static_assert(
-      isAnyState(meta::type_c<TState>),
+      isAnyState(meta::type_c<stateType>),
       "AbstractAnyStateful requires AnyState.");
+
 
  public:
   [[maybe_unused]] inline AbstractAnyStateful() = default;
@@ -148,40 +149,46 @@ class [[maybe_unused]] AbstractAnyStateful
   [[maybe_unused]] virtual inline ~AbstractAnyStateful() = default;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const TState&
+  [[maybe_unused, nodiscard]] virtual inline const stateType&
   getState() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline TState&
+  [[maybe_unused, nodiscard]] virtual inline stateType&
   getState() noexcept = 0;
 };
 
-template<typename TState>
+template<typename TStatefulTraits>
 class [[maybe_unused]] AnyStatefulBase :
-    public virtual AnyStatefulTraits<TState>::abstractType
+    public virtual TStatefulTraits::abstractType
 {
-  static_assert(
-      isAnyState(meta::type_c<TState>),
-      "AbstractAnyStateful requires AnyState.");
+  using stateType [[maybe_unused]] =
+      typename TStatefulTraits::stateType;
 
+  static_assert(
+      isAnyState(meta::type_c<stateType>),
+      "AnyStatefulBase requires AnyState.");
 
   using abstractType [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::abstractType;
+      typename TStatefulTraits::abstractType;
+
+  static_assert(
+      isAnyStateful(meta::type_c<abstractType>),
+      "AnyStatefulBase requires AnyStateful.");
 
 
  public:
-  [[maybe_unused]] inline explicit AnyStatefulBase(TState state)
+  [[maybe_unused]] inline explicit AnyStatefulBase(stateType state)
       : state(std::move(state))
   {
   }
 
 
-  [[maybe_unused, nodiscard]] inline const TState&
+  [[maybe_unused, nodiscard]] inline const stateType&
   getState() const noexcept final
   {
     return state;
   }
 
-  [[maybe_unused, nodiscard]] inline TState&
+  [[maybe_unused, nodiscard]] inline stateType&
   getState() noexcept final
   {
     return state;
@@ -189,16 +196,17 @@ class [[maybe_unused]] AnyStatefulBase :
 
 
  protected:
-  [[maybe_unused]] TState state;
+  [[maybe_unused]] stateType state;
 };
 
 class StatefulBase :
-    public AnyStatefulBase<State>,
+    public AnyStatefulBase<AnyStatefulTraits<State>>,
     protected StateListener
 {
  public:
   explicit StatefulBase(State state)
-      : AnyStatefulBase<State>(std::move(state))
+      : AnyStatefulBase<AnyStatefulTraits<State>>(
+            std::move(state))
   {
     getState().addListener(this);
   }
@@ -281,17 +289,23 @@ BLOOPER_STATIC_ASSERT(
                                 toCheck.getEdit(),
                                 toCheck.getTransport()) {}));
 
-template<typename TState>
+template<typename TStatefulTraits>
 class [[maybe_unused]] AbstractAnyCoreContext :
-    public virtual AnyStatefulTraits<TState>::abstractType
+    public virtual TStatefulTraits::abstractType
 {
+  using stateType [[maybe_unused]] =
+      typename TStatefulTraits::stateType;
+
   static_assert(
-      isAnyState(meta::type_c<TState>),
+      isAnyState(meta::type_c<stateType>),
       "AbstractAnyCoreContext requires AnyState.");
 
-
   using abstractStateful [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::abstractType;
+      typename TStatefulTraits::abstractType;
+
+  static_assert(
+      isAnyStateful(meta::type_c<abstractStateful>),
+      "AbstractAnyCoreContext requires AnyStateful.");
 
 
  public:
@@ -321,15 +335,10 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   getUndoManager() noexcept = 0;
 };
 
-template<typename TState>
+template<typename TStatefulTraits>
 class [[maybe_unused]] AbstractAnyContext :
-    public virtual AbstractAnyCoreContext<TState>
+    public virtual AbstractAnyCoreContext<TStatefulTraits>
 {
-  static_assert(
-      isAnyState(meta::type_c<TState>),
-      "AbstractAnyContext requires AnyState.");
-
-
  public:
   [[maybe_unused]] inline AbstractAnyContext() = default;
 
@@ -367,12 +376,12 @@ class [[maybe_unused]] AbstractAnyContext :
 [[maybe_unused]] constexpr auto isAnyContextual =
     meta::check([](auto&& toCheck) -> decltype(toCheck.getContext()) {});
 
-template<typename TContext>
+template<typename TContextualTraits>
 [[maybe_unused]] inline constexpr auto isAnyContextualBase =
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<TContext&>),
+            meta::type_c<typename TContextualTraits::contextType&>),
         isAnyContextual);
 
 [[maybe_unused]] inline constexpr auto isCoreContextual =
@@ -393,14 +402,14 @@ template<typename TContext>
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<AbstractAnyCoreContext<State>&>),
+            meta::type_c<AbstractAnyCoreContext<StatefulTraits>&>),
         isCoreContextual);
 
 [[maybe_unused]] inline constexpr auto isContextualBase =
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<AbstractAnyContext<State>&>),
+            meta::type_c<AbstractAnyContext<StatefulTraits>&>),
         isContextual);
 
 
@@ -414,8 +423,7 @@ template<typename TContext>
                 isAnyContextual(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>),
-                isAnyContextualBase<typename std::decay_t<decltype(toCheck)>::
-                                        contextType>(
+                isAnyContextualBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
     meta::inherit ^
@@ -428,13 +436,13 @@ template<typename TContext>
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          baseType>) {});
 
-template<typename TContext>
+template<typename TContextualTraits>
 struct AnyContextualTraits;
 
-template<typename TContext>
+template<typename TContextualTraits>
 class AbstractAnyContextual;
 
-template<typename TContext>
+template<typename TContextualTraits>
 class AnyContextualBase;
 
 template<typename TContext>
@@ -447,16 +455,19 @@ struct AnyContextualTraits
 
   using contextType = TContext;
 
-  using abstractType = AbstractAnyContextual<contextType>;
-  using baseType = AnyContextualBase<contextType>;
+  using abstractType = AbstractAnyContextual<AnyContextualTraits>;
+  using baseType = AnyContextualBase<AnyContextualTraits>;
 };
 
 
-template<typename TContext>
+template<typename TContextualTraits>
 class [[maybe_unused]] AbstractAnyContextual
 {
+  using contextType [[maybe_unused]] =
+      typename TContextualTraits::contextType;
+
   static_assert(
-      isAnyContext(meta::type_c<TContext>),
+      isAnyContext(meta::type_c<contextType>),
       "AbstractAnyContextual requires AnyContext.");
 
 
@@ -466,40 +477,46 @@ class [[maybe_unused]] AbstractAnyContextual
   [[maybe_unused]] virtual inline ~AbstractAnyContextual() = default;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const TContext&
+  [[maybe_unused, nodiscard]] virtual inline const contextType&
   getContext() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline TContext&
+  [[maybe_unused, nodiscard]] virtual inline contextType&
   getContext() noexcept = 0;
 };
 
-template<typename TContext>
+template<typename TContextualTraits>
 class [[maybe_unused]] AnyContextualBase :
-    public virtual AnyContextualTraits<TContext>::abstractType
+    public virtual TContextualTraits::abstractType
 {
+  using contextType [[maybe_unused]] =
+      typename TContextualTraits::contextType;
+
   static_assert(
-      isAnyContext(meta::type_c<TContext>),
+      isAnyContext(meta::type_c<contextType>),
       "AnyContextualBase requires AnyContext.");
 
-
   using abstractType [[maybe_unused]] =
-      typename AnyContextualTraits<TContext>::abstractType;
+      typename TContextualTraits::abstractType;
+
+  static_assert(
+      isAnyContextual(meta::type_c<abstractType>),
+      "AnyContextualBase requires AnyContextual.");
 
 
  public:
-  [[maybe_unused]] inline explicit AnyContextualBase(TContext& context)
+  [[maybe_unused]] inline explicit AnyContextualBase(contextType& context)
       : context(context)
   {
   }
 
 
-  [[maybe_unused, nodiscard]] inline const TContext&
+  [[maybe_unused, nodiscard]] inline const contextType&
   getContext() const noexcept final
   {
     return context;
   }
 
-  [[maybe_unused, nodiscard]] inline TContext&
+  [[maybe_unused, nodiscard]] inline contextType&
   getContext() noexcept final
   {
     return context;
@@ -507,12 +524,14 @@ class [[maybe_unused]] AnyContextualBase :
 
 
  protected:
-  [[maybe_unused]] TContext& context;
+  [[maybe_unused]] contextType& context;
 };
 
 
 using CoreContextualTraits =
-    AnyContextualTraits<AbstractAnyCoreContext<State>>;
+    AnyContextualTraits<
+        AbstractAnyCoreContext<
+            StatefulTraits>>;
 
 using AbstractCoreContext = CoreContextualTraits::contextType;
 using AbstractCoreContextual = CoreContextualTraits::abstractType;
@@ -535,7 +554,9 @@ BLOOPER_STATIC_ASSERT(
     "CoreContextualBase must satisfy CoreContextualBase.");
 
 using ContextualTraits =
-    AnyContextualTraits<AbstractAnyContext<State>>;
+    AnyContextualTraits<
+        AbstractAnyContext<
+            StatefulTraits>>;
 
 using AbstractContext = ContextualTraits::contextType;
 using AbstractContextual = ContextualTraits::baseType;
@@ -562,15 +583,19 @@ BLOOPER_STATIC_ASSERT(
 
 [[maybe_unused]] inline constexpr auto isAnyComponent =
     meta::satisfies_all(
-        isJuceComponent);
+        isJuceComponent,
+        isAnyContextual,
+        isAnyStateful);
 
-template<typename TContext, typename TState>
+template<typename TComponentTraits>
 [[maybe_unused]] inline constexpr auto isAnyComponentBase =
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<TContext&>,
-            meta::type_c<TState>),
+            meta::type_c<typename TComponentTraits::
+                             contextualTraits::contextType&>,
+            meta::type_c<typename TComponentTraits::
+                             statefulTraits::stateType>),
         isAnyComponent);
 
 [[maybe_unused]] inline constexpr auto isCoreComponent =
@@ -606,12 +631,12 @@ template<typename TContext, typename TState>
     meta::attribute(
         [](auto&& toCheck)
             -> decltype(meta::and_(
-                isAnyContext(
+                isAnyContextualTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                     contextType>),
-                isAnyState(
+                                     contextualTraits>),
+                isAnyStatefulTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                     stateType>),
+                                     statefulTraits>),
                 isJuceComponent(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      juceBaseType>),
@@ -619,11 +644,7 @@ template<typename TContext, typename TState>
                 isAnyComponent(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>),
-                isAnyComponentBase<
-                    typename std::decay_t<decltype(toCheck)>::
-                        contextType,
-                    typename std::decay_t<decltype(toCheck)>::
-                        stateType>(
+                isAnyComponentBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>),
 
@@ -641,9 +662,9 @@ template<typename TContext, typename TState>
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                         contextType>,
+                                         contextualTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                         stateType>,
+                                         statefulTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          juceBaseType>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
@@ -651,21 +672,24 @@ template<typename TContext, typename TState>
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          baseType>) {});
 
-template<typename TContext, typename TState, typename TJuceBase = JuceComponent>
+template<typename TComponentTraits>
 class AnyAbstractComponent;
 
-template<typename TContext, typename TState, typename TJuceBase = JuceComponent>
+template<typename TComponentTraits>
 class AnyComponentBase;
 
-template<typename TContext, typename TState, typename TJuceBase = JuceComponent>
+template<
+    typename TContextualTraits,
+    typename TStatefulTraits,
+    typename TJuceBase = JuceComponent>
 struct AnyComponentTraits
 {
   static_assert(
-      isAnyContext(meta::type_c<TContext>),
+      isAnyContextualTraits(meta::type_c<TContextualTraits>),
       "AnyComponentTraits requires AnyContext.");
 
   static_assert(
-      isAnyState(meta::type_c<TState>),
+      isAnyStatefulTraits(meta::type_c<TStatefulTraits>),
       "AnyComponentTraits requires AnyState.");
 
   static_assert(
@@ -673,39 +697,62 @@ struct AnyComponentTraits
       "AnyComponentTraits requires a JuceComponent.");
 
 
-  using contextType = TContext;
-  using stateType = TState;
+  using contextualTraits [[maybe_unused]] = TContextualTraits;
+  using statefulTraits [[maybe_unused]] = TStatefulTraits;
 
-  using juceBaseType = TJuceBase;
+  using juceBaseType [[maybe_unused]] = TJuceBase;
 
-  using abstractType = AnyAbstractComponent<
-      contextType,
-      stateType,
-      juceBaseType>;
 
-  using baseType = AnyComponentBase<
-      contextType,
-      stateType,
-      juceBaseType>;
+  using abstractType [[maybe_unused]] =
+      AnyAbstractComponent<AnyComponentTraits>;
+
+  using baseType [[maybe_unused]] =
+      AnyComponentBase<AnyComponentTraits>;
 };
 
 
-template<typename TContext, typename TState, typename TJuceBase>
+template<typename TComponentTraits>
 class [[maybe_unused]] AnyAbstractComponent :
-    public virtual AnyContextualTraits<TContext>::abstractType,
-    public virtual AnyStatefulTraits<TState>::abstractType,
-    public TJuceBase
+    public virtual TComponentTraits::contextualTraits::abstractType,
+    public virtual TComponentTraits::statefulTraits::abstractType,
+    public TComponentTraits::juceBaseType
 {
+  using contextType [[maybe_unused]] =
+      typename TComponentTraits::contextualTraits::contextType;
+
   static_assert(
-      isJuceComponent(meta::type_c<TJuceBase>),
+      isAnyContext(meta::type_c<contextType>),
+      "AnyComponentBase requires AnyContext.");
+
+  using abstractContextualType [[maybe_unused]] =
+      typename TComponentTraits::contextualTraits::abstractType;
+
+  static_assert(
+      isAnyContextual(meta::type_c<abstractContextualType>),
+      "AnyAbstractComponent requires a Contextual.");
+
+
+  using stateType [[maybe_unused]] =
+      typename TComponentTraits::statefulTraits::stateType;
+
+  static_assert(
+      isAnyState(meta::type_c<stateType>),
+      "AnyComponentBase requires AnyState.");
+
+  using abstractStatefulType [[maybe_unused]] =
+      typename TComponentTraits::statefulTraits::abstractType;
+
+  static_assert(
+      isStateful(meta::type_c<abstractStatefulType>),
+      "AnyAbstractComponent requires a Stateful.");
+
+
+  using juceBaseType [[maybe_unused]] =
+      typename TComponentTraits::juceBaseType;
+
+  static_assert(
+      isJuceComponent(meta::type_c<juceBaseType>),
       "AnyAbstractComponent requires a JuceComponent.");
-
-
-  using contextualBase [[maybe_unused]] =
-      typename AnyContextualTraits<TContext>::abstractType;
-
-  using statefulBase [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::abstractType;
 
 
  public:
@@ -714,43 +761,69 @@ class [[maybe_unused]] AnyAbstractComponent :
   [[maybe_unused]] inline ~AnyAbstractComponent() override = default;
 };
 
-template<typename TContext, typename TState, typename TJuceBase>
+template<typename TComponentTraits>
 class [[maybe_unused]] AnyComponentBase :
-    public virtual AnyComponentTraits<TContext, TState, TJuceBase>::abstractType,
-    public AnyContextualTraits<TContext>::baseType,
-    public AnyStatefulTraits<TState>::baseType
+    public virtual TComponentTraits::abstractType,
+    public TComponentTraits::contextualTraits::baseType,
+    public TComponentTraits::statefulTraits::baseType
 {
-  static_assert(
-      isJuceComponent(meta::type_c<TJuceBase>),
-      "AnyComponentBase requires a JuceComponent.");
-
-
   using abstractType [[maybe_unused]] =
-      typename AnyComponentTraits<TContext, TState, TJuceBase>::abstractType;
+      typename TComponentTraits::abstractType;
 
-  using contextualBase [[maybe_unused]] =
-      typename AnyContextualTraits<TContext>::baseType;
+  static_assert(
+      isAnyComponent(meta::type_c<abstractType>),
+      "AnyComponentBase requires AnyComponent.");
 
-  using statefulBase [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::baseType;
+
+  using contextType [[maybe_unused]] =
+      typename TComponentTraits::contextualTraits::contextType;
+
+  static_assert(
+      isAnyContext(meta::type_c<contextType>),
+      "AnyComponentBase requires AnyContext.");
+
+  using contextualBaseType [[maybe_unused]] =
+      typename TComponentTraits::contextualTraits::baseType;
+
+  static_assert(
+      isAnyContextualBase<typename TComponentTraits::contextualTraits>(
+          meta::type_c<contextualBaseType>),
+      "AnyComponentBase requires AnyContextualBase.");
+
+
+  using stateType [[maybe_unused]] =
+      typename TComponentTraits::statefulTraits::stateType;
+
+  static_assert(
+      isAnyState(meta::type_c<stateType>),
+      "AnyComponentBase requires AnyState.");
+
+  using statefulBaseType [[maybe_unused]] =
+      typename TComponentTraits::statefulTraits::baseType;
+
+  static_assert(
+      isAnyStatefulBase<typename TComponentTraits::statefulTraits>(
+          meta::type_c<statefulBaseType>),
+      "AnyComponentBase requires AnyStatefulBase.");
 
 
  public:
   [[maybe_unused]] inline explicit AnyComponentBase(
-      TContext& context,
-      TState    state)
-      : contextualBase(context),
-        statefulBase(std::move(state))
+      contextType& context,
+      stateType    state)
+      : contextualBaseType(context),
+        statefulBaseType(std::move(state))
   {
     // TODO: defaults here
   }
 };
 
 
-using CoreComponentTraits = AnyComponentTraits<
-    AbstractCoreContext,
-    State,
-    JuceComponent>;
+using CoreComponentTraits =
+    AnyComponentTraits<
+        CoreContextualTraits,
+        StatefulTraits,
+        JuceComponent>;
 
 using AbstractCoreComponent = CoreComponentTraits::abstractType;
 using CoreComponentBase = CoreComponentTraits::baseType;
@@ -767,10 +840,11 @@ BLOOPER_STATIC_ASSERT(
     isCoreComponentBase(meta::type_c<CoreComponentBase>),
     "CoreComponent must satisfy CoreComponentBase.");
 
-using ComponentTraits = AnyComponentTraits<
-    AbstractContext,
-    State,
-    JuceComponent>;
+using ComponentTraits =
+    AnyComponentTraits<
+        ContextualTraits,
+        StatefulTraits,
+        JuceComponent>;
 
 using AbstractComponent = ComponentTraits::abstractType;
 using ComponentBase = ComponentTraits::baseType;
@@ -792,16 +866,20 @@ BLOOPER_STATIC_ASSERT(
 
 [[maybe_unused]] inline constexpr auto isAnyWindow =
     meta::satisfies_all(
-        isJuceWindow);
+        isJuceWindow,
+        isAnyContextual,
+        isAnyStateful);
 
-template<typename TContext, typename TState>
+template<typename TWindowTraits>
 [[maybe_unused]] inline constexpr auto isAnyWindowBase =
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
             meta::type_c<JuceString>,
-            meta::type_c<TContext&>,
-            meta::type_c<TState>),
+            meta::type_c<typename TWindowTraits::
+                             contextualTraits::contextType&>,
+            meta::type_c<typename TWindowTraits::
+                             statefulTraits::stateType>),
         isAnyWindow);
 
 [[maybe_unused]] inline constexpr auto isCoreWindow =
@@ -839,12 +917,12 @@ template<typename TContext, typename TState>
     meta::attribute(
         [](auto&& toCheck)
             -> decltype(meta::and_(
-                isAnyContext(
+                isAnyContextualTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                     contextType>),
-                isAnyState(
+                                     contextualTraits>),
+                isAnyStatefulTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                     stateType>),
+                                     statefulTraits>),
                 isJuceWindow(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      juceBaseType>),
@@ -852,11 +930,7 @@ template<typename TContext, typename TState>
                 isAnyWindow(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>),
-                isAnyWindowBase<
-                    typename std::decay_t<decltype(toCheck)>::
-                        contextType,
-                    typename std::decay_t<decltype(toCheck)>::
-                        stateType>(
+                isAnyWindowBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>),
 
@@ -874,9 +948,9 @@ template<typename TContext, typename TState>
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                         contextType>,
+                                         contextualTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
-                                         stateType>,
+                                         statefulTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          juceBaseType>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
@@ -884,21 +958,24 @@ template<typename TContext, typename TState>
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          baseType>) {});
 
-template<typename TContext, typename TState, typename TJuceBase = JuceWindow>
+template<typename TWindowTraits>
 class AnyAbstractWindow;
 
-template<typename TContext, typename TState, typename TJuceBase = JuceWindow>
+template<typename TWindowTraits>
 class AnyWindowBase;
 
-template<typename TContext, typename TState, typename TJuceBase = JuceWindow>
+template<
+    typename TContextualTraits,
+    typename TStatefulTraits,
+    typename TJuceBase = JuceWindow>
 struct [[maybe_unused]] AnyWindowTraits
 {
   static_assert(
-      isAnyContext(meta::type_c<TContext>),
+      isAnyContextualTraits(meta::type_c<TContextualTraits>),
       "AnyWindowTraits requires AnyContext.");
 
   static_assert(
-      isAnyState(meta::type_c<TState>),
+      isAnyStatefulTraits(meta::type_c<TStatefulTraits>),
       "AnyWindowTraits requires AnyState.");
 
   static_assert(
@@ -906,78 +983,111 @@ struct [[maybe_unused]] AnyWindowTraits
       "AnyWindowTraits requires a JuceWindow.");
 
 
-  using contextType [[maybe_unused]] = TContext;
-  using stateType [[maybe_unused]] = TState;
+  using contextualTraits [[maybe_unused]] = TContextualTraits;
+  using statefulTraits [[maybe_unused]] = TStatefulTraits;
 
   using juceBaseType [[maybe_unused]] = TJuceBase;
 
-  using abstractType [[maybe_unused]] = AnyAbstractWindow<
-      contextType,
-      stateType,
-      juceBaseType>;
+  using abstractType [[maybe_unused]] =
+      AnyAbstractWindow<AnyWindowTraits>;
 
-  using baseType [[maybe_unused]] = AnyWindowBase<
-      contextType,
-      stateType,
-      juceBaseType>;
+  using baseType [[maybe_unused]] =
+      AnyWindowBase<AnyWindowTraits>;
 };
 
 
-template<typename TContext, typename TState, typename TJuceBase>
+template<typename TWindowTraits>
 class [[maybe_unused]] AnyAbstractWindow :
-    public virtual AnyContextualTraits<TContext>::abstractType,
-    public virtual AnyStatefulTraits<TState>::abstractType,
-    public TJuceBase
+    public virtual TWindowTraits::contextualTraits::abstractType,
+    public virtual TWindowTraits::statefulTraits::abstractType,
+    public TWindowTraits::juceBaseType
 {
+  using abstractContextualType [[maybe_unused]] =
+      typename TWindowTraits::contextualTraits::abstractType;
+
   static_assert(
-      isJuceWindow(meta::type_c<TJuceBase>),
+      isAnyContextual(meta::type_c<abstractContextualType>),
+      "AnyAbstractWindow requires a Contextual.");
+
+
+  using abstractStatefulType [[maybe_unused]] =
+      typename TWindowTraits::statefulTraits::abstractType;
+
+  static_assert(
+      isAnyStateful(meta::type_c<abstractStatefulType>),
+      "AnyAbstractWindow requires a Stateful.");
+
+
+  using juceBaseType [[maybe_unused]] =
+      typename TWindowTraits::juceBaseType;
+
+  static_assert(
+      isJuceWindow(meta::type_c<juceBaseType>),
       "AnyAbstractWindow requires a JuceWindow.");
-
-
-  using abstractContextual [[maybe_unused]] =
-      typename AnyContextualTraits<TContext>::abstractType;
-
-  using abstractStateful [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::abstractType;
 
 
  public:
   [[maybe_unused]] inline AnyAbstractWindow()
-      : TJuceBase({}, {}, {})
+      : juceBaseType({}, {}, {})
   {
   }
 
   [[maybe_unused]] inline ~AnyAbstractWindow() override = default;
 };
 
-template<typename TContext, typename TState, typename TJuceBase>
+template<typename TWindowTraits>
 class [[maybe_unused]] AnyWindowBase :
-    public virtual AnyWindowTraits<TContext, TState, TJuceBase>::abstractType,
-    public AnyContextualTraits<TContext>::baseType,
-    public AnyStatefulTraits<TState>::baseType
+    public virtual TWindowTraits::abstractType,
+    public TWindowTraits::contextualTraits::baseType,
+    public TWindowTraits::statefulTraits::baseType
 {
-  static_assert(
-      isJuceWindow(meta::type_c<TJuceBase>),
-      "AnyWindowBase requires a JuceWindow.");
-
-
   using abstractType [[maybe_unused]] =
-      typename AnyWindowTraits<TContext, TState, TJuceBase>::abstractType;
+      typename TWindowTraits::abstractType;
 
-  using contextualBase [[maybe_unused]] =
-      typename AnyContextualTraits<TContext>::baseType;
+  static_assert(
+      isAnyWindow(meta::type_c<abstractType>),
+      "AnyWindowBase requires AnyWindow.");
 
-  using statefulBase [[maybe_unused]] =
-      typename AnyStatefulTraits<TState>::baseType;
+
+  using contextType [[maybe_unused]] =
+      typename TWindowTraits::contextualTraits::contextType;
+
+  static_assert(
+      isAnyContext(meta::type_c<contextType>),
+      "AnyWindowBase requires AnyContext.");
+
+  using contextualBaseType [[maybe_unused]] =
+      typename TWindowTraits::contextualTraits::baseType;
+
+  static_assert(
+      isAnyContextualBase<typename TWindowTraits::contextualTraits>(
+          meta::type_c<contextualBaseType>),
+      "AnyWindowBase requires AnyContextualBase.");
+
+
+  using stateType [[maybe_unused]] =
+      typename TWindowTraits::statefulTraits::stateType;
+
+  static_assert(
+      isAnyState(meta::type_c<stateType>),
+      "AnyWindowBase requires AnyState.");
+
+  using statefulBaseType [[maybe_unused]] =
+      typename TWindowTraits::statefulTraits::baseType;
+
+  static_assert(
+      isAnyStatefulBase<typename TWindowTraits::statefulTraits>(
+          meta::type_c<statefulBaseType>),
+      "AnyWindowBase requires AnyStatefulBase.");
 
 
  public:
   [[maybe_unused]] inline explicit AnyWindowBase(
-      JuceString name,
-      TContext&  context,
-      TState     state)
-      : contextualBase(context),
-        statefulBase(std::move(state))
+      JuceString   name,
+      contextType& context,
+      stateType    state)
+      : contextualBaseType(context),
+        statefulBaseType(std::move(state))
   {
     this->setName(std::move(name));
 
@@ -986,10 +1096,11 @@ class [[maybe_unused]] AnyWindowBase :
 };
 
 
-using CoreWindowTraits = AnyWindowTraits<
-    AbstractCoreContext,
-    State,
-    JuceWindow>;
+using CoreWindowTraits =
+    AnyWindowTraits<
+        CoreContextualTraits,
+        StatefulTraits,
+        JuceWindow>;
 
 using AbstractCoreWindow = CoreWindowTraits::abstractType;
 using CoreWindowBase = CoreWindowTraits::baseType;
@@ -1006,10 +1117,11 @@ BLOOPER_STATIC_ASSERT(
     isCoreWindowBase(meta::type_c<CoreWindowBase>),
     "CoreWindow must satisfy CoreWindowBase.");
 
-using WindowTraits = AnyWindowTraits<
-    AbstractContext,
-    State,
-    JuceWindow>;
+using WindowTraits =
+    AnyWindowTraits<
+        ContextualTraits,
+        StatefulTraits,
+        JuceWindow>;
 
 using AbstractWindow = WindowTraits::abstractType;
 using WindowBase = WindowTraits::baseType;
@@ -1025,6 +1137,579 @@ BLOOPER_STATIC_ASSERT(
 BLOOPER_STATIC_ASSERT(
     isWindowBase(meta::type_c<WindowBase>),
     "Window must satisfy WindowBase.");
+
+
+// plugins
+
+[[maybe_unused]] inline constexpr auto isAnyPlugin =
+    meta::satisfies_all(
+        isJucePlugin);
+
+[[maybe_unused]] inline constexpr auto isAnyPluginRef =
+    meta::satisfies_all(
+        isJucePluginRef);
+
+[[maybe_unused]] inline constexpr auto isAnyPluginConstRef =
+    meta::satisfies_all(
+        isJucePluginConstRef);
+
+
+[[maybe_unused]] inline constexpr auto isAnyPluginTraits =
+    meta::attribute(
+        [](auto&& toCheck)
+            -> decltype(meta::and_(
+                isAnyPlugin(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     pluginType>),
+                isAnyPluginRef(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     pluginRefType>),
+                isAnyPluginConstRef(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     pluginConstRefType>))) {}) ^
+    meta::inherit ^
+    meta::check(
+        [](auto&& toCheck)
+            -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         pluginType>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         pluginRefType>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         pluginConstRefType>) {});
+
+template<typename TPlugin>
+struct [[maybe_unused]] AnyPluginTraits
+{
+  using pluginType [[maybe_unused]] = TPlugin;
+
+  using pluginRefType [[maybe_unused]] =
+      juce::ReferenceCountedObjectPtr<pluginType>;
+
+  using pluginConstRefType [[maybe_unused]] =
+      juce::ReferenceCountedObjectPtr<const pluginType>;
+};
+
+
+[[maybe_unused]] inline constexpr auto isAnyPluginContentComponent =
+    meta::satisfies_all(
+        isAnyComponent,
+        meta::attribute(
+            [](auto&& toCheck)
+                -> decltype(meta::and_(
+                    isAnyPlugin(meta::typeid_(toCheck.getPlugin())),
+                    isAnyPluginRef(meta::typeid_(toCheck.getPluginRef())),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getConstrainer()),
+                        meta::type_c<JuceConstrainer*>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.checkIsResizeable()),
+                        meta::type_c<bool>))) {}) ^
+
+            meta::inherit ^
+            meta::check(
+                [](auto&& toCheck)
+                    -> decltype(toCheck.getPlugin(),
+                                toCheck.getPluginRef(),
+
+                                toCheck.getConstrainer(),
+                                toCheck.checkIsResizeable(),
+
+                                toCheck.recreate()) {}));
+
+template<
+    typename TPluginContentComponentTraits,
+    typename THeldPluginTraits =
+        typename TPluginContentComponentTraits::pluginTraits>
+[[maybe_unused]] inline constexpr auto isAnyPluginContentComponentBase =
+    meta::satisfies_all(
+        meta::reverse_partial(
+            meta::traits::is_constructible,
+            meta::type_c<typename THeldPluginTraits::pluginRefType>,
+            meta::type_c<typename TPluginContentComponentTraits::
+                             componentTraits::contextualTraits::contextType&>,
+            meta::type_c<typename TPluginContentComponentTraits::
+                             componentTraits::statefulTraits::stateType>),
+        isAnyPluginContentComponent);
+
+
+[[maybe_unused]] inline constexpr auto isAnyPluginContentTraits =
+    meta::attribute(
+        [](auto&& toCheck)
+            -> decltype(meta::and_(
+                isAnyPluginTraits(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     pluginTraits>),
+                isAnyComponentTraits(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     componentTraits>),
+                isAnyPluginContentComponent(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     abstractType>),
+                isAnyPluginContentComponentBase<
+                    std::decay_t<decltype(toCheck)>>(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     baseType>))) {}) ^
+    meta::inherit ^
+    meta::check(
+        [](auto&& toCheck)
+            -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         pluginTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         componentTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         abstractType>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         baseType>) {});
+
+template<typename TPluginContentTraits>
+class [[maybe_unused]] AnyAbstractPluginContentComponent;
+
+template<
+    typename TPluginContentTraits,
+    typename THeldPlugin = typename TPluginContentTraits::pluginTraits>
+class [[maybe_unused]] AnyPluginContentComponentBase;
+
+template<typename TPluginTraits, typename TComponentTraits>
+struct [[maybe_unused]] AnyPluginContentTraits
+{
+  using pluginTraits [[maybe_unused]] = TPluginTraits;
+
+  static_assert(
+      isAnyPluginTraits(meta::type_c<pluginTraits>),
+      "AnyPluginContentTraits requires AnyPluginTraits.");
+
+  using componentTraits [[maybe_unused]] = TComponentTraits;
+
+  static_assert(
+      isAnyComponentTraits(meta::type_c<componentTraits>),
+      "AnyPluginContentTraits requires AnyComponentTraits.");
+
+
+  using abstractType [[maybe_unused]] =
+      AnyAbstractPluginContentComponent<
+          AnyPluginContentTraits>;
+
+  using baseType [[maybe_unused]] =
+      AnyPluginContentComponentBase<
+          AnyPluginContentTraits>;
+};
+
+
+[[maybe_unused]] inline constexpr auto isAnyHeldPluginContentTraits =
+    meta::attribute(
+        [](auto&& toCheck)
+            -> decltype(meta::and_(
+                isAnyPluginContentTraits(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     contentTraits>),
+                isAnyPluginTraits(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     heldPluginTraits>),
+                isAnyPluginContentComponentBase<
+                    typename std::decay_t<decltype(toCheck)>::
+                        contentTraits,
+                    typename std::decay_t<decltype(toCheck)>::
+                        heldPluginTraits>(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     baseType>))) {}) ^
+    meta::inherit ^
+    meta::check(
+        [](auto&& toCheck)
+            -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         contentTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         heldPluginTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         baseType>) {});
+
+template<typename TPluginContentTraits, typename THeldPluginTraits>
+struct [[maybe_unused]] AnyHeldPluginContentTraits
+{
+  using contentTraits = TPluginContentTraits;
+
+  static_assert(
+      isAnyPluginContentTraits(meta::type_c<contentTraits>),
+      "AnyHeldPluginContentTraits requires AnyPluginContentTraits.");
+
+  using heldPluginTraits [[maybe_unused]] = THeldPluginTraits;
+
+  static_assert(
+      isAnyPluginTraits(meta::type_c<heldPluginTraits>),
+      "AnyHeldPluginContentTraits requires AnyPluginTraits.");
+
+
+  using baseType [[maybe_unused]] =
+      AnyPluginContentComponentBase<
+          contentTraits,
+          heldPluginTraits>;
+};
+
+
+template<typename TPluginContentTraits>
+class [[maybe_unused]] AnyAbstractPluginContentComponent :
+    public virtual TPluginContentTraits::componentTraits::abstractType
+{
+  using abstractComponentType [[maybe_unused]] =
+      typename TPluginContentTraits::componentTraits::abstractType;
+
+  static_assert(
+      isAnyComponent(meta::type_c<abstractComponentType>),
+      "AnyAbstractPluginContentComponent requires AnyComponent.");
+
+
+  using pluginType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginType;
+
+  static_assert(
+      isAnyPlugin(meta::type_c<pluginType>),
+      "AnyAbstractPluginContentComponent requires AnyPlugin.");
+
+  using pluginRefType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginRefType;
+
+  static_assert(
+      isAnyPluginRef(meta::type_c<pluginRefType>),
+      "AnyAbstractPluginContentComponent requires AnyPluginRef.");
+
+  using pluginConstRefType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginConstRefType;
+
+  static_assert(
+      isAnyPluginConstRef(meta::type_c<pluginConstRefType>),
+      "AnyAbstractPluginContentComponent requires AnyPluginConstRef.");
+
+
+ public:
+  [[maybe_unused]] inline AnyAbstractPluginContentComponent() = default;
+
+  [[maybe_unused]] inline ~AnyAbstractPluginContentComponent() override = default;
+
+
+  [[maybe_unused, nodiscard]] inline virtual const pluginType&
+  getPlugin() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] inline virtual pluginType&
+  getPlugin() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] inline virtual pluginConstRefType
+  getPluginRef() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] inline virtual pluginRefType
+  getPluginRef() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] inline virtual const JuceConstrainer*
+  getConstrainer() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] inline virtual JuceConstrainer*
+  getConstrainer() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] inline virtual bool
+  checkIsResizeable() const noexcept = 0;
+
+
+  [[maybe_unused]] virtual void recreate() = 0;
+};
+
+template<typename TPluginContentTraits, typename THeldPluginTraits>
+class [[maybe_unused]] AnyPluginContentComponentBase :
+    public virtual TPluginContentTraits::abstractType,
+    public TPluginContentTraits::componentTraits::baseType
+{
+  using abstractType [[maybe_unused]] =
+      typename TPluginContentTraits::abstractType;
+
+
+  using componentBaseType [[maybe_unused]] =
+      typename TPluginContentTraits::componentTraits::baseType;
+
+  static_assert(
+      isAnyComponentBase<typename TPluginContentTraits::componentTraits>(
+          meta::type_c<componentBaseType>),
+      "AnyPluginContentComponentBase requires AnyComponentBase.");
+
+
+  using contextType [[maybe_unused]] =
+      typename TPluginContentTraits::
+          componentTraits::
+              contextualTraits::
+                  contextType;
+
+  static_assert(
+      isAnyContext(meta::type_c<contextType>),
+      "AnyPluginContentComponentBase requires AnyContext.");
+
+  using stateType [[maybe_unused]] =
+      typename TPluginContentTraits::
+          componentTraits::
+              statefulTraits::
+                  stateType;
+
+  static_assert(
+      isAnyState(meta::type_c<stateType>),
+      "AnyPluginContentComponentBase requires AnyState.");
+
+
+  using pluginType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginType;
+
+  static_assert(
+      isAnyPlugin(meta::type_c<pluginType>),
+      "AnyPluginContentComponentBase requires AnyPlugin.");
+
+  using pluginRefType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginRefType;
+
+  static_assert(
+      isAnyPluginRef(meta::type_c<pluginRefType>),
+      "AnyPluginContentComponentBase requires AnyPluginRef.");
+
+  using pluginConstRefType [[maybe_unused]] =
+      typename TPluginContentTraits::pluginTraits::pluginConstRefType;
+
+  static_assert(
+      isAnyPluginConstRef(meta::type_c<pluginConstRefType>),
+      "AnyPluginContentComponentBase requires AnyPluginConstRef.");
+
+
+  using heldPluginType [[maybe_unused]] =
+      typename THeldPluginTraits::pluginType;
+
+  static_assert(
+      meta::and_(
+          isAnyPlugin(meta::type_c<heldPluginType>),
+          meta::traits::is_convertible(
+              meta::type_c<heldPluginType&>,
+              meta::type_c<pluginType&>)),
+      "AnyPluginContentComponentBase requires AnyPlugin for "
+      "the held plugin type that is convertible to pluginType.");
+
+  using heldPluginRefType [[maybe_unused]] =
+      typename THeldPluginTraits::pluginRefType;
+
+  static_assert(
+      meta::and_(
+          isAnyPluginRef(meta::type_c<heldPluginRefType>),
+          meta::traits::is_convertible(
+              meta::type_c<heldPluginRefType>,
+              meta::type_c<pluginRefType>)),
+      "AnyPluginContentComponentBase requires AnyPluginRef for "
+      "held plugin ref type that is convertible to the pluginRefType.");
+
+  using heldPluginConstRefType [[maybe_unused]] =
+      typename THeldPluginTraits::pluginConstRefType;
+
+  static_assert(
+      meta::and_(
+          isAnyPluginConstRef(meta::type_c<heldPluginConstRefType>),
+          meta::traits::is_convertible(
+              meta::type_c<heldPluginConstRefType>,
+              meta::type_c<pluginConstRefType>)),
+      "AnyPluginContentComponentBase requires AnyPluginConstRef for "
+      "held plugin const ref type that is convertible to the pluginConstRefType.");
+
+
+ public:
+  [[maybe_unused]] explicit AnyPluginContentComponentBase(
+      heldPluginRefType plugin,
+      contextType&      context,
+      stateType         state)
+      : componentBaseType(
+            context,
+            std::move(state)),
+        plugin(std::move(plugin))
+  {
+  }
+
+
+  [[maybe_unused, nodiscard]] inline const pluginType&
+  getPlugin() const noexcept final
+  {
+    return this->getHeldPlugin();
+  }
+
+  [[maybe_unused, nodiscard]] inline pluginType&
+  getPlugin() noexcept final
+  {
+    return this->getHeldPlugin();
+  }
+
+
+  [[maybe_unused, nodiscard]] inline pluginConstRefType
+  getPluginRef() const noexcept final
+  {
+    return this->getHeldPluginRef();
+  }
+
+  [[maybe_unused, nodiscard]] inline pluginRefType
+  getPluginRef() noexcept final
+  {
+    return this->getHeldPluginRef();
+  }
+
+
+  [[maybe_unused, nodiscard]] inline const JuceConstrainer*
+  getConstrainer() const noexcept override
+  {
+    return nullptr;
+  }
+
+  [[maybe_unused, nodiscard]] inline JuceConstrainer*
+  getConstrainer() noexcept override
+  {
+    return nullptr;
+  }
+
+
+  [[maybe_unused, nodiscard]] inline bool
+  checkIsResizeable() const noexcept override
+  {
+    return true;
+  }
+
+
+  [[maybe_unused]] void recreate() override
+  {
+  }
+
+
+ protected:
+  [[maybe_unused, nodiscard]] inline heldPluginType&
+  getHeldPlugin() noexcept
+  {
+    return *this->plugin;
+  }
+
+  [[maybe_unused, nodiscard]] inline const heldPluginType&
+  getHeldPlugin() const noexcept
+  {
+    return *this->plugin;
+  }
+
+  [[maybe_unused, nodiscard]] inline heldPluginRefType
+  getHeldPluginRef() noexcept
+  {
+    return this->plugin;
+  }
+
+  [[maybe_unused, nodiscard]] inline heldPluginConstRefType
+  getHeldPluginRef() const noexcept
+  {
+    return this->plugin;
+  }
+
+
+ private:
+  [[maybe_unused]] heldPluginRefType plugin;
+};
+
+
+using PluginTraits [[maybe_unused]] =
+    AnyPluginTraits<JucePlugin>;
+
+using Plugin [[maybe_unused]] =
+    PluginTraits::pluginType;
+
+using PluginRef [[maybe_unused]] =
+    PluginTraits::pluginRefType;
+
+using PluginConstRef [[maybe_unused]] =
+    PluginTraits::pluginConstRefType;
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginTraits(meta::type_c<PluginTraits>),
+    "PluginTraits must satisfy AnyPluginTraits.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPlugin(meta::type_c<Plugin>),
+    "Plugin must satisfy AnyPlugin.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginRef(meta::type_c<PluginRef>),
+    "PluginRef must satisfy AnyPluginRef.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginConstRef(meta::type_c<PluginConstRef>),
+    "PluginConstRef must satisfy AnyPluginConstRef.");
+
+using ExternalPluginTraits [[maybe_unused]] =
+    AnyPluginTraits<JuceExternalPlugin>;
+
+using ExternalPlugin [[maybe_unused]] =
+    ExternalPluginTraits::pluginType;
+
+using ExternalPluginRef [[maybe_unused]] =
+    ExternalPluginTraits::pluginRefType;
+
+using ExternalPluginConstRef [[maybe_unused]] =
+    ExternalPluginTraits::pluginConstRefType;
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginTraits(meta::type_c<ExternalPluginTraits>),
+    "PluginTraits must satisfy AnyPluginTraits.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPlugin(meta::type_c<ExternalPlugin>),
+    "Plugin must satisfy AnyPlugin.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginRef(meta::type_c<ExternalPluginRef>),
+    "PluginRef must satisfy AnyPluginRef.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginConstRef(meta::type_c<ExternalPluginConstRef>),
+    "PluginConstRef must satisfy AnyPluginConstRef.");
+
+using PluginContentTraits [[maybe_unused]] =
+    AnyPluginContentTraits<
+        PluginTraits,
+        CoreComponentTraits>;
+
+using AbstractPluginContentComponent [[maybe_unused]] =
+    PluginContentTraits::abstractType;
+
+using PluginContentComponentBase [[maybe_unused]] =
+    PluginContentTraits::baseType;
+
+using HeldExternalPluginContentTraits [[maybe_unused]] =
+    AnyHeldPluginContentTraits<PluginContentTraits, ExternalPluginTraits>;
+
+using ExternalPluginComponentBase [[maybe_unused]] =
+    HeldExternalPluginContentTraits::baseType;
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginContentTraits(
+        meta::type_c<PluginContentTraits>),
+    "PluginContentTraits must satisfy AnyPluginContentTraits.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginContentComponent(
+        meta::type_c<AbstractPluginContentComponent>),
+    "AbstractPluginContentComponent must satisfy AnyPluginContentComponent.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginContentComponentBase<PluginContentTraits>(
+        meta::type_c<PluginContentComponentBase>),
+    "PluginContentComponentBase must satisfy AnyPluginContentComponentBase.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyHeldPluginContentTraits(
+        meta::type_c<HeldExternalPluginContentTraits>),
+    "HeldExternalPluginContentTraits must satisfy AnyHeldPluginContentTraits.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyPluginContentComponentBase<PluginContentTraits>(
+        meta::type_c<ExternalPluginComponentBase>),
+    "ExternalPluginContentComponentBase must satisfy "
+    "AnyPluginContentComponentBase.");
+
+
+// TODO: contentful
+
+// TODO: panels
 
 
 // id

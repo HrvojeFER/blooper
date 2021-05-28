@@ -6,7 +6,7 @@
 BLOOPER_TRAITS_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline constexpr auto dereference =
-    attribute([](auto&& v) -> decltype(typeid_(*v)) {});
+    attribute([](auto&& v) -> decltype(type_c<decltype(*v)>) {});
 
 BLOOPER_TRAITS_NAMESPACE_END
 
