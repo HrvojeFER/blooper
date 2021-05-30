@@ -118,16 +118,22 @@ BLOOPER_STATIC_ASSERT(
 
 
 using JucePlugin [[maybe_unused]] = te::Plugin;
+
 using JucePluginRef [[maybe_unused]] =
     juce::ReferenceCountedObjectPtr<te::Plugin>;
+
+// can't put const chere because of how juce does reference counting...
 using JucePluginConstRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<const te::Plugin>;
+    juce::ReferenceCountedObjectPtr<te::Plugin>;
 
 using JuceExternalPlugin [[maybe_unused]] = te::ExternalPlugin;
+
 using JuceExternalPluginRef [[maybe_unused]] =
     juce::ReferenceCountedObjectPtr<te::ExternalPlugin>;
+
+// can't put const chere because of how juce does reference counting...
 using JuceExternalPluginConstRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<const te::ExternalPlugin>;
+    juce::ReferenceCountedObjectPtr<te::ExternalPlugin>;
 
 using JucePluginWindowState [[maybe_unused]] = te::PluginWindowState;
 
@@ -158,6 +164,7 @@ BLOOPER_STATIC_ASSERT(
 
 using JucePluginContent [[maybe_unused]] =
     juce::AudioProcessorEditor;
+
 using JuceGenericPluginContent [[maybe_unused]] =
     juce::GenericAudioProcessorEditor;
 

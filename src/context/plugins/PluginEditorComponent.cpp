@@ -2,29 +2,52 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+[[maybe_unused]] std::unique_ptr<JuceConstrainer>
+createConstrainer(const AbstractPluginContentComponent& content) noexcept
+{
+  auto contentConstrainer = content.getConstrainer();
+
+  if (contentConstrainer)
+  {
+    auto componentConstrainer = std::make_unique<JuceConstrainer>();
+
+    util::copyConstrainer(
+        *contentConstrainer,
+        *componentConstrainer);
+
+    return componentConstrainer;
+  }
+  else
+  {
+    return {};
+  }
+}
+
+
 PluginEditorComponent::PluginEditorComponent(
     AbstractCoreContext& context,
     State                state,
     JucePluginRef        plugin,
     Options              options)
-    : CoreComponentBase(
+    : PluginContentComponentBase(
+          move(plugin),
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
-      plugin(std::move(plugin)),
       content(
           createPluginContent(
               getContext(),
               getPluginRef(),
               PluginContentOptions{})),
 
-      constrainer(this->createConstrainer())
+      constrainer(createConstrainer(*this->content))
 {
   ext::addAndMakeVisible(
       *this,
       *content);
 }
+
 
 void PluginEditorComponent::resized()
 {

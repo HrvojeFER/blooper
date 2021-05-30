@@ -9,9 +9,9 @@ ProjectComponent::ProjectComponent(
     Options          options)
     : ComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options)),
-      project(std::move(project))
+          move(state)),
+      options(move(options)),
+      project(move(project))
 {
   if (!project) project = getContext().getProjectRef();
 }

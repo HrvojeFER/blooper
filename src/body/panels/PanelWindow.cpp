@@ -9,10 +9,10 @@ PanelWindow::PanelWindow(
     JuceComponent&   content,
     Options          options)
     : WindowBase(
-          std::move(name),
+          move(name),
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
       content(content)
 {

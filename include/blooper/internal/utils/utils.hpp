@@ -48,7 +48,7 @@ template<typename TCallback>
 
   juce::Timer::callAfterDelay(
       asyncCallbackDelayMilliseconds,
-      std::move(callback));
+      move(callback));
 }
 
 [[maybe_unused]] inline void copyConstrainer(

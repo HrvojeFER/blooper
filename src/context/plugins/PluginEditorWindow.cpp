@@ -8,12 +8,12 @@ PluginEditorWindow::PluginEditorWindow(
     JucePluginRef        plugin,
     Options              options)
     : CoreWindowBase(
-          "",
+          plugin->getName(),
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
-      plugin(std::move(plugin)),
+      plugin(move(plugin)),
 
       component(
           std::make_unique<PluginEditorComponent>(
@@ -43,7 +43,7 @@ PluginEditorWindow::~PluginEditorWindow()
 {
   JUCE_AUTORELEASEPOOL
   {
-    this->getContent().recreate();
+    this->getComponent().recreate();
     this->initialiseResizingBehaviour();
   }
 }
@@ -73,11 +73,11 @@ PluginEditorWindow::~PluginEditorWindow()
 [[maybe_unused]] void PluginEditorWindow::initialiseResizingBehaviour()
 {
   this->setResizable(
-      this->getContent().checkIsResizeable(),
+      this->getComponent().checkIsResizeable(),
       false);
 
   this->setConstrainer(
-      &this->getComponent().getConstrainer());
+      this->getComponent().getConstrainer());
 }
 
 [[maybe_unused]] void PluginEditorWindow::initialiseVisibilityBehaviour()
@@ -115,7 +115,8 @@ void PluginEditorWindow::closeButtonPressed()
   this->userTriedToCloseWindow();
 }
 
-[[nodiscard]] float PluginEditorWindow::getDesktopScaleFactor() const
+[[maybe_unused, nodiscard]] float
+PluginEditorWindow::getDesktopScaleFactor() const
 {
   return 1.0f;
 }
@@ -138,8 +139,8 @@ void PluginEditorWindow::closeButtonPressed()
       context.getState().getOrCreateChildWithName(
           PluginEditorWindow::stateId,
           nullptr),
-      std::move(plugin),
-      std::move(options));
+      move(plugin),
+      move(options));
 
   window->show();
 

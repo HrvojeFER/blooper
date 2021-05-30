@@ -5,13 +5,10 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class PluginEditorComponent : public CoreComponentBase
+class PluginEditorComponent final : public PluginContentComponentBase
 {
  public:
   BLOOPER_STATE_ID(PluginEditorComponent);
-
-  // TODO: fix undefined type use in getter
-  using contentType = class AbstractPluginContentComponent;
 
 
   struct Options
@@ -25,123 +22,57 @@ class PluginEditorComponent : public CoreComponentBase
       Options              options = {});
 
 
-  [[maybe_unused, nodiscard]] inline const JucePlugin&
-  getPlugin() const noexcept;
+  [[maybe_unused, nodiscard]] inline const JuceConstrainer*
+  getConstrainer() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JucePluginConstRef
-  getPluginRef() const noexcept;
-
-
-  [[maybe_unused, nodiscard]] inline const contentType&
-  getContent() const noexcept;
-
-  [[maybe_unused, nodiscard]] inline contentType&
-  getContent() noexcept;
+  [[maybe_unused, nodiscard]] inline JuceConstrainer*
+  getConstrainer() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceConstrainer&
-  getConstrainer() const noexcept;
+  [[maybe_unused, nodiscard]] inline bool
+  checkIsResizeable() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceConstrainer&
-  getConstrainer() noexcept;
+
+  [[maybe_unused]] void recreate() final;
 
 
   void resized() override;
 
 
  private:
-  [[maybe_unused, nodiscard]] inline JucePlugin&
-  getPlugin() noexcept;
-
-  [[maybe_unused, nodiscard]] inline JucePluginRef
-  getPluginRef() noexcept;
-
-
-  JucePluginRef plugin;
-
-  std::unique_ptr<contentType> content;
+  std::unique_ptr<AbstractPluginContentComponent> content;
 
   std::unique_ptr<JuceConstrainer> constrainer;
-
-
-  [[maybe_unused, nodiscard]] inline std::unique_ptr<JuceConstrainer>
-  createConstrainer() const noexcept;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditorComponent)
 };
 
 
-[[maybe_unused]] const JucePlugin&
-PluginEditorComponent::getPlugin() const noexcept
-{
-  return *this->plugin;
-}
-
-[[maybe_unused]] JucePlugin&
-PluginEditorComponent::getPlugin() noexcept
-{
-  return *this->plugin;
-}
-
-[[maybe_unused]] JucePluginConstRef
-PluginEditorComponent::getPluginRef() const noexcept
-{
-  return this->plugin;
-}
-
-[[maybe_unused]] JucePluginRef
-PluginEditorComponent::getPluginRef() noexcept
-{
-  return this->plugin;
-}
-
-[[maybe_unused]] const PluginEditorComponent::contentType&
-PluginEditorComponent::getContent() const noexcept
-{
-  return *this->content;
-}
-
-[[maybe_unused]] PluginEditorComponent::contentType&
-PluginEditorComponent::getContent() noexcept
-{
-  return *this->content;
-}
-
-[[maybe_unused]] const JuceConstrainer&
+[[maybe_unused]] const JuceConstrainer*
 PluginEditorComponent::getConstrainer() const noexcept
 {
-  return *this->constrainer;
+  return this->constrainer.get();
 }
 
-[[maybe_unused]] JuceConstrainer&
+[[maybe_unused]] JuceConstrainer*
 PluginEditorComponent::getConstrainer() noexcept
 {
-  return *this->constrainer;
+  return this->constrainer.get();
 }
 
 
-[[maybe_unused]] std::unique_ptr<JuceConstrainer>
-PluginEditorComponent::createConstrainer() const noexcept
+[[maybe_unused]] bool
+PluginEditorComponent::checkIsResizeable() const noexcept
 {
-  auto contentConstrainer = this->getContent().getConstrainer();
-
-  if (contentConstrainer)
-  {
-    auto componentConstrainer = std::make_unique<JuceConstrainer>();
-
-    util::copyConstrainer(
-        *contentConstrainer,
-        *componentConstrainer);
-
-    return componentConstrainer;
-  }
-  else
-  {
-    return {};
-  }
+  return content->checkIsResizeable();
 }
 
+[[maybe_unused]] void
+PluginEditorComponent::recreate()
+{
+  content->recreate();
+}
 
 BLOOPER_NAMESPACE_END
 

@@ -8,8 +8,8 @@ BrowserPanelComponent::BrowserPanelComponent(
     Options          options)
     : ComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   this->browser =
       std::make_unique<juce::FileBrowserComponent>(
@@ -30,7 +30,7 @@ BrowserPanelComponent::BrowserPanelComponent(
           this->getState().getOrCreateChildWithName(
               BrowserPreviewComponent::stateId,
               nullptr),
-          std::move(previewOptions));
+          move(previewOptions));
 
 
   ext::addAndMakeVisible(

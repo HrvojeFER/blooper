@@ -44,8 +44,8 @@ ProjectsMenuComponent::ProjectsMenuComponent(
     Options              options)
     : CoreComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
       projects(findProjectsWithFolders(
           context.getEngine().getProjectManager())),

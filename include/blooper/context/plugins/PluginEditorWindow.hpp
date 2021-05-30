@@ -10,10 +10,6 @@ class PluginEditorWindow : public CoreWindowBase
  public:
   BLOOPER_STATE_ID(PluginEditorWindow);
 
-  // TODO: fix undefined type use in getters
-  using componentType = class PluginEditorComponent;
-  using contentType = class AbstractPluginContentComponent;
-
   // closest to 100 width
   [[maybe_unused]] inline constexpr static auto minimumWidth = 128;
   [[maybe_unused]] inline constexpr static auto minimumHeight = 72;
@@ -78,23 +74,16 @@ class PluginEditorWindow : public CoreWindowBase
   getPluginEdit() noexcept;
 
 
-  [[maybe_unused, nodiscard]] inline const componentType&
+  [[maybe_unused, nodiscard]] inline const AbstractPluginContentComponent&
   getComponent() const noexcept;
 
-  [[maybe_unused, nodiscard]] inline componentType&
+  [[maybe_unused, nodiscard]] inline AbstractPluginContentComponent&
   getComponent() noexcept;
-
-
-  [[maybe_unused, nodiscard]] inline const contentType&
-  getContent() const noexcept;
-
-  [[maybe_unused, nodiscard]] inline contentType&
-  getContent() noexcept;
 
 
   JucePluginRef plugin;
 
-  std::unique_ptr<componentType> component;
+  std::unique_ptr<AbstractPluginContentComponent> component;
 
 
   [[maybe_unused]] void initialiseResizingLimits();
@@ -110,7 +99,7 @@ class PluginEditorWindow : public CoreWindowBase
 
   void closeButtonPressed() override;
 
-  [[nodiscard]] float getDesktopScaleFactor() const override;
+  [[maybe_unused, nodiscard]] float getDesktopScaleFactor() const override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditorWindow)
@@ -146,6 +135,7 @@ PluginEditorWindow::getPluginRef() noexcept
 {
   return this->plugin;
 }
+
 
 [[maybe_unused]] const JucePluginWindowState&
 PluginEditorWindow::getWindowState() const noexcept
@@ -183,29 +173,18 @@ PluginEditorWindow::getPluginEdit() noexcept
   return this->plugin->edit;
 }
 
-[[maybe_unused]] const PluginEditorWindow::componentType&
+[[maybe_unused]] const AbstractPluginContentComponent&
 PluginEditorWindow::getComponent() const noexcept
 {
   return *this->component;
 }
 
-[[maybe_unused]] PluginEditorWindow::componentType&
+[[maybe_unused]] AbstractPluginContentComponent&
 PluginEditorWindow::getComponent() noexcept
 {
   return *this->component;
 }
 
-[[maybe_unused]] const PluginEditorWindow::contentType&
-PluginEditorWindow::getContent() const noexcept
-{
-  return this->component->getContent();
-}
-
-[[maybe_unused]] PluginEditorWindow::contentType&
-PluginEditorWindow::getContent() noexcept
-{
-  return this->component->getContent();
-}
 
 [[maybe_unused]] void
 PluginEditorWindow::show()

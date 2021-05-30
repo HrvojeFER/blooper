@@ -8,8 +8,8 @@ PluginsMenuComponent::PluginsMenuComponent(
     Options              options)
     : CoreComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
 }
 

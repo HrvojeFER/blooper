@@ -9,10 +9,10 @@ PluginComponent::PluginComponent(
     Options              options)
     : CoreComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
-      plugin(std::move(plugin)),
+      plugin(move(plugin)),
 
       button(this)
 {

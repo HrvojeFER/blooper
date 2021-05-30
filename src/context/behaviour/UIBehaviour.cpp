@@ -19,7 +19,7 @@ std::unique_ptr<JuceComponent> UIBehaviour::createPluginWindow(
     return showPluginEditorWindow(
         getContext(),
         concreteWindowState->plugin,
-        std::move(windowOptions));
+        move(windowOptions));
   }
 
   return te::UIBehaviour::createPluginWindow(windowState);

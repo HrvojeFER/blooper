@@ -48,7 +48,7 @@ void App::initialise(const juce::String&)
                   JuceString(JUCE_APPLICATION_NAME_STRING) +
                       JuceString("_") +
                       JuceString(JUCE_APPLICATION_VERSION_STRING),
-                  std::move(bodyOptions));
+                  move(bodyOptions));
 
               this->bodyWindow->setVisible(true);
             });

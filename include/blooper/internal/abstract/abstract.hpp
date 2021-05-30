@@ -177,7 +177,7 @@ class [[maybe_unused]] AnyStatefulBase :
 
  public:
   [[maybe_unused]] inline explicit AnyStatefulBase(stateType state)
-      : state(std::move(state))
+      : state(move(state))
   {
   }
 
@@ -206,8 +206,11 @@ class StatefulBase :
  public:
   explicit StatefulBase(State state)
       : AnyStatefulBase<AnyStatefulTraits<State>>(
-            std::move(state))
+            move(state))
   {
+    jassert(this->state.isValid());
+
+    // this warning is ridiculous
     getState().addListener(this);
   }
 
@@ -812,7 +815,7 @@ class [[maybe_unused]] AnyComponentBase :
       contextType& context,
       stateType    state)
       : contextualBaseType(context),
-        statefulBaseType(std::move(state))
+        statefulBaseType(move(state))
   {
     // TODO: defaults here
   }
@@ -1087,9 +1090,9 @@ class [[maybe_unused]] AnyWindowBase :
       contextType& context,
       stateType    state)
       : contextualBaseType(context),
-        statefulBaseType(std::move(state))
+        statefulBaseType(move(state))
   {
-    this->setName(std::move(name));
+    this->setName(move(name));
 
     // TODO: defaults here
   }
@@ -1185,8 +1188,9 @@ struct [[maybe_unused]] AnyPluginTraits
   using pluginRefType [[maybe_unused]] =
       juce::ReferenceCountedObjectPtr<pluginType>;
 
+  // can't put const chere because of how juce does reference counting...
   using pluginConstRefType [[maybe_unused]] =
-      juce::ReferenceCountedObjectPtr<const pluginType>;
+      juce::ReferenceCountedObjectPtr<pluginType>;
 };
 
 
@@ -1519,9 +1523,10 @@ class [[maybe_unused]] AnyPluginContentComponentBase :
       stateType         state)
       : componentBaseType(
             context,
-            std::move(state)),
-        plugin(std::move(plugin))
+            move(state)),
+        plugin(move(plugin))
   {
+    jassert(this->plugin);
   }
 
 
@@ -1577,26 +1582,26 @@ class [[maybe_unused]] AnyPluginContentComponentBase :
 
 
  protected:
-  [[maybe_unused, nodiscard]] inline heldPluginType&
-  getHeldPlugin() noexcept
-  {
-    return *this->plugin;
-  }
-
   [[maybe_unused, nodiscard]] inline const heldPluginType&
   getHeldPlugin() const noexcept
   {
     return *this->plugin;
   }
 
-  [[maybe_unused, nodiscard]] inline heldPluginRefType
-  getHeldPluginRef() noexcept
+  [[maybe_unused, nodiscard]] inline heldPluginType&
+  getHeldPlugin() noexcept
   {
-    return this->plugin;
+    return *this->plugin;
   }
 
   [[maybe_unused, nodiscard]] inline heldPluginConstRefType
   getHeldPluginRef() const noexcept
+  {
+    return this->plugin;
+  }
+
+  [[maybe_unused, nodiscard]] inline heldPluginRefType
+  getHeldPluginRef() noexcept
   {
     return this->plugin;
   }
@@ -1677,7 +1682,7 @@ using PluginContentComponentBase [[maybe_unused]] =
 using HeldExternalPluginContentTraits [[maybe_unused]] =
     AnyHeldPluginContentTraits<PluginContentTraits, ExternalPluginTraits>;
 
-using ExternalPluginComponentBase [[maybe_unused]] =
+using ExternalPluginContentComponentBase [[maybe_unused]] =
     HeldExternalPluginContentTraits::baseType;
 
 BLOOPER_STATIC_ASSERT(
@@ -1702,12 +1707,10 @@ BLOOPER_STATIC_ASSERT(
 
 BLOOPER_STATIC_ASSERT(
     isAnyPluginContentComponentBase<PluginContentTraits>(
-        meta::type_c<ExternalPluginComponentBase>),
+        meta::type_c<ExternalPluginContentComponentBase>),
     "ExternalPluginContentComponentBase must satisfy "
     "AnyPluginContentComponentBase.");
 
-
-// TODO: contentful
 
 // TODO: panels
 

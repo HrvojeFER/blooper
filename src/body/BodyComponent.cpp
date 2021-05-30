@@ -8,8 +8,8 @@ BodyComponent::BodyComponent(
     Options          options)
     : ComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   PanelsComponent::Options panelsOptions{};
 
@@ -19,7 +19,7 @@ BodyComponent::BodyComponent(
           state.getOrCreateChildWithName(
               PanelsComponent::stateId,
               nullptr),
-          std::move(panelsOptions));
+          move(panelsOptions));
 
 
   HeaderComponent::Options headerOptions{};
@@ -30,7 +30,7 @@ BodyComponent::BodyComponent(
           state.getOrCreateChildWithName(
               HeaderComponent::stateId,
               nullptr),
-          std::move(headerOptions));
+          move(headerOptions));
 
 
   FooterComponent::Options footerOptions{};
@@ -41,7 +41,7 @@ BodyComponent::BodyComponent(
           state.getOrCreateChildWithName(
               FooterComponent::stateId,
               nullptr),
-          std::move(footerOptions));
+          move(footerOptions));
 
 
   ext::addAndMakeVisible(

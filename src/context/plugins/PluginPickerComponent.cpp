@@ -8,8 +8,8 @@ PluginPickerComponent::PluginPickerComponent(
     Options          options)
     : ComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
       pluginTree(),
 
@@ -101,7 +101,7 @@ class PluginTreeItem* PluginPickerComponent::findIn(
              context.getState().getOrCreateChildWithName(
                  PluginPickerComponent::stateId,
                  nullptr),
-             std::move(options))
+             move(options))
       .runPopup();
 }
 

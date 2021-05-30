@@ -5,8 +5,6 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class AbstractPluginContentComponent;
-
 struct PluginContentOptions
 {
 };
@@ -18,10 +16,8 @@ createPluginContent(
     PluginContentOptions options = {});
 
 
-// implementations
-
 class NotImplementedPluginContentComponent final :
-    public PluginContentComponentBase<JucePluginRef>
+    public PluginContentComponentBase
 {
  public:
   BLOOPER_STATE_ID(NotImplementedPluginContentComponent);
@@ -49,10 +45,10 @@ class NotImplementedPluginContentComponent final :
   checkIsResizeable() const noexcept final;
 
 
-  void resized() override;
+  [[maybe_unused]] void recreate() final;
 
 
-  [[maybe_unused]] void recreate() override;
+  void resized() final;
 
 
  private:
@@ -60,8 +56,9 @@ class NotImplementedPluginContentComponent final :
       NotImplementedPluginContentComponent)
 };
 
+
 struct ExternalPluginContentComponent final :
-    public PluginContentComponentBase<JuceExternalPluginRef>
+    public ExternalPluginContentComponentBase
 {
  public:
   BLOOPER_STATE_ID(ExternalPluginContentComponent);
@@ -92,12 +89,12 @@ struct ExternalPluginContentComponent final :
   checkIsResizeable() const noexcept final;
 
 
-  void resized() override;
-
-  void childBoundsChanged(JuceComponent* component) override;
+  [[maybe_unused]] void recreate() final;
 
 
-  [[maybe_unused]] void recreate() override;
+  void resized() final;
+
+  void childBoundsChanged(JuceComponent* component) final;
 
 
  private:
@@ -109,50 +106,6 @@ struct ExternalPluginContentComponent final :
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ExternalPluginContentComponent)
 };
-
-
-// inline implementations
-
-template<typename TPluginRef>
-[[maybe_unused]] PluginContentComponentBase<TPluginRef>::
-    PluginContentComponentBase(
-        AbstractCoreContext& context,
-        State                state,
-        TPluginRef           plugin)
-    : CoreComponentBase(
-          context,
-          std::move(state)),
-      plugin(std::move(plugin))
-{
-}
-
-template<typename TPluginRef>
-[[maybe_unused]] const JucePlugin&
-PluginContentComponentBase<TPluginRef>::getPlugin() const noexcept
-{
-  return *this->plugin;
-}
-
-template<typename TPluginRef>
-[[maybe_unused]] JucePlugin&
-PluginContentComponentBase<TPluginRef>::getPlugin() noexcept
-{
-  return *this->plugin;
-}
-
-template<typename TPluginRef>
-[[maybe_unused]] JucePluginConstRef
-PluginContentComponentBase<TPluginRef>::getPluginRef() const noexcept
-{
-  return this->plugin;
-}
-
-template<typename TPluginRef>
-[[maybe_unused]] JucePluginRef
-PluginContentComponentBase<TPluginRef>::getPluginRef() noexcept
-{
-  return this->plugin;
-}
 
 BLOOPER_NAMESPACE_END
 

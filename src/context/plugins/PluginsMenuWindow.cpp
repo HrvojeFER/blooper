@@ -9,8 +9,8 @@ PluginsMenuWindow::PluginsMenuWindow(
     : CoreWindowBase(
           "Plugins",
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   PluginsMenuComponent::Options componentOptions{};
 
@@ -20,7 +20,7 @@ PluginsMenuWindow::PluginsMenuWindow(
           getState().getOrCreateChildWithName(
               PluginsMenuComponent::stateId,
               nullptr),
-          std::move(componentOptions)),
+          move(componentOptions)),
       true);
 }
 
@@ -35,7 +35,7 @@ PluginsMenuWindow::PluginsMenuWindow(
           context.getState().getOrCreateChildWithName(
               PluginsMenuWindow::stateId,
               nullptr),
-          std::move(options));
+          move(options));
 
   window->enterModalState(
       true,

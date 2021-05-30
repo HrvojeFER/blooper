@@ -8,8 +8,8 @@ HeaderComponent::HeaderComponent(
     Options          options)
     : ComponentBase(
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   HeaderMenuBarComponent::Options menuBarOptions{};
 
@@ -19,7 +19,7 @@ HeaderComponent::HeaderComponent(
           state.getOrCreateChildWithName(
               HeaderMenuBarComponent::stateId,
               nullptr),
-          std::move(menuBarOptions));
+          move(menuBarOptions));
 
 
   HeaderToolbarComponent::Options toolbarOptions{};
@@ -30,7 +30,7 @@ HeaderComponent::HeaderComponent(
           state.getOrCreateChildWithName(
               HeaderToolbarComponent::stateId,
               nullptr),
-          std::move(toolbarOptions));
+          move(toolbarOptions));
 
 
   ext::addAndMakeVisible(

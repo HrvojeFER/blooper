@@ -20,9 +20,9 @@ createPluginContent(
 
     return std::make_unique<ExternalPluginContentComponent>(
         context,
-        std::move(pluginContentState),
+        move(pluginContentState),
         externalPlugin,
-        std::move(externalPluginOptions));
+        move(externalPluginOptions));
   }
 
 
@@ -33,9 +33,9 @@ createPluginContent(
 
   return std::make_unique<NotImplementedPluginContentComponent>(
       context,
-      std::move(pluginContentState),
-      std::move(plugin),
-      std::move(notImplementedOptions));
+      move(pluginContentState),
+      move(plugin),
+      move(notImplementedOptions));
 }
 
 
@@ -45,10 +45,10 @@ NotImplementedPluginContentComponent::NotImplementedPluginContentComponent(
     JucePluginRef        plugin,
     Options              options)
     : PluginContentComponentBase(
+          move(plugin),
           context,
-          std::move(state),
-          std::move(plugin)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
 }
 
@@ -84,11 +84,11 @@ ExternalPluginContentComponent::ExternalPluginContentComponent(
     State                 state,
     JuceExternalPluginRef plugin,
     Options               options)
-    : PluginContentComponentBase(
+    : ExternalPluginContentComponentBase(
+          move(plugin),
           context,
-          std::move(state),
-          std::move(plugin)),
-      options(std::move(options)),
+          move(state)),
+      options(move(options)),
 
       content()
 {
@@ -142,7 +142,7 @@ void ExternalPluginContentComponent::childBoundsChanged(
 
   JUCE_AUTORELEASEPOOL
   {
-    if (auto instance = this->plugin->getAudioPluginInstance())
+    if (auto instance = this->getHeldPlugin().getAudioPluginInstance())
     {
       this->content.reset(instance->createEditorIfNeeded());
 

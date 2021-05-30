@@ -4,7 +4,7 @@
 BLOOPER_NAMESPACE_BEGIN
 
 ClipComponent::ClipComponent(EditViewState& evs, te::Clip::Ptr c)
-    : editViewState(evs), clip(std::move(c))
+    : editViewState(evs), clip(move(c))
 {
 }
 
@@ -28,7 +28,7 @@ void ClipComponent::mouseDown(const juce::MouseEvent&)
 
 
 AudioClipComponent::AudioClipComponent(EditViewState& evs, te::Clip::Ptr c)
-    : ClipComponent(evs, std::move(c))
+    : ClipComponent(evs, move(c))
 {
     updateThumbnail();
 }
@@ -209,7 +209,7 @@ void AudioClipComponent::updateThumbnail()
 
 
 MidiClipComponent::MidiClipComponent(EditViewState& evs, te::Clip::Ptr c)
-    : ClipComponent(evs, std::move(c))
+    : ClipComponent(evs, move(c))
 {
 }
 
@@ -253,7 +253,7 @@ void MidiClipComponent::paint(juce::Graphics& g)
 
 RecordingClipComponent::RecordingClipComponent(
         te::Track::Ptr t, EditViewState& evs)
-    : track(std::move(t)), editViewState(evs)
+    : track(move(t)), editViewState(evs)
 {
     startTimerHz(10);
     initialiseThumbnailAndPunchTime();

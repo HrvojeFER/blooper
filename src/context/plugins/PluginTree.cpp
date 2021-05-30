@@ -55,7 +55,7 @@ void PluginTreeGroup::populateFrom(juce::KnownPluginList::PluginTree& tree)
 
 PluginTreeGroup::PluginTreeGroup(AbstractContext& context, juce::String name)
     : PluginTreeBase(context),
-      name(std::move(name))
+      name(move(name))
 {
   jassert(name.isNotEmpty());
 }
@@ -110,7 +110,7 @@ PluginTreeGroup* PluginTreeGroup::createBuiltinsGroup(AbstractContext& context)
           env::meta::for_each(
               plugins,
               [&context,
-               suffix = std::move(suffix),
+               suffix = move(suffix),
                areSynths,
                arePlugins,
                &tree,
@@ -226,7 +226,7 @@ PluginTreeItem::PluginTreeItem(
 
       description(),
 
-      xmlType(std::move(xmlType)),
+      xmlType(move(xmlType)),
       isPlugin(isPlugin)
 {
   jassert(xmlType.isNotEmpty());
@@ -237,10 +237,10 @@ PluginTreeItem::PluginTreeItem(
           builtinPluginFormatName :
           juce::String();
 
-  description.name = std::move(name);
-  description.category = std::move(xmlType);
+  description.name = move(name);
+  description.category = move(xmlType);
 
-  description.fileOrIdentifier = std::move(uniqueId);
+  description.fileOrIdentifier = move(uniqueId);
 
   description.isInstrument = isSynth;
 }

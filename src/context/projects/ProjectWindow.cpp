@@ -10,9 +10,9 @@ ProjectWindow::ProjectWindow(
     : WindowBase(
           "Project",
           context,
-          std::move(state)),
-      options(std::move(options)),
-      project(std::move(project))
+          move(state)),
+      options(move(options)),
+      project(move(project))
 {
   if (!project) project = getContext().getProjectRef();
 
@@ -26,7 +26,7 @@ ProjectWindow::ProjectWindow(
               ProjectsMenuComponent::stateId,
               nullptr),
           project,
-          std::move(componentOptions)),
+          move(componentOptions)),
       true);
 }
 
@@ -41,8 +41,8 @@ ProjectWindow::ProjectWindow(
       context.getState().getOrCreateChildWithName(
           ProjectWindow::stateId,
           nullptr),
-      std::move(project),
-      std::move(options));
+      move(project),
+      move(options));
 
   window->enterModalState(
       true,

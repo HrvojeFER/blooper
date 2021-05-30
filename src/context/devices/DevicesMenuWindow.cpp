@@ -9,9 +9,9 @@ DevicesMenuWindow::DevicesMenuWindow(
     : CoreWindowBase(
           "Devices",
           context,
-          std::move(state)),
+          move(state)),
 
-      options(std::move(options))
+      options(move(options))
 {
   setContentOwned(
       new DevicesMenuComponent(
@@ -33,7 +33,7 @@ DevicesMenuWindow::DevicesMenuWindow(
           context.getState().getOrCreateChildWithName(
               DevicesMenuWindow::stateId,
               nullptr),
-          std::move(options));
+          move(options));
 
   window->enterModalState(
       true,

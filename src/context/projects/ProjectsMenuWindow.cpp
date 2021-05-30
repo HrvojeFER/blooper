@@ -9,14 +9,14 @@ ProjectsMenuWindow::ProjectsMenuWindow(
     : CoreWindowBase(
           "Projects",
           context,
-          std::move(state)),
+          move(state)),
 
-      options(std::move(options))
+      options(move(options))
 {
   ProjectsMenuComponent::Options componentOptions{};
 
   componentOptions.onOpen = [this](auto ref) {
-    this->options.onOpen(std::move(ref));
+    this->options.onOpen(move(ref));
   };
 
   componentOptions.onCancel = [this] {
@@ -60,7 +60,7 @@ void ProjectsMenuWindow::closeButtonPressed()
               .getOrCreateChildWithName(
                   ProjectsMenuWindow::stateId,
                   nullptr),
-          std::move(options));
+          move(options));
 
   window->enterModalState(
       true,

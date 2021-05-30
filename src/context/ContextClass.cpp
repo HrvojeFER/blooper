@@ -4,7 +4,7 @@ BLOOPER_NAMESPACE_BEGIN
 
 Context::Context(Options options)
     : AbstractContext(),
-      options(std::move(options)),
+      options(move(options)),
 
       engine(
           std::make_unique<PropertyStorage>(*this),
@@ -30,7 +30,7 @@ Context::Context(Options options)
 
   projectsMenuOptions.onOpen =
       ([this](auto projectRef) {
-        this->project = std::move(projectRef);
+        this->project = move(projectRef);
 
         this->edit = ext::ensureEdit(
             this->getProject(),
@@ -46,7 +46,7 @@ Context::Context(Options options)
         this->options.onInitFailure();
       });
 
-  showProjectsMenu(*this, std::move(projectsMenuOptions));
+  showProjectsMenu(*this, move(projectsMenuOptions));
 }
 
 Context::~Context()

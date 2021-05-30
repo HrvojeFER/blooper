@@ -6,7 +6,7 @@ BLOOPER_NAMESPACE_BEGIN
 TrackHeaderComponent::TrackHeaderComponent(
         EditViewState& evs,
         te::Track::Ptr t)
-    : editViewState(evs), track(std::move(t))
+    : editViewState(evs), track(move(t))
 {
     utils::addAndMakeVisible(
             *this,
@@ -252,7 +252,7 @@ TrackFooterComponent::TrackFooterComponent(
         EditViewState& evs,
         te::Track::Ptr t)
     : editViewState(evs),
-      track(std::move(t))
+      track(move(t))
 {
     addAndMakeVisible(addButton);
 
@@ -359,7 +359,7 @@ TrackComponent::TrackComponent(
         EditViewState& evs,
         te::Track::Ptr t)
     : editViewState(evs),
-      track(std::move(t))
+      track(move(t))
 {
     track->state.addListener(this);
     track->edit.getTransport().addChangeListener(this);

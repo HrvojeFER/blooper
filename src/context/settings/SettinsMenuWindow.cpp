@@ -9,8 +9,8 @@ SettingsMenuWindow::SettingsMenuWindow(
     : CoreWindowBase(
           "Settings",
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   SettingsMenuComponent::Options componentOptions{};
 
@@ -20,7 +20,7 @@ SettingsMenuWindow::SettingsMenuWindow(
           getState().getOrCreateChildWithName(
               stateId,
               nullptr),
-          std::move(componentOptions)),
+          move(componentOptions)),
       true);
 }
 
@@ -35,7 +35,7 @@ SettingsMenuWindow::SettingsMenuWindow(
           context.getState().getOrCreateChildWithName(
               SettingsMenuWindow::stateId,
               nullptr),
-          std::move(options));
+          move(options));
 
   window->enterModalState(
       true,

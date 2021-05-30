@@ -8,10 +8,10 @@ BodyWindow::BodyWindow(
     JuceString       name,
     Options          options)
     : WindowBase(
-          std::move(name),
+          move(name),
           context,
-          std::move(state)),
-      options(std::move(options))
+          move(state)),
+      options(move(options))
 {
   BodyComponent::Options componentOptions{};
 
@@ -21,7 +21,7 @@ BodyWindow::BodyWindow(
           getState().getOrCreateChildWithName(
               BodyComponent::stateId,
               nullptr),
-          std::move(componentOptions));
+          move(componentOptions));
 
   this->setContentNonOwned(
       this->component.get(),
@@ -36,7 +36,7 @@ BodyWindow::BodyWindow(
           getState().getOrCreateChildWithName(
               BodyMenuBarComponent::stateId,
               nullptr),
-          std::move(menuBarOptions)));
+          move(menuBarOptions)));
 
 
   setFullScreen(true);

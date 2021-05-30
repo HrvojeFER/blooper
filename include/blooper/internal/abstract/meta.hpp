@@ -31,16 +31,31 @@ BLOOPER_META_NAMESPACE_BEGIN
         [](auto f, auto b) {
           return [f, b](auto... ts) {
             if constexpr (decltype(b(ts...)){})
-              return f(ts...);
+              return decltype(f(ts...)){};
             else
               return false_c;
           };
         });
 
-
-template<typename... Ts>
-[[maybe_unused]] inline constexpr auto maybe_unused(Ts...) noexcept { }
-
 BLOOPER_META_NAMESPACE_END
+
+
+BLOOPER_NAMESPACE_BEGIN
+
+// ignores any maybe unused value warning
+template<typename... Ts>
+[[maybe_unused]] inline constexpr auto maybeUnused(Ts&&...) noexcept
+{
+}
+
+// ignores Clang-tidy performance-move-const-arg
+template<typename T>
+[[maybe_unused, nodiscard]] inline constexpr auto
+move(T&& v) noexcept
+{
+  return static_cast<std::remove_reference_t<T>&&>(v);
+}
+
+BLOOPER_NAMESPACE_END
 
 #endif //BLOOPER_META_HPP

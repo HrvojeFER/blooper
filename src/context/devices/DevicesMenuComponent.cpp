@@ -6,9 +6,9 @@ DevicesMenuComponent::DevicesMenuComponent(
     AbstractCoreContext& context,
     State                state,
     Options              options)
-    : CoreComponentBase(context, std::move(state)),
+    : CoreComponentBase(context, move(state)),
 
-      options(std::move(options)),
+      options(move(options)),
 
       selector(
           getContext().getEngine().getDeviceManager().deviceManager,
