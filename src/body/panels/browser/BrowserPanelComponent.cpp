@@ -15,7 +15,7 @@ BrowserPanelComponent::BrowserPanelComponent(
       std::make_unique<juce::FileBrowserComponent>(
           juce::FileBrowserComponent::FileChooserFlags::openMode |
               juce::FileBrowserComponent::FileChooserFlags::canSelectFiles,
-          {"E:\\audio\\Samples"},
+          JuceString("E:\\audio\\Samples"),
           nullptr,
           nullptr);
 

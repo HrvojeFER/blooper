@@ -1,13 +1,11 @@
 #ifndef BLOOPER_OLD_EDIT_PANEL_COMPONENT_HPP
 #define BLOOPER_OLD_EDIT_PANEL_COMPONENT_HPP
 
-
-#include "../../../../internal/internal.hpp"
+#include <blooper/internal/internal.hpp>
 
 #include "EditViewState.hpp"
 #include "TrackComponents.hpp"
 #include "PlayheadComponent.hpp"
-
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -74,6 +72,5 @@ class EditComponent :
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_OLD_EDIT_PANEL_COMPONENT_HPP

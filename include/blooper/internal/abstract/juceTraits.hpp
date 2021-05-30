@@ -15,6 +15,12 @@ using JuceXml [[maybe_unused]] = juce::XmlElement;
 using JuceXmlFile [[maybe_unused]] = juce::PropertiesFile;
 using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
 
+template<typename TObject>
+using JuceRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
+
+template<typename TObject>
+using JuceConstRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
+
 
 // State
 
@@ -34,16 +40,18 @@ BLOOPER_STATIC_ASSERT(
 using JuceStateListener [[maybe_unused]] = te::ValueTreeAllEventListener;
 using JuceStateIdentifier [[maybe_unused]] = juce::Identifier;
 
+template<typename TObject>
+using JuceStateValue [[maybe_unused]] = juce::CachedValue<TObject>;
+
 
 // Context
 
 using JuceEngine [[maybe_unused]] = te::Engine;
 
 using JuceProject [[maybe_unused]] = te::Project;
-using JuceProjectRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<te::Project>;
-using JuceProjectConstRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<const te::Project>;
+using JuceProjectRef [[maybe_unused]] = JuceRef<te::Project>;
+// can't put const chere because of how juce does reference counting...
+using JuceProjectConstRef [[maybe_unused]] = JuceConstRef<te::Project>;
 
 using JuceEdit [[maybe_unused]] = te::Edit;
 using JuceTransport [[maybe_unused]] = te::TransportControl;
@@ -118,22 +126,14 @@ BLOOPER_STATIC_ASSERT(
 
 
 using JucePlugin [[maybe_unused]] = te::Plugin;
-
-using JucePluginRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<te::Plugin>;
-
+using JucePluginRef [[maybe_unused]] = JuceRef<JucePlugin>;
 // can't put const chere because of how juce does reference counting...
-using JucePluginConstRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<te::Plugin>;
+using JucePluginConstRef [[maybe_unused]] = JuceConstRef<JucePlugin>;
 
 using JuceExternalPlugin [[maybe_unused]] = te::ExternalPlugin;
-
-using JuceExternalPluginRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<te::ExternalPlugin>;
-
+using JuceExternalPluginRef [[maybe_unused]] = JuceRef<JuceExternalPlugin>;
 // can't put const chere because of how juce does reference counting...
-using JuceExternalPluginConstRef [[maybe_unused]] =
-    juce::ReferenceCountedObjectPtr<te::ExternalPlugin>;
+using JuceExternalPluginConstRef [[maybe_unused]] = JuceConstRef<JuceExternalPlugin>;
 
 using JucePluginWindowState [[maybe_unused]] = te::PluginWindowState;
 

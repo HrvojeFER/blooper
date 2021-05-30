@@ -29,6 +29,8 @@ class BodyWindow : public WindowBase
  private:
   std::unique_ptr<class BodyComponent> component;
 
+  class BodyMenuBarComponent* menuBar;
+
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)
 };

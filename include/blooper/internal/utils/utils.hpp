@@ -11,12 +11,9 @@
 #include <blooper/internal/utils/CoreContextFunctions.hpp>
 #include <blooper/internal/utils/ContextFunctions.hpp>
 
+#include <blooper/internal/utils/gui.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
-
-
-[[maybe_unused]] inline constexpr auto asyncCallbackDelayMilliseconds = 50;
-
 
 template<typename TCallback>
 [[maybe_unused]] void requestRuntimePermissions(TCallback callback)
@@ -39,6 +36,9 @@ template<typename TCallback>
       callback);
 }
 
+
+[[maybe_unused]] inline constexpr auto asyncCallbackDelayMilliseconds = 50;
+
 template<typename TCallback>
 [[maybe_unused]] void callAsync(TCallback callback)
 {
@@ -50,6 +50,7 @@ template<typename TCallback>
       asyncCallbackDelayMilliseconds,
       move(callback));
 }
+
 
 [[maybe_unused]] inline void copyConstrainer(
     const JuceConstrainer& from,

@@ -1,6 +1,8 @@
 #ifndef BLOOPER_HELP_HPP
 #define BLOOPER_HELP_HPP
 
+#include <blooper/internal/internal.hpp>
+
 #include <blooper/help/DocsComponent.hpp>
 
 #include <blooper/help/TutorialComponent.hpp>

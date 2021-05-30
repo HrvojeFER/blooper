@@ -30,13 +30,15 @@ BodyWindow::BodyWindow(
 
   BodyMenuBarComponent::Options menuBarOptions{};
 
-  this->setMenuBarComponent(
+  menuBar =
       new BodyMenuBarComponent(
           getContext(),
           getState().getOrCreateChildWithName(
               BodyMenuBarComponent::stateId,
               nullptr),
-          move(menuBarOptions)));
+          move(menuBarOptions));
+
+  this->setMenuBarComponent(menuBar);
 
 
   setFullScreen(true);

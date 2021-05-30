@@ -2,6 +2,8 @@
 #define BLOOPER_EXT_HPP
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/abstract.hpp>
+
 
 #include <blooper/internal/ext/string.hpp>
 

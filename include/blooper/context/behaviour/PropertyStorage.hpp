@@ -24,7 +24,9 @@ class PropertyStorage :
       "engineSettings.xml";
 
 
-  explicit PropertyStorage(AbstractCoreContext& context);
+  explicit PropertyStorage(
+      JuceString           name,
+      AbstractCoreContext& context);
 
 
   juce::File getAppCacheFolder() override;

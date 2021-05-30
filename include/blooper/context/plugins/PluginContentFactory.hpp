@@ -42,7 +42,7 @@ class NotImplementedPluginContentComponent final :
 
 
   [[maybe_unused, nodiscard]] inline bool
-  checkIsResizeable() const noexcept final;
+  checkIsResizable() const noexcept final;
 
 
   [[maybe_unused]] void recreate() final;
@@ -86,7 +86,7 @@ struct ExternalPluginContentComponent final :
 
 
   [[maybe_unused, nodiscard]] inline bool
-  checkIsResizeable() const noexcept final;
+  checkIsResizable() const noexcept final;
 
 
   [[maybe_unused]] void recreate() final;

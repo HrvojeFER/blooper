@@ -1,10 +1,7 @@
 #ifndef BLOOPER_OLD_EDIT_VIEW_STATE_HPP
 #define BLOOPER_OLD_EDIT_VIEW_STATE_HPP
 
-
-#include "../../../../internal/internal.hpp"
-#include "../../../../context/context.hpp"
-
+#include <blooper/internal/internal.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -147,6 +144,5 @@ class EditViewState
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_OLD_EDIT_VIEW_STATE_HPP

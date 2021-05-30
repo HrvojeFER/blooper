@@ -38,7 +38,7 @@ juce::ValueTree ensureProjectPath(
 }
 
 
-ProjectsMenuComponent::ProjectsMenuComponent(
+[[maybe_unused]] ProjectsMenuComponent::ProjectsMenuComponent(
     AbstractCoreContext& context,
     State                state,
     Options              options)
@@ -47,10 +47,38 @@ ProjectsMenuComponent::ProjectsMenuComponent(
           move(state)),
       options(move(options)),
 
-      projects(findProjectsWithFolders(
-          context.getEngine().getProjectManager())),
+
+      isAddingProject(
+          this->getState(),
+          isAddingProjectId,
+          std::addressof(this->getContext().getUndoManager()),
+          false),
+
+      projectPath(
+          this->getState(),
+          projectPathId,
+          std::addressof(this->getContext().getUndoManager()),
+          ""),
+      projectFile(
+          this->getState(),
+          projectFileId,
+          std::addressof(this->getContext().getUndoManager()),
+          ""),
+
+
+      projects(
+          ([this] {
+            auto& manager =
+                this->getContext()
+                    .getEngine()
+                    .getProjectManager();
+
+            manager.loadList();
+            return manager.getAllProjects(manager.folders);
+          }) ()),
 
       list("Projects", this),
+
 
       reloadProjectsButton("Reload"),
       addProjectButton("Add..."),
@@ -59,26 +87,23 @@ ProjectsMenuComponent::ProjectsMenuComponent(
       cancelButton("Cancel"),
       openProjectButton("Open..."),
 
-      projectPathProperty(),
-      projectFileProperty(),
-
-      isAddingProject(false),
       addProjectPanel("Add project...")
 {
   list.setMultipleSelectionEnabled(false);
   list.setRowSelectedOnMouseDown(true);
+  list.setRowHeight(30);
 
 
   addProjectPanel.addProperties(
       {new juce::TextPropertyComponent(
-           projectPathProperty,
+           projectPath.getPropertyAsValue(),
            "Folder",
            200,
            false,
            true),
 
        new juce::TextPropertyComponent(
-           projectFileProperty,
+           projectFile.getPropertyAsValue(),
            "File",
            200,
            false,
@@ -101,74 +126,40 @@ ProjectsMenuComponent::ProjectsMenuComponent(
               .getProjectManager();
 
       manager.createNewProject(
-          projectFileProperty.getValue().toString(),
+          this->projectFile.get(),
           ensureProjectPath(
-              this->context.getEngine(),
-              projectPathProperty.getValue().toString()));
+              this->getContext().getEngine(),
+              this->projectPath.get()));
 
       reloadProjects();
-
-      this->isAddingProject = false;
-      this->addProjectButton.setButtonText("Add...");
-      this->addProjectPanel.setVisible(false);
-    }
-    else
-    {
-      this->isAddingProject = true;
-      this->addProjectButton.setButtonText("Add");
-      this->addProjectPanel.setVisible(true);
     }
 
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "VirtualCallInCtorOrDtor"
-#endif
-
-    this->resized();
-    this->repaint();
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif
+    this->toggleAddingProject();
   };
 
   deleteProjectButton.onClick = [this] {
     auto row = list.getSelectedRow();
     if (row == -1) return;
 
-    auto& manager =
-        this->getContext()
-            .getEngine()
-            .getProjectManager();
+    //    auto& manager =
+    //        this->getContext()
+    //            .getEngine()
+    //            .getProjectManager();
 
-    manager.deleteProjectFolder(projects[row].folder);
+    //    manager.deleteProjectFolder(projects[row]);
 
     this->reloadProjects();
     this->repaint();
   };
 
   cancelButton.onClick = [this] {
-    if (this->isAddingProject)
+    if (!this->isAddingProject)
     {
-      this->isAddingProject = false;
-      this->addProjectButton.setButtonText("Add...");
-      this->addProjectPanel.setVisible(false);
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "VirtualCallInCtorOrDtor"
-#endif
-
-      this->resized();
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif
+      this->options.onCancel();
     }
     else
     {
-      this->options.onCancel();
+      this->toggleAddingProject();
     }
   };
 
@@ -176,7 +167,7 @@ ProjectsMenuComponent::ProjectsMenuComponent(
     auto row = list.getSelectedRow();
     if (row == -1) return;
 
-    this->options.onOpen(projects[row].project);
+    this->options.onOpen(projects[row]);
   };
 
 
@@ -196,61 +187,77 @@ ProjectsMenuComponent::ProjectsMenuComponent(
   addProjectPanel.setVisible(false);
 }
 
-ProjectsMenuComponent::~ProjectsMenuComponent()
-{
-  //    auto& manager = engine.getProjectManager();
-
-  //    manager.saveList();
-}
-
 
 void ProjectsMenuComponent::resized()
 {
-  auto availableArea = this->getLocalBounds();
-  auto availableButtonArea =
-      availableArea.removeFromBottom(20);
+  auto availableArea =
+      util::buildBar(
+          this->getLookAndFeel(),
+          this->getLocalBounds())
+          .addComponentsRight(
+              openProjectButton,
+              cancelButton)
+          .addComponentsLeft(
+              reloadProjectsButton,
+              addProjectButton,
+              deleteProjectButton)
+          .finish();
 
   if (isAddingProject)
   {
-    const auto listHeight = int(availableArea.getHeight() * 0.6);
-    const auto panelHeight = int(availableArea.getHeight() * 0.4);
-
-    list.setBounds(availableArea.removeFromTop(listHeight));
-    addProjectPanel.setBounds(availableArea.removeFromTop(panelHeight));
-  }
-  else
-  {
-    list.setBounds(availableArea);
+    addProjectPanel.setBounds(
+        availableArea.removeFromBottom(
+            availableArea.getHeight() / 10));
   }
 
-
-  const auto buttonWidth = 50;
-
-  reloadProjectsButton.setBounds(
-      availableButtonArea.removeFromLeft(buttonWidth)
-          .reduced(2));
-  addProjectButton.setBounds(
-      availableButtonArea.removeFromLeft(buttonWidth)
-          .reduced(2));
-  deleteProjectButton.setBounds(
-      availableButtonArea.removeFromLeft(buttonWidth)
-          .reduced(2));
-
-  openProjectButton.setBounds(
-      availableButtonArea.removeFromRight(buttonWidth)
-          .reduced(2));
-  cancelButton.setBounds(
-      availableButtonArea.removeFromRight(buttonWidth)
-          .reduced(2));
+  list.setBounds(availableArea);
 }
 
 
-int ProjectsMenuComponent::getNumRows()
+[[maybe_unused]] void ProjectsMenuComponent::toggleAddingProject()
+{
+  if (this->isAddingProject)
+  {
+    this->isAddingProject = false;
+    this->addProjectButton.setButtonText("Add...");
+    this->addProjectPanel.setVisible(false);
+  }
+  else
+  {
+    this->isAddingProject = true;
+    this->addProjectButton.setButtonText("Add");
+    this->addProjectPanel.setVisible(true);
+  }
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "VirtualCallInCtorOrDtor"
+#endif
+
+  this->resized();
+  this->repaint();
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif
+}
+
+[[maybe_unused]] void ProjectsMenuComponent::reloadProjects()
+{
+  auto& manager = this->getContext().getEngine().getProjectManager();
+
+  manager.saveList();
+  manager.loadList();
+  projects = manager.getAllProjects(manager.folders);
+}
+
+
+[[maybe_unused]] int ProjectsMenuComponent::getNumRows()
 {
   return projects.size();
 }
 
-void ProjectsMenuComponent::paintListBoxItem(
+[[maybe_unused]] void ProjectsMenuComponent::paintListBoxItem(
     int             rowNumber,
     juce::Graphics& g,
     int             width,
@@ -259,111 +266,54 @@ void ProjectsMenuComponent::paintListBoxItem(
 {
   if (rowNumber < 0 || rowNumber >= projects.size()) return;
 
-  auto   project = projects[rowNumber];
-  auto&& projectName = project.project->getName();
-  auto&& projectPath = project.path;
+  auto project = projects[rowNumber];
 
 
-  auto rectangle = juce::Rectangle<int>(0, 0, width, height);
-  auto subRowHeight = height / 2;
+  auto availableArea = juce::Rectangle<int>(
+      0,
+      0,
+      width,
+      height);
 
+
+  g.fillAll(this->getLookAndFeel().findColour(
+      juce::ResizableWindow::backgroundColourId));
 
   if (rowIsSelected)
     g.setColour(juce::Colours::lightgrey);
   else
     g.setColour(juce::Colours::white);
 
-  g.drawText(projectName,
-             rectangle.removeFromTop(subRowHeight).reduced(2),
-             juce::Justification::left);
-
-
-  g.setColour(juce::Colours::whitesmoke);
-
-  g.drawText(projectPath,
-             rectangle.removeFromTop(subRowHeight).reduced(2),
+  g.drawText(project->getName(),
+             availableArea,
              juce::Justification::left);
 }
 
 
-void ProjectsMenuComponent::listBoxItemClicked(
+[[maybe_unused]] void ProjectsMenuComponent::listBoxItemClicked(
     int                     row,
     const juce::MouseEvent& event)
 {
   ListBoxModel::listBoxItemClicked(row, event);
 }
 
-void ProjectsMenuComponent::listBoxItemDoubleClicked(
+[[maybe_unused]] void ProjectsMenuComponent::listBoxItemDoubleClicked(
     int row,
     const juce::MouseEvent&)
 {
   if (row == -1) return;
-  this->options.onOpen(projects[row].project);
+  this->options.onOpen(projects[row]);
 }
 
-void ProjectsMenuComponent::deleteKeyPressed(
-    int lastRowSelected)
+[[maybe_unused]] void ProjectsMenuComponent::deleteKeyPressed(
+    int)
 {
   auto& manager = this->getContext().getEngine().getProjectManager();
 
-  manager.deleteProjectFolder(projects[lastRowSelected].folder);
-  projects = findProjectsWithFolders(manager.folders);
+  //  manager.deleteProjectFolder(projects[lastRowSelected]);
+  projects = manager.getAllProjects(manager.folders);
 
   this->repaint();
-}
-
-
-void ProjectsMenuComponent::reloadProjects()
-{
-  auto& manager = this->getContext().getEngine().getProjectManager();
-
-  manager.saveList();
-  manager.loadList();
-  projects = findProjectsWithFolders(manager);
-}
-
-
-auto getFolderProject(const juce::ValueTree& folder)
-{
-  return dynamic_cast<te::Project*>(
-      folder.getProperty(te::IDs::project).getObject());
-}
-
-auto getFolderName(const juce::ValueTree& folder)
-{
-  return folder.getProperty(te::IDs::name).toString();
-}
-
-ProjectsMenuComponent::ProjectArray
-// NOLINTNEXTLINE(misc-no-recursion)
-ProjectsMenuComponent::findProjectsWithFolders(
-    const juce::ValueTree& folder,
-    const juce::String&    path)
-{
-  ProjectsMenuComponent::ProjectArray result;
-
-  const auto currentPath =
-      path.isEmpty() ?
-          getFolderName(folder) :
-          (path + ext::pathSeparator + getFolderName(folder));
-
-  if (auto project = getFolderProject(folder))
-    result.add({currentPath, folder, project});
-
-  for (int i = 0; i < folder.getNumChildren(); ++i)
-    result.addArray(findProjectsWithFolders(
-        folder.getChild(i),
-        currentPath));
-
-  return result;
-}
-
-ProjectsMenuComponent::ProjectArray
-ProjectsMenuComponent::findProjectsWithFolders(
-    te::ProjectManager& manager)
-{
-  manager.loadList();
-  return findProjectsWithFolders(manager.folders);
 }
 
 BLOOPER_NAMESPACE_END

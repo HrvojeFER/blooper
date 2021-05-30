@@ -26,7 +26,7 @@ ProjectsMenuWindow::ProjectsMenuWindow(
   auto component =
       new ProjectsMenuComponent(
           getContext(),
-          state.getOrCreateChildWithName(
+          getState().getOrCreateChildWithName(
               ProjectsMenuComponent::stateId,
               nullptr),
           componentOptions);

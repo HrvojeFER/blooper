@@ -2,10 +2,12 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-PropertyStorage::PropertyStorage(AbstractCoreContext& context)
+PropertyStorage::PropertyStorage(
+    JuceString           name,
+    AbstractCoreContext& context)
     : CoreContextualBase(context),
 
-      te::PropertyStorage(JUCE_APPLICATION_NAME_STRING),
+      te::PropertyStorage(move(name)),
 
       root(createRoot()),
       cache(createCache()),

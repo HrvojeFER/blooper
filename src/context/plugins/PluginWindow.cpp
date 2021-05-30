@@ -58,7 +58,7 @@ void PluginWindow::setEditor(std::unique_ptr<PluginEditor> newEditor)
 
     if (newEditor != nullptr)
     {
-      editor = move(newEditor);
+      editor = std::move(newEditor);
       setContentNonOwned(
           editor.get(),
           true);

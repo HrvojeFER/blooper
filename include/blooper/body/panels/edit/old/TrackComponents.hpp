@@ -1,13 +1,10 @@
 #ifndef BLOOPER_OLD_TRACK_COMPONENTS_HPP
 #define BLOOPER_OLD_TRACK_COMPONENTS_HPP
 
-
-#include "../../../../internal/internal.hpp"
-#include "../../../../context/context.hpp"
+#include <blooper/internal/internal.hpp>
 
 #include "EditViewState.hpp"
 #include "ClipComponents.hpp"
-
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -150,6 +147,5 @@ class TrackComponent :
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_OLD_TRACK_COMPONENTS_HPP

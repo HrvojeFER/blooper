@@ -65,7 +65,7 @@ NotImplementedPluginContentComponent::getConstrainer() noexcept
 }
 
 [[maybe_unused]] bool
-NotImplementedPluginContentComponent::checkIsResizeable() const noexcept
+NotImplementedPluginContentComponent::checkIsResizable() const noexcept
 {
   return true;
 }
@@ -98,7 +98,7 @@ ExternalPluginContentComponent::ExternalPluginContentComponent(
 [[maybe_unused]] const JuceConstrainer*
 ExternalPluginContentComponent::getConstrainer() const noexcept
 {
-  if (!this->content || checkIsResizeable()) return nullptr;
+  if (!this->content || checkIsResizable()) return nullptr;
 
   return this->content->getConstrainer();
 }
@@ -106,13 +106,13 @@ ExternalPluginContentComponent::getConstrainer() const noexcept
 [[maybe_unused]] JuceConstrainer*
 ExternalPluginContentComponent::getConstrainer() noexcept
 {
-  if (!this->content || checkIsResizeable()) return nullptr;
+  if (!this->content || checkIsResizable()) return nullptr;
 
   return this->content->getConstrainer();
 }
 
 [[maybe_unused]] bool
-ExternalPluginContentComponent::checkIsResizeable() const noexcept
+ExternalPluginContentComponent::checkIsResizable() const noexcept
 {
   return false;
 }
@@ -161,7 +161,7 @@ void ExternalPluginContentComponent::childBoundsChanged(
 
 void ExternalPluginContentComponent::resizeToFitContent(bool force)
 {
-  if (force || !checkIsResizeable())
+  if (force || !checkIsResizable())
     setSize(
         juce::jmax(
             ExternalPluginContentComponent::minWidth,

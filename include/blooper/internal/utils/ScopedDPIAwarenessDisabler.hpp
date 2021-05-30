@@ -19,7 +19,7 @@ struct ScopedDPIAwarenessDisabler
 {
  public:
   inline ScopedDPIAwarenessDisabler() noexcept = default;
-  inline virtual ~ScopedDPIAwarenessDisabler() noexcept = 0;
+  inline virtual ~ScopedDPIAwarenessDisabler() noexcept = default;
 
   [[maybe_unused, nodiscard]] inline virtual bool isReal() const noexcept = 0;
 };

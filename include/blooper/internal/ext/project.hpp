@@ -2,6 +2,7 @@
 #define BLOOPER_EXT_PROJECT_HPP
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/abstract.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 

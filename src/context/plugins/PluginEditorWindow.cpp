@@ -73,7 +73,7 @@ PluginEditorWindow::~PluginEditorWindow()
 [[maybe_unused]] void PluginEditorWindow::initialiseResizingBehaviour()
 {
   this->setResizable(
-      this->getComponent().checkIsResizeable(),
+      this->getComponent().checkIsResizable(),
       false);
 
   this->setConstrainer(

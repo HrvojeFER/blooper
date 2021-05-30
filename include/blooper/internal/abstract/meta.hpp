@@ -50,7 +50,7 @@ template<typename... Ts>
 
 // ignores Clang-tidy performance-move-const-arg
 template<typename T>
-[[maybe_unused, nodiscard]] inline constexpr auto
+[[maybe_unused, nodiscard]] inline constexpr std::remove_reference_t<T>&&
 move(T&& v) noexcept
 {
   return static_cast<std::remove_reference_t<T>&&>(v);

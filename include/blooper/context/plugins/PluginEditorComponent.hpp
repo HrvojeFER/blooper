@@ -30,10 +30,10 @@ class PluginEditorComponent final : public PluginContentComponentBase
 
 
   [[maybe_unused, nodiscard]] inline bool
-  checkIsResizeable() const noexcept final;
+  checkIsResizable() const noexcept final;
 
 
-  [[maybe_unused]] void recreate() final;
+  [[maybe_unused]] inline void recreate() final;
 
 
   void resized() override;
@@ -63,9 +63,9 @@ PluginEditorComponent::getConstrainer() noexcept
 
 
 [[maybe_unused]] bool
-PluginEditorComponent::checkIsResizeable() const noexcept
+PluginEditorComponent::checkIsResizable() const noexcept
 {
-  return content->checkIsResizeable();
+  return content->checkIsResizable();
 }
 
 [[maybe_unused]] void

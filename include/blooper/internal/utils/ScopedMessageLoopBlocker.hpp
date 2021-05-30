@@ -19,7 +19,7 @@ struct ScopedMessageLoopBlocker
 {
  public:
   inline ScopedMessageLoopBlocker() noexcept = default;
-  inline virtual ~ScopedMessageLoopBlocker() noexcept = 0;
+  inline virtual ~ScopedMessageLoopBlocker() noexcept = default;
 
   [[maybe_unused, nodiscard]] inline virtual bool isReal() const noexcept = 0;
 };

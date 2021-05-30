@@ -12,6 +12,10 @@ class ProjectsMenuComponent :
  public:
   BLOOPER_STATE_ID(ProjectsMenuComponent);
 
+  BLOOPER_ID(isAddingProjectId);
+  BLOOPER_ID(projectPathId);
+  BLOOPER_ID(projectFileId);
+
 
   struct Options
   {
@@ -19,26 +23,24 @@ class ProjectsMenuComponent :
     std::function<void()>               onCancel;
   } options;
 
-  explicit ProjectsMenuComponent(
+  [[maybe_unused]] explicit ProjectsMenuComponent(
       AbstractCoreContext& context,
       State                state,
       Options              options = {});
-
-  ~ProjectsMenuComponent() override;
 
 
   void resized() override;
 
 
  private:
-  struct ProjectWithPath
-  {
-    juce::String    path;
-    juce::ValueTree folder;
-    JuceProjectRef  project;
-  };
+  juce::CachedValue<bool> isAddingProject;
 
-  using ProjectArray = juce::Array<ProjectWithPath>;
+  juce::CachedValue<JuceString>
+      projectPath,
+      projectFile;
+
+
+  using ProjectArray = juce::ReferenceCountedArray<te::Project>;
   ProjectArray projects;
 
   friend class juce::ListBox;
@@ -53,18 +55,17 @@ class ProjectsMenuComponent :
       openProjectButton;
 
 
-  bool isAddingProject;
-
-  juce::Value
-      projectPathProperty,
-      projectFileProperty;
-
   juce::PropertyPanel addProjectPanel;
 
 
-  int getNumRows() override;
+  [[maybe_unused]] void toggleAddingProject();
 
-  void paintListBoxItem(
+  [[maybe_unused]] void reloadProjects();
+
+
+  [[maybe_unused]] int getNumRows() override;
+
+  [[maybe_unused]] void paintListBoxItem(
       int             rowNumber,
       juce::Graphics& g,
       int             width,
@@ -72,26 +73,15 @@ class ProjectsMenuComponent :
       bool            rowIsSelected) override;
 
 
-  void listBoxItemClicked(
+  [[maybe_unused]] void listBoxItemClicked(
       int                     row,
       const juce::MouseEvent& event) override;
 
-  void listBoxItemDoubleClicked(
+  [[maybe_unused]] void listBoxItemDoubleClicked(
       int                     row,
       const juce::MouseEvent& event) override;
 
-  void deleteKeyPressed(int lastRowSelected) override;
-
-
-  void reloadProjects();
-
-
-  static ProjectArray findProjectsWithFolders(
-      const juce::ValueTree& folder,
-      const juce::String&    path = {});
-
-  static ProjectArray findProjectsWithFolders(
-      te::ProjectManager& manager);
+  [[maybe_unused]] void deleteKeyPressed(int lastRowSelected) override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuComponent);

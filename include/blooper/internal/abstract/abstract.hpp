@@ -4,6 +4,8 @@
 
 #include <blooper/internal/macros/macros.hpp>
 
+#include <blooper/internal/abstract/id.hpp>
+
 #include <blooper/internal/abstract/meta.hpp>
 #include <blooper/internal/abstract/traits.hpp>
 
@@ -107,9 +109,10 @@ class AbstractAnyStateful;
 template<typename TStatefulTraits>
 class AnyStatefulBase;
 
-class StatefulBase;
+template<typename TStatefulTraits>
+class JuceStatefulBase;
 
-template<typename TState>
+template<typename TState, typename = void>
 struct AnyStatefulTraits
 {
   static_assert(
@@ -123,13 +126,15 @@ struct AnyStatefulTraits
   using baseType = AnyStatefulBase<AnyStatefulTraits>;
 };
 
-template<>
-struct AnyStatefulTraits<State>
+template<typename TState>
+struct AnyStatefulTraits<
+    TState,
+    std::enable_if_t<isJuceState(meta::type_c<TState>)>>
 {
   using stateType = State;
 
   using abstractType = AbstractAnyStateful<AnyStatefulTraits>;
-  using baseType = StatefulBase;
+  using baseType = JuceStatefulBase<AnyStatefulTraits>;
 };
 
 
@@ -199,19 +204,26 @@ class [[maybe_unused]] AnyStatefulBase :
   [[maybe_unused]] stateType state;
 };
 
-class StatefulBase :
-    public AnyStatefulBase<AnyStatefulTraits<State>>,
+template<typename TStatefulTraits>
+class JuceStatefulBase :
+    public AnyStatefulBase<TStatefulTraits>,
     protected StateListener
 {
- public:
-  explicit StatefulBase(State state)
-      : AnyStatefulBase<AnyStatefulTraits<State>>(
-            move(state))
-  {
-    jassert(this->state.isValid());
+  using stateType [[maybe_unused]] =
+      typename TStatefulTraits::stateType;
 
-    // this warning is ridiculous
-    getState().addListener(this);
+  static_assert(
+      isJuceState(meta::type_c<stateType>),
+      "StatefulBase requires JuceState.");
+
+
+ public:
+  [[maybe_unused]] explicit JuceStatefulBase(stateType state)
+      : AnyStatefulBase<AnyStatefulTraits<stateType>>(move(state))
+  {
+    BLOOPER_ASSERT(this->getState().isValid());
+
+    this->getState().addListener(this);
   }
 
  protected:
@@ -440,15 +452,12 @@ template<typename TContextualTraits>
                                          baseType>) {});
 
 template<typename TContextualTraits>
-struct AnyContextualTraits;
-
-template<typename TContextualTraits>
 class AbstractAnyContextual;
 
 template<typename TContextualTraits>
 class AnyContextualBase;
 
-template<typename TContext>
+template<typename TContext, typename = void>
 struct AnyContextualTraits
 {
   static_assert(
@@ -684,7 +693,8 @@ class AnyComponentBase;
 template<
     typename TContextualTraits,
     typename TStatefulTraits,
-    typename TJuceBase = JuceComponent>
+    typename TJuceBase = JuceComponent,
+    typename = void>
 struct AnyComponentTraits
 {
   static_assert(
@@ -817,7 +827,7 @@ class [[maybe_unused]] AnyComponentBase :
       : contextualBaseType(context),
         statefulBaseType(move(state))
   {
-    // TODO: defaults here
+    this->setLookAndFeel(&context.getLookAndFeel());
   }
 };
 
@@ -967,10 +977,14 @@ class AnyAbstractWindow;
 template<typename TWindowTraits>
 class AnyWindowBase;
 
+template<typename TWindowTraits>
+class JuceStateWindowBase;
+
 template<
     typename TContextualTraits,
     typename TStatefulTraits,
-    typename TJuceBase = JuceWindow>
+    typename TJuceBase = JuceWindow,
+    typename = void>
 struct [[maybe_unused]] AnyWindowTraits
 {
   static_assert(
@@ -996,6 +1010,38 @@ struct [[maybe_unused]] AnyWindowTraits
 
   using baseType [[maybe_unused]] =
       AnyWindowBase<AnyWindowTraits>;
+};
+
+template<
+    typename TContextualTraits,
+    typename TStatefulTraits,
+    typename TJuceBase>
+struct [[maybe_unused]] AnyWindowTraits<
+    TContextualTraits,
+    TStatefulTraits,
+    TJuceBase,
+    std::enable_if_t<isJuceState(
+        meta::type_c<typename TStatefulTraits::stateType>)>>
+{
+  static_assert(
+      isAnyContextualTraits(meta::type_c<TContextualTraits>),
+      "AnyWindowTraits requires AnyContext.");
+
+  static_assert(
+      isJuceWindow(meta::type_c<TJuceBase>),
+      "AnyWindowTraits requires a JuceWindow.");
+
+
+  using contextualTraits [[maybe_unused]] = TContextualTraits;
+  using statefulTraits [[maybe_unused]] = StatefulTraits;
+
+  using juceBaseType [[maybe_unused]] = TJuceBase;
+
+  using abstractType [[maybe_unused]] =
+      AnyAbstractWindow<AnyWindowTraits>;
+
+  using baseType [[maybe_unused]] =
+      JuceStateWindowBase<AnyWindowTraits>;
 };
 
 
@@ -1094,8 +1140,96 @@ class [[maybe_unused]] AnyWindowBase :
   {
     this->setName(move(name));
 
-    // TODO: defaults here
+
+    const auto monitorBounds = this->getParentMonitorArea();
+    const auto monitorWidth = monitorBounds.getWidth();
+    const auto monitorHeight = monitorBounds.getHeight();
+    this->setCentrePosition(monitorWidth / 2, monitorHeight / 2);
+    this->setSize(monitorWidth / 2, monitorHeight / 2);
+
+    this->setResizable(
+        true,
+        false);
+
+
+    this->setTitleBarButtonsRequired(
+        juce::DocumentWindow::allButtons,
+        false);
+
+    this->setTitleBarTextCentred(true);
+
+
+    if constexpr (decltype(isCoreContext(meta::typeid_(this->getContext()))){})
+    {
+      auto& lookAndFeel = this->getContext().getLookAndFeel();
+
+      this->setLookAndFeel(
+          std::addressof(lookAndFeel));
+
+      this->setBackgroundColour(
+          lookAndFeel.findColour(
+              juce::ResizableWindow::backgroundColourId));
+    }
   }
+};
+
+template<typename TWindowTraits>
+class [[maybe_unused]] JuceStateWindowBase :
+    public AnyWindowBase<TWindowTraits>
+{
+  using baseType [[maybe_unused]] = AnyWindowBase<TWindowTraits>;
+
+  static_assert(
+      isAnyWindowBase<TWindowTraits>(meta::type_c<baseType>),
+      "StateWindowBase requires AnyWindowBase.");
+
+
+  using contextType [[maybe_unused]] =
+      typename TWindowTraits::contextualTraits::contextType;
+
+  static_assert(
+      isAnyContext(meta::type_c<contextType>),
+      "StateWindowBase requires AnyContext.");
+
+
+  using stateType [[maybe_unused]] =
+      typename TWindowTraits::statefulTraits::stateType;
+
+  static_assert(
+      isJuceState(meta::type_c<stateType>),
+      "AnyWindowBase requires JuceState.");
+
+
+ public:
+  [[maybe_unused]] inline explicit JuceStateWindowBase(
+      JuceString   name,
+      contextType& context,
+      stateType    state)
+      : baseType(
+            move(name),
+            context,
+            move(state)),
+
+        windowState(
+            this->getState(),
+            id::windowState,
+            nullptr,
+            "")
+  {
+    if (windowState->isNotEmpty())
+      this->restoreWindowStateFromString(windowState);
+  }
+
+  ~JuceStateWindowBase() override
+  {
+    windowState.setValue(
+        this->getWindowStateAsString(),
+        nullptr);
+  }
+
+
+ protected:
+  JuceStateValue<JuceString> windowState;
 };
 
 
@@ -1207,7 +1341,7 @@ struct [[maybe_unused]] AnyPluginTraits
                         meta::typeid_(toCheck.getConstrainer()),
                         meta::type_c<JuceConstrainer*>),
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.checkIsResizeable()),
+                        meta::typeid_(toCheck.checkIsResizable()),
                         meta::type_c<bool>))) {}) ^
 
             meta::inherit ^
@@ -1217,7 +1351,7 @@ struct [[maybe_unused]] AnyPluginTraits
                                 toCheck.getPluginRef(),
 
                                 toCheck.getConstrainer(),
-                                toCheck.checkIsResizeable(),
+                                toCheck.checkIsResizable(),
 
                                 toCheck.recreate()) {}));
 
@@ -1274,7 +1408,10 @@ template<
     typename THeldPlugin = typename TPluginContentTraits::pluginTraits>
 class [[maybe_unused]] AnyPluginContentComponentBase;
 
-template<typename TPluginTraits, typename TComponentTraits>
+template<
+    typename TPluginTraits,
+    typename TComponentTraits,
+    typename = void>
 struct [[maybe_unused]] AnyPluginContentTraits
 {
   using pluginTraits [[maybe_unused]] = TPluginTraits;
@@ -1327,7 +1464,10 @@ struct [[maybe_unused]] AnyPluginContentTraits
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          baseType>) {});
 
-template<typename TPluginContentTraits, typename THeldPluginTraits>
+template<
+    typename TPluginContentTraits,
+    typename THeldPluginTraits,
+    typename = void>
 struct [[maybe_unused]] AnyHeldPluginContentTraits
 {
   using contentTraits = TPluginContentTraits;
@@ -1412,7 +1552,7 @@ class [[maybe_unused]] AnyAbstractPluginContentComponent :
 
 
   [[maybe_unused, nodiscard]] inline virtual bool
-  checkIsResizeable() const noexcept = 0;
+  checkIsResizable() const noexcept = 0;
 
 
   [[maybe_unused]] virtual void recreate() = 0;
@@ -1526,7 +1666,7 @@ class [[maybe_unused]] AnyPluginContentComponentBase :
             move(state)),
         plugin(move(plugin))
   {
-    jassert(this->plugin);
+    BLOOPER_ASSERT(this->plugin);
   }
 
 
@@ -1570,7 +1710,7 @@ class [[maybe_unused]] AnyPluginContentComponentBase :
 
 
   [[maybe_unused, nodiscard]] inline bool
-  checkIsResizeable() const noexcept override
+  checkIsResizable() const noexcept override
   {
     return true;
   }
@@ -1713,29 +1853,6 @@ BLOOPER_STATIC_ASSERT(
 
 
 // TODO: panels
-
-
-// id
-
-#define BLOOPER_STATE_ID(_name)               \
-  /* NOLINTNEXTLINE(cert-err58-cpp) */        \
-  inline static const StateIdentifier stateId \
-  {                                           \
-    #_name                                    \
-  }
-
-#define BLOOPER_ID(_name)                   \
-  /* NOLINTNEXTLINE(cert-err58-cpp) */      \
-  inline static const StateIdentifier _name \
-  {                                         \
-    #_name                                  \
-  }
-
-namespace detail::id
-{
-BLOOPER_STATE_ID(unusedMacroWorkaround);
-BLOOPER_ID(unusedMacroWorkaround);
-} // namespace detail::id
 
 BLOOPER_NAMESPACE_END
 

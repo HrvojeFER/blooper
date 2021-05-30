@@ -1,11 +1,9 @@
 #ifndef BLOOPER_OLD_CLIP_COMPONENTS_HPP
 #define BLOOPER_OLD_CLIP_COMPONENTS_HPP
 
-
 #include <blooper/internal/internal.hpp>
 
-#include <blooper/body/panels/edit/old/EditViewState.hpp>
-
+#include "EditViewState.hpp"
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -127,6 +125,5 @@ class RecordingClipComponent : public juce::Component, private juce::Timer
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_OLD_CLIP_COMPONENTS_HPP

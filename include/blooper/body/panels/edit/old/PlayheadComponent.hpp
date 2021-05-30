@@ -1,11 +1,9 @@
 #ifndef BLOOPER_OLD_PLAYHEAD_COMPONENT_HPP
 #define BLOOPER_OLD_PLAYHEAD_COMPONENT_HPP
 
-
-#include "../../../../internal/internal.hpp"
+#include <blooper/internal/internal.hpp>
 
 #include "EditViewState.hpp"
-
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -36,6 +34,5 @@ class PlayheadComponent :
 };
 
 BLOOPER_NAMESPACE_END
-
 
 #endif // BLOOPER_OLD_PLAYHEAD_COMPONENT_HPP

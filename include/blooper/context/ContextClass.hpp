@@ -20,7 +20,9 @@ class Context : public AbstractContext
     std::function<void()> onInitFailure;
   } options;
 
-  explicit Context(Options options = {});
+  explicit Context(
+      JuceString name,
+      Options options = {});
 
   ~Context() override;
 
@@ -94,11 +96,6 @@ class Context : public AbstractContext
 
   std::unique_ptr<JuceEdit> edit;
   JuceTransport*            transport;
-
-
-  static inline JuceXmlFile ensureValidStateFile(JuceEngine& engine);
-
-  static inline State ensureValidState(JuceXmlFile& file);
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
@@ -189,39 +186,6 @@ const JuceTransport& Context::getTransport() const noexcept
 JuceTransport& Context::getTransport() noexcept
 {
   return *transport;
-}
-
-
-JuceXmlFile Context::ensureValidStateFile(JuceEngine& engine)
-{
-  JuceXmlFile::Options options;
-  options.millisecondsBeforeSaving = 2000;
-  options.storageFormat = JuceXmlFile::storeAsXML;
-  options.commonToAllUsers = false;
-
-  auto stateFile =
-      engine.getPropertyStorage()
-          .getAppPrefsFolder()
-          .getChildFile(stateFileName);
-
-  // If not valid, just delete it and it will create a new one when needed.
-  if (!JuceXmlFile(stateFile, options).isValidFile())
-    stateFile.deleteFile();
-
-  return JuceXmlFile(stateFile, options);
-}
-
-State Context::ensureValidState(JuceXmlFile& file)
-{
-  State state = State::fromXml(*file.getXmlValue(stateFileKey));
-
-  if (!state.isValid() || !state.hasType(stateId))
-  {
-    state = State(stateId);
-    file.setValue(stateFileKey, state.createXml().get());
-  }
-
-  return state;
 }
 
 BLOOPER_NAMESPACE_END
