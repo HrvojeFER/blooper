@@ -17,7 +17,7 @@ juce::ValueTree ensureChildFolder(
   juce::ValueTree folder(te::IDs::FOLDER);
   folder.setProperty(te::IDs::name, name, nullptr);
   root.addChild(folder, 0, nullptr);
-  ext::ensureAllItemsHaveIDs(root);
+  ext::ensureAllItemsHaveUIDs(root);
 
   return folder;
 }
@@ -94,44 +94,21 @@ juce::ValueTree ensureProjectPath(
   list.setRowHeight(30);
 
 
-  addProjectPanel.addProperties(
-      {new juce::TextPropertyComponent(
-           projectPath.getPropertyAsValue(),
-           "Folder",
-           200,
-           false,
-           true),
-
-       new juce::TextPropertyComponent(
-           projectFile.getPropertyAsValue(),
-           "File",
-           200,
-           false,
-           true)},
-
-      2);
-
-
   reloadProjectsButton.onClick = [this] {
+    this->getContext().getEngine().getProjectManager().loadList();
+
     this->reloadProjects();
-    this->repaint();
   };
 
   addProjectButton.onClick = [this] {
     if (this->isAddingProject)
     {
-      auto& manager =
-          this->getContext()
-              .getEngine()
-              .getProjectManager();
+      util::addProject(
+          this->getContext(),
+          ext::splitPath(projectPath),
+          JuceFile{projectFile});
 
-      manager.createNewProject(
-          this->projectFile.get(),
-          ensureProjectPath(
-              this->getContext().getEngine(),
-              this->projectPath.get()));
-
-      reloadProjects();
+      this->reloadProjects();
     }
 
     this->toggleAddingProject();
@@ -141,15 +118,11 @@ juce::ValueTree ensureProjectPath(
     auto row = list.getSelectedRow();
     if (row == -1) return;
 
-    //    auto& manager =
-    //        this->getContext()
-    //            .getEngine()
-    //            .getProjectManager();
-
-    //    manager.deleteProjectFolder(projects[row]);
+    util::deleteProject(
+        this->getContext(),
+        projects[row]);
 
     this->reloadProjects();
-    this->repaint();
   };
 
   cancelButton.onClick = [this] {
@@ -168,7 +141,27 @@ juce::ValueTree ensureProjectPath(
     if (row == -1) return;
 
     this->options.onOpen(projects[row]);
+
+    this->reloadProjects();
   };
+
+
+  addProjectPanel.addProperties(
+      {new juce::TextPropertyComponent(
+           projectPath.getPropertyAsValue(),
+           "Folder",
+           200,
+           false,
+           true),
+
+       new juce::TextPropertyComponent(
+           projectFile.getPropertyAsValue(),
+           "File",
+           200,
+           false,
+           true)},
+
+      2);
 
 
   ext::addAndMakeVisible(
@@ -229,26 +222,16 @@ void ProjectsMenuComponent::resized()
     this->addProjectPanel.setVisible(true);
   }
 
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "VirtualCallInCtorOrDtor"
-#endif
-
-  this->resized();
   this->repaint();
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::reloadProjects()
 {
   auto& manager = this->getContext().getEngine().getProjectManager();
 
-  manager.saveList();
-  manager.loadList();
   projects = manager.getAllProjects(manager.folders);
+
+  this->repaint();
 }
 
 
@@ -294,6 +277,8 @@ void ProjectsMenuComponent::resized()
     int                     row,
     const juce::MouseEvent& event)
 {
+  if (row < 0 || row >= projects.size()) return;
+
   ListBoxModel::listBoxItemClicked(row, event);
 }
 
@@ -301,19 +286,23 @@ void ProjectsMenuComponent::resized()
     int row,
     const juce::MouseEvent&)
 {
-  if (row == -1) return;
+  if (row < 0 || row >= projects.size()) return;
+
   this->options.onOpen(projects[row]);
+
+  this->reloadProjects();
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::deleteKeyPressed(
-    int)
+    int row)
 {
-  auto& manager = this->getContext().getEngine().getProjectManager();
+  if (row < 0 || row >= projects.size()) return;
 
-  //  manager.deleteProjectFolder(projects[lastRowSelected]);
-  projects = manager.getAllProjects(manager.folders);
+  util::deleteProject(
+      this->getContext(),
+      projects[row]);
 
-  this->repaint();
+  this->reloadProjects();
 }
 
 BLOOPER_NAMESPACE_END

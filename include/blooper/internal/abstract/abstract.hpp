@@ -226,6 +226,12 @@ class JuceStatefulBase :
     this->getState().addListener(this);
   }
 
+  [[maybe_unused]] ~JuceStatefulBase() override
+  {
+    this->getState().removeListener(this);
+  }
+
+
  protected:
   void valueTreeChanged() override { }
 };

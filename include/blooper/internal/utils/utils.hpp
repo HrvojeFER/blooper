@@ -8,6 +8,8 @@
 #include <blooper/internal/utils/ScopedMessageLoopBlocker.hpp>
 #include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
 
+#include <blooper/internal/utils/FilePathPropertyComponent.hpp>
+
 #include <blooper/internal/utils/CoreContextFunctions.hpp>
 #include <blooper/internal/utils/ContextFunctions.hpp>
 

@@ -158,7 +158,7 @@ template<typename TOnGroup, typename TOnItem>
 template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
          typename TOnGroup,
          typename TOnItem>
-[[maybe_unused]] void visit(
+[[maybe_unused]] auto visit(
     PluginTreeBase* base,
     TOnGroup        onGroup,
     TOnItem         onItem) noexcept(isPluginTreeVisitNoexcept<TOnGroup, TOnItem>)
@@ -184,7 +184,9 @@ template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
         onGroup(*subGroup);
 
         if constexpr (VisitType == PluginTreeVisitType::deep)
+        {
           visit(group, onGroup, onItem);
+        }
       }
 
     for (auto subNode : *group)

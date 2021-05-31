@@ -11,9 +11,12 @@ BLOOPER_NAMESPACE_BEGIN
 // Basic
 
 using JuceString [[maybe_unused]] = juce::String;
+using JuceStringArray [[maybe_unused]] = juce::StringArray;
 using JuceXml [[maybe_unused]] = juce::XmlElement;
 using JuceXmlFile [[maybe_unused]] = juce::PropertiesFile;
+using JuceFile [[maybe_unused]] = juce::File;
 using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
+using JuceValueTree [[maybe_unused]] = juce::ValueTree;
 
 template<typename TObject>
 using JuceRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;

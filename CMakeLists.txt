@@ -46,7 +46,8 @@ env_fetch(engine
 
           SCAFFOLD
           OPTIONS
-          "JUCE_BUILD_EXAMPLES ON")
+          "JUCE_BUILD_EXAMPLES ON"
+          "JUCE_BUILD_EXTRAS ON")
 
 
 # -----------------------------------------------------------------------------
