@@ -2,42 +2,6 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-juce::ValueTree ensureChildFolder(
-    juce::ValueTree&    root,
-    const juce::String& name)
-{
-  for (int i = 0; i < root.getNumChildren(); ++i)
-  {
-    auto&& child = root.getChild(i);
-    if (child.hasType(te::IDs::FOLDER) &&
-        child[te::IDs::name].toString() == name)
-      return child;
-  }
-
-  juce::ValueTree folder(te::IDs::FOLDER);
-  folder.setProperty(te::IDs::name, name, nullptr);
-  root.addChild(folder, 0, nullptr);
-  ext::ensureAllItemsHaveUIDs(root);
-
-  return folder;
-}
-
-juce::ValueTree ensureProjectPath(
-    te::Engine&         engine,
-    const juce::String& path)
-{
-  auto& manager = engine.getProjectManager();
-  auto  root = manager.folders;
-
-  auto splitPath = ext::splitPath(path);
-
-  for (const auto& i : splitPath)
-    root = ensureChildFolder(root, i);
-
-  return root;
-}
-
-
 [[maybe_unused]] ProjectsMenuComponent::ProjectsMenuComponent(
     AbstractCoreContext& context,
     State                state,
