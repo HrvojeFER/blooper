@@ -17,8 +17,8 @@ BodyWindow::BodyWindow(
 
   component =
       std::make_unique<BodyComponent>(
-          getContext(),
-          getState().getOrCreateChildWithName(
+          this->getContext(),
+          this->getState().getOrCreateChildWithName(
               BodyComponent::stateId,
               nullptr),
           move(componentOptions));
@@ -28,20 +28,31 @@ BodyWindow::BodyWindow(
       false);
 
 
-  BodyMenuBarComponent::Options menuBarOptions{};
+  BodyMenuBar::Options menuBarOptions{};
 
   menuBar =
-      new BodyMenuBarComponent(
-          getContext(),
-          getState().getOrCreateChildWithName(
-              BodyMenuBarComponent::stateId,
+      std::make_unique<BodyMenuBar>(
+          this->getContext(),
+          this->getState().getOrCreateChildWithName(
+              BodyMenuBar::stateId,
               nullptr),
           move(menuBarOptions));
 
-  this->setMenuBarComponent(menuBar);
+  this->setMenuBar(
+      menuBar.get(),
+      this->getLookAndFeel()
+          .getDefaultMenuBarHeight());
 
 
   setFullScreen(true);
+}
+
+BodyWindow::~BodyWindow()
+{
+  this->setMenuBar(
+      nullptr,
+      this->getLookAndFeel()
+          .getDefaultMenuBarHeight());
 }
 
 

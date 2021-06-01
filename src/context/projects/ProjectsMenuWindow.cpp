@@ -17,10 +17,16 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 
   componentOptions.onOpen = [this](auto ref) {
     this->options.onOpen(move(ref));
+
+    if (this->isCurrentlyModal())
+      this->exitModalState(0);
   };
 
   componentOptions.onCancel = [this] {
     this->options.onCancel();
+
+    if (this->isCurrentlyModal())
+      this->exitModalState(0);
   };
 
   auto component =

@@ -16,7 +16,7 @@ HeaderComponent::HeaderComponent(
   menuBar =
       std::make_unique<HeaderMenuBarComponent>(
           context,
-          state.getOrCreateChildWithName(
+          this->getState().getOrCreateChildWithName(
               HeaderMenuBarComponent::stateId,
               nullptr),
           move(menuBarOptions));
@@ -27,7 +27,7 @@ HeaderComponent::HeaderComponent(
   toolbar =
       std::make_unique<HeaderToolbarComponent>(
           context,
-          state.getOrCreateChildWithName(
+          this->getState().getOrCreateChildWithName(
               HeaderToolbarComponent::stateId,
               nullptr),
           move(toolbarOptions));

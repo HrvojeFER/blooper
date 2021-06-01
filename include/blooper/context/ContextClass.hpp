@@ -10,6 +10,8 @@ class Context : public AbstractContext
  public:
   BLOOPER_STATE_ID(Context);
 
+  BLOOPER_ID(openProjectId);
+
   inline constexpr static auto stateFileName = "state.xml";
   inline constexpr static auto stateFileKey = "contextState";
 
@@ -96,6 +98,9 @@ class Context : public AbstractContext
 
   std::unique_ptr<JuceEdit> edit;
   JuceTransport*            transport;
+
+
+  [[maybe_unused]] void setProject(JuceProjectRef ref);
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)

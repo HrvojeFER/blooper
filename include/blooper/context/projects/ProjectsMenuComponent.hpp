@@ -62,11 +62,13 @@ class ProjectsMenuComponent :
 
   [[maybe_unused]] void reloadProjects();
 
+  [[maybe_unused]] bool isValidRow(int row) const noexcept;
+
 
   [[maybe_unused]] int getNumRows() override;
 
   [[maybe_unused]] void paintListBoxItem(
-      int             rowNumber,
+      int             row,
       juce::Graphics& g,
       int             width,
       int             height,

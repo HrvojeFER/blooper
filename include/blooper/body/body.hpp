@@ -7,7 +7,7 @@
 #include <blooper/body/footer/footer.hpp>
 
 #include <blooper/body/BodyComponent.hpp>
-#include <blooper/body/BodyMenuBarComponent.hpp>
+#include <blooper/body/BodyMenuBar.hpp>
 
 #include <blooper/body/BodyWindow.hpp>
 

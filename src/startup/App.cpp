@@ -28,35 +28,42 @@ bool App::moreThanOneInstanceAllowed()
 void App::initialise(const juce::String&)
 {
   util::requestRuntimePermissions(
-      [this](bool granted) {
-        if (!granted)
-          return this->systemRequestedQuit();
+      [app = juce::WeakReference<App>(this)](bool granted) {
+        if (!granted && !app.wasObjectDeleted())
+          return app->systemRequestedQuit();
       });
 
   Context::Options options{};
   options.onInitSuccess =
-      ([this] {
+      ([app = juce::WeakReference<App>(this)] {
         BodyWindow::Options bodyOptions{};
 
         bodyOptions.onClose =
-            [this] { this->systemRequestedQuit(); };
+            ([app] {
+              if (!app.wasObjectDeleted())
+                app->systemRequestedQuit();
+            });
 
-        this->bodyWindow = std::make_unique<BodyWindow>(
-            *this->context,
-            this->context->getState().getOrCreateChildWithName(
-                BodyWindow::stateId,
-                nullptr),
-            JuceString(JUCE_APPLICATION_NAME_STRING) +
-                JuceString("_") +
-                JuceString(JUCE_APPLICATION_VERSION_STRING),
-            move(bodyOptions));
+        if (!app.wasObjectDeleted())
+        {
+          app->bodyWindow = std::make_unique<BodyWindow>(
+              *app->context,
+              app->context->getState().getOrCreateChildWithName(
+                  BodyWindow::stateId,
+                  nullptr),
+              JuceString(JUCE_APPLICATION_NAME_STRING) +
+                  JuceString("_") +
+                  JuceString(JUCE_APPLICATION_VERSION_STRING),
+              move(bodyOptions));
 
-        this->bodyWindow->setVisible(true);
+          app->bodyWindow->setVisible(true);
+        }
       });
 
   options.onInitFailure =
-      ([this] {
-        this->systemRequestedQuit();
+      ([app = juce::WeakReference<App>(this)] {
+        if (!app.wasObjectDeleted())
+          app->systemRequestedQuit();
       });
 
   this->context = std::make_unique<Context>(

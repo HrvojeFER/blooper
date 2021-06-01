@@ -78,27 +78,43 @@ Context::Context(
   engine.getProjectManager().loadList();
 
 
-  ProjectsMenuWindow::Options projectsMenuOptions{};
+  auto openProject =
+      this->getState()
+          .getProperty(Context::openProjectId)
+          .toString();
 
-  projectsMenuOptions.onOpen =
-      ([this](auto projectRef) {
-        this->project = move(projectRef);
+  if (openProject.isEmpty())
+  {
+    ProjectsMenuWindow::Options projectsMenuOptions{};
 
-        this->edit = ext::ensureEdit(
-            this->getProject(),
-            this->getEngine());
+    projectsMenuOptions.onOpen =
+        ([this](auto projectRef) {
+          this->setProject(move(projectRef));
 
-        this->transport = &getEdit().getTransport();
+          this->options.onInitSuccess();
+        });
 
-        this->options.onInitSuccess();
-      });
+    projectsMenuOptions.onCancel =
+        ([this] {
+          this->options.onInitFailure();
+        });
 
-  projectsMenuOptions.onCancel =
-      ([this] {
-        this->options.onInitFailure();
-      });
+    showProjectsMenu(*this, move(projectsMenuOptions));
+  }
+  else
+  {
+    auto& projectManager = this->getEngine().getProjectManager();
 
-  showProjectsMenu(*this, move(projectsMenuOptions));
+    this->setProject(
+        projectManager.findProjectWithFile(
+            projectManager.folders,
+            openProject));
+
+    juce::MessageManager::callAsync(
+        [this] {
+          this->options.onInitSuccess();
+        });
+  }
 }
 
 Context::~Context()
@@ -125,6 +141,38 @@ Context::~Context()
 
   engine.getPropertyStorage().flushSettingsToDisk();
   engine.getProjectManager().saveList();
+}
+
+
+[[maybe_unused]] void Context::setProject(JuceProjectRef ref)
+{
+  if (ref)
+  {
+    this->project = move(ref);
+
+    this->getState().setProperty(
+        Context::openProjectId,
+        this->getProject().getProjectFile().getFullPathName(),
+        std::addressof(this->getUndoManager()));
+
+    this->edit = ext::ensureEdit(
+        this->getProject(),
+        this->getEngine());
+
+    this->transport = &this->getEdit().getTransport();
+  }
+  else
+  {
+    this->transport = nullptr;
+    this->edit.reset();
+
+    this->getState().setProperty(
+        Context::openProjectId,
+        "",
+        std::addressof(this->getUndoManager()));
+
+    this->project.reset();
+  }
 }
 
 BLOOPER_NAMESPACE_END

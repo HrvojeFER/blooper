@@ -80,7 +80,7 @@ BLOOPER_NAMESPACE_BEGIN
 
   deleteProjectButton.onClick = [this] {
     auto row = list.getSelectedRow();
-    if (row == -1) return;
+    if (!this->isValidRow(row)) return;
 
     util::deleteProject(
         this->getContext(),
@@ -102,7 +102,7 @@ BLOOPER_NAMESPACE_BEGIN
 
   openProjectButton.onClick = [this] {
     auto row = list.getSelectedRow();
-    if (row == -1) return;
+    if (!this->isValidRow(row)) return;
 
     this->options.onOpen(projects[row]);
 
@@ -195,7 +195,12 @@ void ProjectsMenuComponent::resized()
 
   projects = manager.getAllProjects(manager.folders);
 
-  this->repaint();
+  this->list.updateContent();
+}
+
+[[maybe_unused]] bool ProjectsMenuComponent::isValidRow(int row) const noexcept
+{
+  return row >= 0 && row < this->projects.size();
 }
 
 
@@ -205,15 +210,15 @@ void ProjectsMenuComponent::resized()
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::paintListBoxItem(
-    int             rowNumber,
+    int             row,
     juce::Graphics& g,
     int             width,
     int             height,
     bool            rowIsSelected)
 {
-  if (rowNumber < 0 || rowNumber >= projects.size()) return;
+  if (!this->isValidRow(row)) return;
 
-  auto project = projects[rowNumber];
+  auto project = projects[row];
 
 
   auto availableArea = juce::Rectangle<int>(
@@ -241,7 +246,7 @@ void ProjectsMenuComponent::resized()
     int                     row,
     const juce::MouseEvent& event)
 {
-  if (row < 0 || row >= projects.size()) return;
+  if (!this->isValidRow(row)) return;
 
   ListBoxModel::listBoxItemClicked(row, event);
 }
@@ -250,7 +255,7 @@ void ProjectsMenuComponent::resized()
     int row,
     const juce::MouseEvent&)
 {
-  if (row < 0 || row >= projects.size()) return;
+  if (!this->isValidRow(row)) return;
 
   this->options.onOpen(projects[row]);
 
@@ -260,7 +265,7 @@ void ProjectsMenuComponent::resized()
 [[maybe_unused]] void ProjectsMenuComponent::deleteKeyPressed(
     int row)
 {
-  if (row < 0 || row >= projects.size()) return;
+  if (!this->isValidRow(row)) return;
 
   util::deleteProject(
       this->getContext(),

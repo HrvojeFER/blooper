@@ -16,7 +16,7 @@ BodyComponent::BodyComponent(
   panels =
       std::make_unique<PanelsComponent>(
           context,
-          state.getOrCreateChildWithName(
+          this->getState().getOrCreateChildWithName(
               PanelsComponent::stateId,
               nullptr),
           move(panelsOptions));
@@ -27,7 +27,7 @@ BodyComponent::BodyComponent(
   header =
       std::make_unique<HeaderComponent>(
           context,
-          state.getOrCreateChildWithName(
+          this->getState().getOrCreateChildWithName(
               HeaderComponent::stateId,
               nullptr),
           move(headerOptions));
@@ -38,7 +38,7 @@ BodyComponent::BodyComponent(
   footer =
       std::make_unique<FooterComponent>(
           context,
-          state.getOrCreateChildWithName(
+          this->getState().getOrCreateChildWithName(
               FooterComponent::stateId,
               nullptr),
           move(footerOptions));

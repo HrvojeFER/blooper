@@ -22,6 +22,8 @@ class BodyWindow : public WindowBase
       JuceString       name,
       Options          options = {});
 
+  ~BodyWindow() override;
+
 
   void closeButtonPressed() override;
 
@@ -29,7 +31,7 @@ class BodyWindow : public WindowBase
  private:
   std::unique_ptr<class BodyComponent> component;
 
-  class BodyMenuBarComponent* menuBar;
+  std::unique_ptr<class BodyMenuBar> menuBar;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)

@@ -24,6 +24,9 @@ class UIBehaviour :
 
 
  private:
+  std::unique_ptr<juce::ApplicationCommandManager> commandManager;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UIBehaviour);
 };
 

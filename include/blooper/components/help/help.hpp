@@ -3,16 +3,16 @@
 
 #include <blooper/internal/internal.hpp>
 
-#include <blooper/help/DocsComponent.hpp>
+#include <blooper/components/help/DocsComponent.hpp>
 
-#include <blooper/help/TutorialComponent.hpp>
-#include <blooper/help/HowToComponent.hpp>
-#include <blooper/help/FAQComponent.hpp>
+#include <blooper/components/help/TutorialComponent.hpp>
+#include <blooper/components/help/HowToComponent.hpp>
+#include <blooper/components/help/FAQComponent.hpp>
 
-#include <blooper/help/HelpComponent.hpp>
-#include <blooper/help/InfoComponent.hpp>
+#include <blooper/components/help/HelpComponent.hpp>
+#include <blooper/components/help/InfoComponent.hpp>
 
-#include <blooper/help/HelpWindow.hpp>
-#include <blooper/help/InfoWindow.hpp>
+#include <blooper/components/help/HelpWindow.hpp>
+#include <blooper/components/help/InfoWindow.hpp>
 
 #endif // BLOOPER_HELP_HPP
