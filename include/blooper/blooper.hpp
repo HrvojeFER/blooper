@@ -3,16 +3,11 @@
 
 #include <blooper/internal/abstract/abstract.hpp>
 
-#include <blooper/assets/assets.hpp>
-
 #include <blooper/internal/internal.hpp>
-#include <blooper/style/style.hpp>
 
-#include <blooper/updates/updates.hpp>
 #include <blooper/context/context.hpp>
 
-#include <blooper/dev/dev.hpp>
-#include <blooper/help/help.hpp>
+#include <blooper/components/components.hpp>
 
 #include <blooper/body/body.hpp>
 

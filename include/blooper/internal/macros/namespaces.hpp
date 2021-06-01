@@ -54,7 +54,6 @@ BLOOPER_DEV_NAMESPACE_END
 BLOOPER_EXT_NAMESPACE_BEGIN
 BLOOPER_EXT_NAMESPACE_END
 
-
 #define BLOOPER_UTIL_NAMESPACE_BEGIN \
   namespace blooper::util            \
   {                                  \
@@ -66,6 +65,19 @@ BLOOPER_EXT_NAMESPACE_END
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 BLOOPER_UTIL_NAMESPACE_END
+
+
+#define BLOOPER_ASSETS_NAMESPACE_BEGIN \
+  namespace blooper::assets            \
+  {                                    \
+  namespace                            \
+  {
+#define BLOOPER_ASSETS_NAMESPACE_END \
+  } /* namespace */                  \
+  } /* namespace blooper::assets */
+
+BLOOPER_ASSETS_NAMESPACE_BEGIN
+BLOOPER_ASSETS_NAMESPACE_END
 
 
 #define BLOOPER_META_NAMESPACE_BEGIN \

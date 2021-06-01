@@ -118,12 +118,12 @@ BLOOPER_NAMESPACE_BEGIN
            false,
            true),
 
-       new juce::TextPropertyComponent(
+       new util::FilePathPropertyComponent(
            projectFile.getPropertyAsValue(),
            "File",
-           200,
            false,
-           true)},
+           true,
+           "*.tracktion")},
 
       2);
 
@@ -186,7 +186,7 @@ void ProjectsMenuComponent::resized()
     this->addProjectPanel.setVisible(true);
   }
 
-  this->repaint();
+  this->resized();
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::reloadProjects()

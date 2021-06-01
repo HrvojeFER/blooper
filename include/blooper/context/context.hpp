@@ -2,6 +2,7 @@
 #define BLOOPER_CONTEXT_HPP
 
 #include <blooper/context/behaviour/behaviour.hpp>
+#include <blooper/context/style/style.hpp>
 
 #include <blooper/context/devices/devices.hpp>
 #include <blooper/context/settings/settings.hpp>

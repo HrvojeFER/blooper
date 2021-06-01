@@ -9,13 +9,18 @@ option(BLOOPER_BUILD_STANDALONE "Build blooper standalone app.")
 cmake_minimum_required(VERSION 3.19...3.20)
 
 project(blooper
-        DESCRIPTION "LoopStation made with JUCE."
+        DESCRIPTION "LoopStation made with JUCE and Tracktion Engine."
         VERSION 1.0.0
         LANGUAGES CXX C)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(EnvFunc)
+
+
+option(BLOOPER_BUILD_STANDALONE
+       "Build the blooper standalone app."
+       ON)
 
 
 # -----------------------------------------------------------------------------
@@ -107,11 +112,41 @@ env_add_dep(env env_export)
 # Targets
 
 file(GLOB_RECURSE
+     __blooper_binaries
+     CONFIGURE_DEPENDS
+     "${PROJECT_SOURCE_DIR}/assets/**.*")
+
+if (BLOOPER_BUILD_STANDALONE)
+    juce_add_binary_data(
+            blooper_assets
+
+            HEADER_NAME "blooper_binaries.hpp"
+            NAMESPACE "blooper::binaries"
+
+            SOURCES
+            ${__blooper_binaries})
+
+    env_target_suppress(blooper_assets)
+    env_target_optimize(blooper_assets)
+
+    env_set_cpp17(blooper_assets)
+    env_target_conform(blooper_assets)
+
+    env_add_alias(assets)
+
+    env_target_set_bin_output(
+            blooper_assets
+            SUB blooper/assets)
+endif ()
+
+
+file(GLOB_RECURSE
      __blooper_sources
      CONFIGURE_DEPENDS
      "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 if (BLOOPER_BUILD_STANDALONE)
+    # TODO: company things
     juce_add_gui_app(
             blooper_standalone
 
@@ -134,7 +169,8 @@ if (BLOOPER_BUILD_STANDALONE)
             standalone
             PRIVATE
             blooper::env
-            blooper::audio)
+            blooper::audio
+            blooper::assets)
 
     env_target_precompile(
             standalone
@@ -165,4 +201,8 @@ if (BLOOPER_BUILD_STANDALONE)
                 PRIVATE
                 "/wd4250")
     endif ()
+
+    env_target_set_bin_output(
+            blooper_standalone
+            SUB blooper/standalone)
 endif ()

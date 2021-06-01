@@ -1,5 +1,4 @@
-#include <blooper/dev/DevWindow.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_DEV_NAMESPACE_BEGIN
 

@@ -22,7 +22,7 @@ class Context : public AbstractContext
 
   explicit Context(
       JuceString name,
-      Options options = {});
+      Options    options = {});
 
   ~Context() override;
 

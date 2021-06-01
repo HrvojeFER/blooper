@@ -58,6 +58,10 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
 {
   auto& manager = context.getEngine().getProjectManager();
 
+  for (auto openProject : manager.getAllProjects(manager.folders))
+    if (file == openProject->getProjectFile())
+      return JuceProjectRef(openProject);
+
   auto folder = addProjectFolder(context, path);
   return manager.createNewProject(file, folder);
 }

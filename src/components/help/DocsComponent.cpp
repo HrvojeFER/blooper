@@ -1,5 +1,4 @@
-#include <blooper/help/InfoWindow.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

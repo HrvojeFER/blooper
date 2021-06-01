@@ -1,5 +1,4 @@
-#include <blooper/help/HelpComponent.hpp>
-
+#include <blooper/blooper.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
