@@ -9,24 +9,24 @@ PropertyStorage::PropertyStorage(
 
       te::PropertyStorage(move(name)),
 
-      root(createRoot()),
-      cache(createCache()),
-      prefs(createPrefs()),
+      cache(this->getContext()
+                .getRootDir()
+                .getChildFile(
+                    PropertyStorage::cacheDirName)),
+      prefs(this->getContext()
+                .getRootDir()
+                .getChildFile(
+                    PropertyStorage::prefsDirName)),
 
-      media(createMedia()),
-      projects(createProjects()),
-
-      properties(ensureValidProperties())
+      media(this->getContext()
+                .getRootDir()
+                .getChildFile(
+                    PropertyStorage::mediaDirName)),
 {
-  if (!root.exists()) root.createDirectory();
   if (!cache.exists()) cache.createDirectory();
   if (!prefs.exists()) prefs.createDirectory();
 
   if (!media.exists()) media.createDirectory();
-  if (!projects.exists()) projects.createDirectory();
-
-  auto& propertiesFile = properties.getFile();
-  if (!propertiesFile.exists()) propertiesFile.create();
 }
 
 
@@ -43,13 +43,13 @@ juce::File PropertyStorage::getAppPrefsFolder()
 
 void PropertyStorage::flushSettingsToDisk()
 {
-  properties.save();
+  this->getContext().getProperties().save();
 }
 
 
 void PropertyStorage::removeProperty(te::SettingID setting)
 {
-  properties.removeValue(
+  this->getContext().getProperties().removeValue(
       te::PropertyStorage::settingToString(setting));
 }
 
@@ -57,7 +57,7 @@ juce::var PropertyStorage::getProperty(
     te::SettingID    setting,
     const juce::var& defaultValue)
 {
-  return properties.getValue(
+  return this->getContext().getProperties().getValue(
       te::PropertyStorage::settingToString(setting),
       defaultValue);
 }
@@ -66,7 +66,7 @@ void PropertyStorage::setProperty(
     te::SettingID    setting,
     const juce::var& value)
 {
-  properties.setValue(
+  this->getContext().getProperties().setValue(
       PropertyStorage::settingToString(setting),
       value);
 }
@@ -75,7 +75,7 @@ std::unique_ptr<juce::XmlElement> PropertyStorage::getXmlProperty(
     te::SettingID setting)
 {
   return std::unique_ptr<juce::XmlElement>(
-      properties.getXmlValue(
+      this->getContext().getProperties().getXmlValue(
           te::PropertyStorage::settingToString(setting)));
 }
 
@@ -83,7 +83,7 @@ void PropertyStorage::setXmlProperty(
     te::SettingID           setting,
     const juce::XmlElement& xml)
 {
-  properties.setValue(
+  this->getContext().getProperties().setValue(
       te::PropertyStorage::settingToString(setting),
       &xml);
 }
@@ -93,7 +93,7 @@ void PropertyStorage::removePropertyItem(
     te::SettingID   setting,
     juce::StringRef item)
 {
-  properties.removeValue(
+  this->getContext().getProperties().removeValue(
       te::PropertyStorage::settingToString(setting) +
       "_" +
       item);
@@ -104,7 +104,7 @@ juce::var PropertyStorage::getPropertyItem(
     juce::StringRef  item,
     const juce::var& defaultValue)
 {
-  return properties.getValue(
+  return this->getContext().getProperties().getValue(
       te::PropertyStorage::settingToString(setting) +
           "_" +
           item,
@@ -116,7 +116,7 @@ void PropertyStorage::setPropertyItem(
     juce::StringRef  item,
     const juce::var& value)
 {
-  properties.setValue(
+  this->getContext().getProperties().setValue(
       te::PropertyStorage::settingToString(setting) +
           "_" +
           item,
@@ -128,7 +128,7 @@ std::unique_ptr<juce::XmlElement> PropertyStorage::getXmlPropertyItem(
     juce::StringRef item)
 {
   return std::unique_ptr<juce::XmlElement>(
-      properties.getXmlValue(
+      this->getContext().getProperties().getXmlValue(
           te::PropertyStorage::settingToString(setting) +
           "_" +
           item));
@@ -139,7 +139,7 @@ void PropertyStorage::setXmlPropertyItem(
     juce::StringRef         item,
     const juce::XmlElement& xml)
 {
-  properties.setValue(
+  this->getContext().getProperties().setValue(
       te::PropertyStorage::settingToString(setting) +
           "_" +
           item,
@@ -153,7 +153,7 @@ juce::File PropertyStorage::getDefaultLoadSaveDirectory(
   juce::ignoreUnused(label);
 
   // TODO: figure this out
-  return media;
+  return this->media;
 }
 
 void PropertyStorage::setDefaultLoadSaveDirectory(
@@ -163,46 +163,53 @@ void PropertyStorage::setDefaultLoadSaveDirectory(
   juce::ignoreUnused(label);
 
   // TODO: figure this out
-  media = newPath;
+  this->= newPath;
 }
 
 juce::File PropertyStorage::getDefaultLoadSaveDirectory(
     te::ProjectItem::Category category)
 {
+  JuceFile& projectsDir = this->getContext().getProjectsDir();
+
   // TODO: figure this out
   switch (category)
   {
     case te::ProjectItem::Category::exports:
-      return projects.getChildFile("exports");
+      return projectsDir.getChildFile("exports");
 
     case te::ProjectItem::Category::imported:
-      return projects.getChildFile("imports");
+      return projectsDir.getChildFile("imports");
 
     case te::ProjectItem::Category::archives:
-      return projects.getChildFile("archives");
+      return projectsDir.getChildFile("archives");
 
 
     case te::ProjectItem::Category::edit:
-      return projects.getChildFile("edits");
+      return projectsDir.getChildFile("edits");
 
     case te::ProjectItem::Category::recorded:
-      return projects.getChildFile("records");
+      return projectsDir.getChildFile("records");
 
     case te::ProjectItem::Category::frozen:
-      return projects.getChildFile("freezer");
+      return projectsDir.getChildFile("freezer");
 
     case te::ProjectItem::Category::rendered:
-      return projects.getChildFile("renders");
+      return projectsDir.getChildFile("renders");
 
     case te::ProjectItem::Category::video:
-      return projects.getChildFile("videos");
+      return projectsDir.getChildFile("videos");
 
 
     default:
-      return projects.getChildFile("other");
+      return projectsDir.getChildFile("other");
   }
 }
 
+
+juce::String PropertyStorage::getUserName()
+{
+  return te::PropertyStorage::getUserName();
+}
 
 juce::String PropertyStorage::getApplicationName()
 {

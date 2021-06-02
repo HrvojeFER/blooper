@@ -274,24 +274,56 @@ BLOOPER_STATIC_ASSERT(
             [](auto&& toCheck)
                 -> decltype(meta::and_(
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getEngine()),
-                        meta::type_c<JuceEngine>),
+                        meta::typeid_(toCheck.getRootDir()),
+                        meta::type_c<JuceFile>),
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getLookAndFeel()),
-                        meta::type_c<JuceLookAndFeel>),
+                        meta::typeid_(toCheck.getProjectsDir()),
+                        meta::type_c<JuceFile>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getProperties()),
+                        meta::type_c<JuceXmlFile>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getSettings()),
+                        meta::type_c<JuceState>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getLogger()),
+                        meta::type_c<JuceLogger>),
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getUndoManager()),
                         meta::type_c<JuceUndoManager>),
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getCommandManager()),
-                        meta::type_c<JuceCommandManager>))) {}) ^
+                        meta::type_c<JuceCommandManager>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getLookAndFeel()),
+                        meta::type_c<JuceLookAndFeel>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getEngine()),
+                        meta::type_c<JuceEngine>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getSelectionManager()),
+                        meta::type_c<JuceSelectionManager>))) {}) ^
             meta::inherit ^
             meta::check(
                 [](auto&& toCheck)
-                    -> decltype(toCheck.getEngine(),
-                                toCheck.getLookAndFeel(),
+                    -> decltype(toCheck.getRootDir(),
+                                toCheck.getProjectsDir(),
+
+                                toCheck.getProperties(),
+                                toCheck.getSettings(),
+
+                                toCheck.getLogger(),
                                 toCheck.getUndoManager(),
-                                toCheck.getCommandManager()) {}));
+                                toCheck.getCommandManager(),
+
+                                toCheck.getLookAndFeel(),
+
+                                toCheck.getEngine(),
+                                toCheck.getSelectionManager()) {}));
 
 [[maybe_unused]] inline constexpr auto isContext =
     meta::satisfies_all(
@@ -303,6 +335,17 @@ BLOOPER_STATIC_ASSERT(
                         meta::typeid_(toCheck.getProject()),
                         meta::type_c<JuceProject>),
                     meta::traits::is_same(
+                        meta::typeid_(toCheck.getProjectRef()),
+                        meta::type_c<JuceProjectRef>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getProjectSettings()),
+                        meta::type_c<JuceState>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getProjectState()),
+                        meta::type_c<JuceState>),
+
+                    meta::traits::is_same(
                         meta::typeid_(toCheck.getEdit()),
                         meta::type_c<JuceEdit>),
                     meta::traits::is_same(
@@ -312,6 +355,11 @@ BLOOPER_STATIC_ASSERT(
             meta::check(
                 [](auto&& toCheck)
                     -> decltype(toCheck.getProject(),
+                                toCheck.getProjectRef(),
+
+                                toCheck.getProjectSettings(),
+                                toCheck.getProjectState(),
+
                                 toCheck.getEdit(),
                                 toCheck.getTransport()) {}));
 
@@ -368,11 +416,11 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   getSettings() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&
-  getLookAndFeel() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const JuceLogger&
+  getLogger() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceLookAndFeel&
-  getLookAndFeel() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline JuceLogger&
+  getLogger() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceUndoManager&
@@ -389,11 +437,11 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   getCommandManager() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceLogger&
-  getLogger() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&
+  getLookAndFeel() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceLogger&
-  getLogger() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline JuceLookAndFeel&
+  getLookAndFeel() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceEngine&
@@ -401,6 +449,13 @@ class [[maybe_unused]] AbstractAnyCoreContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceEngine&
   getEngine() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceSelectionManager&
+  getSelectionManager() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceSelectionManager&
+  getSelectionManager() noexcept = 0;
 };
 
 template<typename TStatefulTraits>

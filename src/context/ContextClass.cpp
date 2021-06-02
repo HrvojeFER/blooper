@@ -8,6 +8,7 @@ Context::Context(
     : options(move(options))
 {
   this->load(move(name));
+  this->setup();
 }
 
 Context::~Context()
@@ -16,6 +17,8 @@ Context::~Context()
   this->unload();
 }
 
+
+// TODO: Utils - put in util or ext?
 
 namespace
 {
@@ -81,6 +84,8 @@ inline JuceState ensureValidState(
 } // namespace
 
 
+// Core
+
 [[maybe_unused]] bool Context::didLoad()
 {
   return this->engine != nullptr;
@@ -124,13 +129,11 @@ inline JuceState ensureValidState(
           Context::fileKey,
           Context::stateId);
 
-  // TODO: fix
-  this->openProjectFilePath =
-      JuceCached<JuceString>(
-          this->getState(),
-          Context::openProjectId,
-          std::addressof(this->getUndoManager()),
-          "");
+  this->openProjectFilePath.referTo(
+      this->getState(),
+      Context::openProjectId,
+      std::addressof(this->getUndoManager()),
+      "");
 
 
   this->logDir =
@@ -154,7 +157,6 @@ inline JuceState ensureValidState(
 
   this->undoManager = std::make_unique<JuceUndoManager>();
 
-  // TODO: commands
   this->commandManager = std::make_unique<JuceCommandManager>();
 
   this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
@@ -199,16 +201,86 @@ inline JuceState ensureValidState(
   }
 }
 
+[[maybe_unused]] void Context::setup()
+{
+  if (!this->didLoad()) return;
+
+
+  // TODO: commands
+
+
+  this->setupProject();
+}
+
 [[maybe_unused]] void Context::save()
 {
+  if (!this->didLoad()) return;
+
+
   this->saveProject();
+
+
+  this->engine->getProjectManager().saveList();
+
+  this->engine->getTemporaryFileManager()
+      .getTempDirectory()
+      .deleteRecursively();
+
+
+  this->settingsFile->setValue(
+      Context::fileKey,
+      this->getSettings().createXml().get());
+  this->settingsFile->save();
+
+  this->stateFile->setValue(
+      Context::fileKey,
+      this->getState().createXml().get());
+  this->stateFile->save();
 }
 
 [[maybe_unused]] void Context::unload()
 {
+  if (!this->didLoad()) return;
+
+
   this->unloadProject();
+
+
+  this->selectionManager.reset();
+  this->engine.reset();
+
+  this->lookAndFeel.reset();
+
+  this->commandManager.reset();
+  this->undoManager.reset();
+
+  this->logger.reset();
+  this->logFile.reset();
+  this->logDir.reset();
+
+
+  this->state = {};
+  this->stateFile.reset();
+
+  this->openProjectFilePath.referTo(
+      // it has to be an lvalue for some reason
+      // even though it is used for copying..
+      this->state,
+      {},
+      nullptr);
+
+  this->settings = {};
+  this->settingsFile.reset();
+
+  this->propertiesFile.reset();
+
+  this->projectsDir.reset();
+
+  this->rootDir.reset();
 }
 
+
+// Project
 
 [[maybe_unused]] bool Context::didLoadProject()
 {
@@ -306,11 +378,17 @@ inline JuceState ensureValidState(
 
 
   juce::MessageManager::callAsync(
-      [weak = juce::WeakReference<Context>(this)] {
-        if (!weak.wasObjectDeleted())
-          weak->options.onProjectLoad();
+      [context = juce::WeakReference<Context>(this)] {
+        if (!context.wasObjectDeleted())
+          context->options.onProjectLoad();
       });
 }
+
+// TODO?
+[[maybe_unused]] void Context::setupProject()
+{
+}
+
 
 [[maybe_unused]] void Context::saveProject()
 {
@@ -323,9 +401,6 @@ inline JuceState ensureValidState(
             true);
 
 
-  this->project->save();
-
-
   this->projectSettingsFile->setValue(
       Context::fileKey,
       this->getProjectSettings().createXml().get());
@@ -335,6 +410,9 @@ inline JuceState ensureValidState(
       Context::fileKey,
       this->getProjectState().createXml().get());
   this->projectStateFile->save();
+
+
+  this->project->save();
 }
 
 [[maybe_unused]] void Context::unloadProject()
@@ -362,9 +440,9 @@ inline JuceState ensureValidState(
 
 
   juce::MessageManager::callAsync(
-      [weak = juce::WeakReference<Context>(this)] {
-        if (!weak.wasObjectDeleted())
-          weak->options.onProjectUnload();
+      [context = juce::WeakReference<Context>(this)] {
+        if (!context.wasObjectDeleted())
+          context->options.onProjectUnload();
       });
 }
 

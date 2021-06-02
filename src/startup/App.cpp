@@ -19,9 +19,10 @@ const juce::String App::getApplicationVersion()
   return JUCE_APPLICATION_VERSION_STRING;
 }
 
+// TODO: enable this somehow?
 bool App::moreThanOneInstanceAllowed()
 {
-  return true;
+  return false;
 }
 
 
@@ -34,7 +35,7 @@ void App::initialise(const juce::String&)
       });
 
   Context::Options options{};
-  options.onInitSuccess =
+  options.onProjectLoad =
       ([app = juce::WeakReference<App>(this)] {
         BodyWindow::Options bodyOptions{};
 
@@ -48,11 +49,11 @@ void App::initialise(const juce::String&)
         {
           app->bodyWindow = std::make_unique<BodyWindow>(
               *app->context,
-              app->context->getState().getOrCreateChildWithName(
+              app->context->getProjectState().getOrCreateChildWithName(
                   BodyWindow::stateId,
                   nullptr),
               JuceString(JUCE_APPLICATION_NAME_STRING) +
-                  JuceString("_") +
+                  JuceString(" ") +
                   JuceString(JUCE_APPLICATION_VERSION_STRING),
               move(bodyOptions));
 
@@ -60,7 +61,13 @@ void App::initialise(const juce::String&)
         }
       });
 
-  options.onInitFailure =
+  // TODO:
+  options.onProjectUnload =
+      ([app = juce::WeakReference<App>(this)] {
+        maybeUnused(app);
+      });
+
+  options.onClose =
       ([app = juce::WeakReference<App>(this)] {
         if (!app.wasObjectDeleted())
           app->systemRequestedQuit();
@@ -71,6 +78,7 @@ void App::initialise(const juce::String&)
       options);
 }
 
+// TODO
 void App::anotherInstanceStarted(const juce::String&)
 {
 }

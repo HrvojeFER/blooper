@@ -5,9 +5,6 @@ BLOOPER_NAMESPACE_BEGIN
 UIBehaviour::UIBehaviour(AbstractCoreContext& context)
     : CoreContextualBase(context)
 {
-  // TODO: register commands
-  this->commandManager =
-      std::make_unique<juce::ApplicationCommandManager>();
 }
 
 UIBehaviour::~UIBehaviour() = default;
@@ -67,18 +64,21 @@ bool UIBehaviour::closeAllEditsBelongingToProject(te::Project& project)
 }
 
 
-// TODO
+// TODO?
 
 te::SelectionManager* UIBehaviour::getCurrentlyFocusedSelectionManager()
 {
-  return te::UIBehaviour::getCurrentlyFocusedSelectionManager();
+  auto& manager = this->getContext().getSelectionManager();
+
+  return std::addressof(manager);
 }
 
 te::SelectionManager* UIBehaviour::getSelectionManagerForRack(
     const te::RackType& rackType)
 {
-  return te::UIBehaviour::getSelectionManagerForRack(
-      rackType);
+  auto& manager = this->getContext().getSelectionManager();
+
+  return std::addressof(manager);
 }
 
 
@@ -105,30 +105,34 @@ void UIBehaviour::selectProjectInFocusedWindow(te::Project::Ptr ptr)
 
 juce::ApplicationCommandManager* UIBehaviour::getApplicationCommandManager()
 {
-  return this->commandManager.get();
+  auto& manager = this->getContext().getCommandManager();
+
+  return std::addressof(manager);
 }
 
 void UIBehaviour::getAllCommands(juce::Array<juce::CommandID>& array)
 {
-  for (const auto& category : this->commandManager->getCommandCategories())
-    array.addArray(
-        this->commandManager->getCommandsInCategory(
-            category));
+  auto& manager = this->getContext().getCommandManager();
+
+  for (const auto& category : manager.getCommandCategories())
+    array.addArray(manager.getCommandsInCategory(category));
 }
 
 void UIBehaviour::getCommandInfo(
     juce::CommandID               commandId,
     juce::ApplicationCommandInfo& info)
 {
-  info = *this->commandManager->getCommandForID(commandId);
+  auto& manager = this->getContext().getCommandManager();
+
+  info = *manager.getCommandForID(commandId);
 }
 
 bool UIBehaviour::perform(
     const juce::ApplicationCommandTarget::InvocationInfo& info)
 {
-  return this->commandManager->invoke(
-      info,
-      true);
+  auto& manager = this->getContext().getCommandManager();
+
+  return manager.invoke(info, true);
 }
 
 
