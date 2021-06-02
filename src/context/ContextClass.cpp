@@ -2,101 +2,188 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+Context::Context(
+    JuceString name,
+    Options    options)
+    : options(move(options))
+{
+  this->load(move(name));
+}
+
+Context::~Context()
+{
+  this->save();
+  this->unload();
+}
+
+
 namespace
 {
-inline JuceXmlFile ensureValidStateFile(JuceEngine& engine)
+inline std::unique_ptr<JuceFile> ensureExistingDirectory(const JuceFile& file)
+{
+  if (!file.exists()) file.createDirectory();
+
+  return std::make_unique<JuceFile>(file);
+}
+
+inline std::unique_ptr<JuceFile> ensureExistingFile(const JuceFile& file)
+{
+  if (!file.existsAsFile()) file.create();
+
+  return std::make_unique<JuceFile>(file);
+}
+
+inline std::unique_ptr<JuceXmlFile> ensureValidStateFile(
+    const JuceFile& file)
 {
   JuceXmlFile::Options options;
   options.millisecondsBeforeSaving = 2000;
   options.storageFormat = JuceXmlFile::storeAsXML;
   options.commonToAllUsers = false;
 
-  auto stateFile =
-      engine.getPropertyStorage()
-          .getAppPrefsFolder()
-          .getChildFile(Context::stateFileName);
-
   // If not valid, just delete it and it will create a new one when needed.
-  if (!JuceXmlFile(stateFile, options).isValidFile())
-    stateFile.deleteFile();
+  if (!JuceXmlFile(file, options).isValidFile())
+    file.deleteFile();
 
-  return JuceXmlFile(stateFile, options);
+  return std::make_unique<JuceXmlFile>(file, options);
 }
 
-inline State ensureValidState(JuceXmlFile& file)
+inline JuceState ensureValidState(
+    JuceXmlFile&               file,
+    const JuceString&          key,
+    const JuceStateIdentifier& id)
 {
-  State state{};
+  JuceState state{};
 
-  auto xml = file.getXmlValue(Context::stateFileKey);
+  auto xml = file.getXmlValue(key);
 
   if (!xml)
   {
-    state = State(Context::stateId);
+    state = State(id);
     xml = state.createXml();
 
-    file.setValue(Context::stateFileKey, xml.get());
+    file.setValue(key, xml.get());
   }
   else
   {
-    state = State::fromXml(*xml);
+    state = JuceState::fromXml(*xml);
   }
 
 
-  if (!state.isValid() || !state.hasType(Context::stateId))
+  if (!state.isValid() || !state.hasType(id))
   {
-    state = State(Context::stateId);
-    file.setValue(Context::stateFileKey, state.createXml().get());
+    state = State(id);
+    file.setValue(key, state.createXml().get());
   }
 
   return state;
 }
 } // namespace
 
-Context::Context(
-    JuceString name,
-    Options    options)
-    : AbstractContext(),
-      options(move(options)),
 
-      engine(
+[[maybe_unused]] bool Context::didLoad()
+{
+  return this->engine != nullptr;
+}
+
+[[maybe_unused]] void Context::load(JuceString name)
+{
+  this->rootDir =
+      ensureExistingDirectory(
+          JuceFile::getSpecialLocation(
+              Context::rootDirSpecialLocation)
+              .getChildFile(Context::rootDirName));
+
+  this->projectsDir =
+      ensureExistingDirectory(
+          this->getRootDir().getChildFile(
+              Context::projectsDirName));
+
+  this->propertiesFile =
+      ensureValidStateFile(
+          this->getRootDir().getChildFile(
+              Context::propertiesFileName));
+
+  this->settingsFile =
+      ensureValidStateFile(
+          this->getRootDir().getChildFile(
+              Context::settingsFileName));
+  this->settings =
+      ensureValidState(
+          *this->settingsFile,
+          Context::fileKey,
+          Context::stateId);
+
+  this->stateFile =
+      ensureValidStateFile(
+          this->getRootDir().getChildFile(
+              Context::stateFileName));
+  this->state =
+      ensureValidState(
+          *this->stateFile,
+          Context::fileKey,
+          Context::stateId);
+
+  // TODO: fix
+  this->openProjectFilePath =
+      JuceCached<JuceString>(
+          this->getState(),
+          Context::openProjectId,
+          std::addressof(this->getUndoManager()),
+          "");
+
+
+  this->logDir =
+      ensureExistingDirectory(
+          this->getRootDir().getChildFile(Context::logDirName));
+
+  this->logFile =
+      ensureExistingFile(this->logDir->getChildFile(
+          juce::Time::getCurrentTime()
+              .toString(
+                  true,
+                  true,
+                  true,
+                  true) +
+          Context::logFileNameSuffix));
+
+  this->logger =
+      std::make_unique<juce::FileLogger>(
+          *this->logFile,
+          JuceString{});
+
+  this->undoManager = std::make_unique<JuceUndoManager>();
+
+  // TODO: commands
+  this->commandManager = std::make_unique<JuceCommandManager>();
+
+  this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
+
+  this->engine =
+      std::make_unique<JuceEngine>(
           std::make_unique<PropertyStorage>(move(name), *this),
           std::make_unique<UIBehaviour>(*this),
-          std::make_unique<EngineBehaviour>(*this)),
+          std::make_unique<EngineBehaviour>(*this));
 
-      stateFile(ensureValidStateFile(engine)),
-      state(ensureValidState(stateFile)),
+  this->getEngine().getProjectManager().loadList();
 
-      lookAndFeel(std::make_unique<LookAndFeel>(*this)),
-
-      undoManager(),
-
-      project(),
-
-      edit(),
-      transport()
-{
-  engine.getProjectManager().loadList();
+  this->selectionManager =
+      std::make_unique<JuceSelectionManager>(
+          this->getEngine());
 
 
-  auto openProject =
-      this->getState()
-          .getProperty(Context::openProjectId)
-          .toString();
-
-  if (openProject.isEmpty())
+  if (this->openProjectFilePath->isEmpty())
   {
     ProjectsMenuWindow::Options projectsMenuOptions{};
 
     projectsMenuOptions.onOpen =
         ([this](auto projectRef) {
-          this->setProject(move(projectRef));
-
-          this->options.onInitSuccess();
+          this->loadProject(move(projectRef));
         });
 
     projectsMenuOptions.onCancel =
         ([this] {
-          this->options.onInitFailure();
+          this->options.onClose();
         });
 
     showProjectsMenu(*this, move(projectsMenuOptions));
@@ -105,74 +192,180 @@ Context::Context(
   {
     auto& projectManager = this->getEngine().getProjectManager();
 
-    this->setProject(
+    this->loadProject(
         projectManager.findProjectWithFile(
             projectManager.folders,
-            openProject));
-
-    juce::MessageManager::callAsync(
-        [this] {
-          this->options.onInitSuccess();
-        });
+            JuceFile{this->openProjectFilePath}));
   }
 }
 
-Context::~Context()
+[[maybe_unused]] void Context::save()
 {
-  if (edit != nullptr)
-  {
-    te::EditFileOperations(*edit)
-        .save(true,
-              true,
-              true);
-  }
+  this->saveProject();
+}
 
-  if (project != nullptr)
-  {
-    project->save();
-  }
-
-  stateFile.setValue(stateFileKey, state.createXml().get());
-  stateFile.save();
-
-  engine.getTemporaryFileManager()
-      .getTempDirectory()
-      .deleteRecursively();
-
-  engine.getPropertyStorage().flushSettingsToDisk();
-  engine.getProjectManager().saveList();
+[[maybe_unused]] void Context::unload()
+{
+  this->unloadProject();
 }
 
 
-[[maybe_unused]] void Context::setProject(JuceProjectRef ref)
+[[maybe_unused]] bool Context::didLoadProject()
 {
-  if (ref)
+  return this->project != nullptr;
+}
+
+[[maybe_unused]] void Context::loadProject(JuceProjectRef ref)
+{
+  if (!ref) return;
+
+
+  this->project = move(ref);
+
+  this->getState().setProperty(
+      Context::openProjectId,
+      this->getProject().getProjectFile().getFullPathName(),
+      std::addressof(this->getUndoManager()));
+
+
+  this->projectSettingsFile =
+      ensureValidStateFile(
+          this->getProject()
+              .getProjectFile()
+              .getParentDirectory()
+              .getChildFile(
+                  Context::settingsFileName));
+
+  const auto& normalSettingsFile = this->projectSettingsFile->getFile();
+
+  if (auto settingsItem =
+          this->getProject()
+              .getProjectItemForFile(normalSettingsFile))
   {
-    this->project = move(ref);
-
-    this->getState().setProperty(
-        Context::openProjectId,
-        this->getProject().getProjectFile().getFullPathName(),
-        std::addressof(this->getUndoManager()));
-
-    this->edit = ext::ensureEdit(
-        this->getProject(),
-        this->getEngine());
-
-    this->transport = &this->getEdit().getTransport();
+    this->projectSettingsItem = move(settingsItem);
   }
   else
   {
-    this->transport = nullptr;
-    this->edit.reset();
-
-    this->getState().setProperty(
-        Context::openProjectId,
-        "",
-        std::addressof(this->getUndoManager()));
-
-    this->project.reset();
+    this->projectSettingsItem =
+        this->getProject().createNewItem(
+            normalSettingsFile,
+            "settings",
+            "settings",
+            "Project settings.",
+            te::ProjectItem::Category::none,
+            true);
   }
+
+  this->projectSettings =
+      ensureValidState(
+          *this->projectSettingsFile,
+          Context::fileKey,
+          Context::stateId);
+
+
+  this->projectStateFile =
+      ensureValidStateFile(
+          this->getProject()
+              .getProjectFile()
+              .getParentDirectory()
+              .getChildFile(
+                  Context::stateFileName));
+
+  const auto& normalStateFile = this->projectStateFile->getFile();
+
+  if (auto stateItem =
+          this->getProject()
+              .getProjectItemForFile(normalStateFile))
+  {
+    this->projectStateItem = move(stateItem);
+  }
+  else
+  {
+    this->projectStateItem =
+        this->getProject().createNewItem(
+            normalStateFile,
+            "state",
+            "state",
+            "Project state.",
+            te::ProjectItem::Category::none,
+            true);
+  }
+
+  this->projectState =
+      ensureValidState(
+          *this->projectStateFile,
+          Context::fileKey,
+          Context::stateId);
+
+
+  this->edit = ext::ensureEdit(
+      this->getProject(),
+      this->getEngine());
+
+  this->transport = &this->getEdit().getTransport();
+
+
+  juce::MessageManager::callAsync(
+      [weak = juce::WeakReference<Context>(this)] {
+        if (!weak.wasObjectDeleted())
+          weak->options.onProjectLoad();
+      });
+}
+
+[[maybe_unused]] void Context::saveProject()
+{
+  if (!this->didLoadProject()) return;
+
+
+  te::EditFileOperations(*this->edit)
+      .save(true,
+            true,
+            true);
+
+
+  this->project->save();
+
+
+  this->projectSettingsFile->setValue(
+      Context::fileKey,
+      this->getProjectSettings().createXml().get());
+  this->projectSettingsFile->save();
+
+  this->projectStateFile->setValue(
+      Context::fileKey,
+      this->getProjectState().createXml().get());
+  this->projectStateFile->save();
+}
+
+[[maybe_unused]] void Context::unloadProject()
+{
+  if (!this->didLoadProject()) return;
+
+
+  this->transport = nullptr;
+  this->edit.reset();
+
+
+  this->projectState = {};
+  this->projectStateFile.reset();
+
+  this->projectSettings = {};
+  this->projectSettingsFile.reset();
+
+
+  this->getState().setProperty(
+      Context::openProjectId,
+      "",
+      std::addressof(this->getUndoManager()));
+
+  this->project.reset();
+
+
+  juce::MessageManager::callAsync(
+      [weak = juce::WeakReference<Context>(this)] {
+        if (!weak.wasObjectDeleted())
+          weak->options.onProjectUnload();
+      });
 }
 
 BLOOPER_NAMESPACE_END

@@ -12,17 +12,23 @@ BLOOPER_NAMESPACE_BEGIN
 
 using JuceString [[maybe_unused]] = juce::String;
 using JuceStringArray [[maybe_unused]] = juce::StringArray;
-using JuceXml [[maybe_unused]] = juce::XmlElement;
-using JuceXmlFile [[maybe_unused]] = juce::PropertiesFile;
-using JuceFile [[maybe_unused]] = juce::File;
-using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
-using JuceValueTree [[maybe_unused]] = juce::ValueTree;
 
 template<typename TObject>
 using JuceRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
 
 template<typename TObject>
+// can't put const chere because of how juce does reference counting...
 using JuceConstRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
+
+using JuceValueTree [[maybe_unused]] = juce::ValueTree;
+using JuceXml [[maybe_unused]] = juce::XmlElement;
+using JuceXmlFile [[maybe_unused]] = juce::PropertiesFile;
+using JuceFile [[maybe_unused]] = juce::File;
+
+template<typename TObject>
+using JuceCached [[maybe_unused]] = juce::CachedValue<TObject>;
+
+using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
 
 
 // State
@@ -53,14 +59,19 @@ using JuceEngine [[maybe_unused]] = te::Engine;
 
 using JuceProject [[maybe_unused]] = te::Project;
 using JuceProjectRef [[maybe_unused]] = JuceRef<te::Project>;
-// can't put const chere because of how juce does reference counting...
 using JuceProjectConstRef [[maybe_unused]] = JuceConstRef<te::Project>;
+
+using JuceProjectItem [[maybe_unused]] = te::ProjectItem;
+using JuceProjectItemRef [[maybe_unused]] = JuceRef<JuceProjectItem>;
+using JuceProjectItemConstRef [[maybe_unused]] = JuceConstRef<JuceProjectItem>;
 
 using JuceEdit [[maybe_unused]] = te::Edit;
 using JuceTransport [[maybe_unused]] = te::TransportControl;
 
 using JuceUndoManager [[maybe_unused]] = juce::UndoManager;
-
+using JuceSelectionManager [[maybe_unused]] = te::SelectionManager;
+using JuceCommandManager [[maybe_unused]] = juce::ApplicationCommandManager;
+using JuceLogger [[maybe_unused]] = juce::Logger;
 
 [[maybe_unused]] inline constexpr auto isJuceLookAndFeel =
     meta::reverse_partial(

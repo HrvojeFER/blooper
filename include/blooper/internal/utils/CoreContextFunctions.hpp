@@ -7,6 +7,17 @@
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
+[[maybe_unused]] inline JuceFile getPrefsFolder(AbstractCoreContext& context)
+{
+  return context.getEngine().getPropertyStorage().getAppPrefsFolder();
+}
+
+[[maybe_unused]] inline JuceFile getProjectsFolder(AbstractCoreContext& context)
+{
+  return context.getEngine().getPropertyStorage().getDefaultLoadSaveDirectory(Pro)
+}
+
+
 [[maybe_unused]] inline JuceValueTree addProjectFolder(
     AbstractCoreContext&   context,
     const JuceStringArray& path)

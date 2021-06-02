@@ -265,6 +265,7 @@ BLOOPER_STATIC_ASSERT(
 [[maybe_unused]] inline constexpr auto isAnyContext =
     meta::always(meta::true_c);
 
+// TODO: extend
 [[maybe_unused]] inline constexpr auto isCoreContext =
     meta::satisfies_all(
         isAnyStateful,
@@ -280,13 +281,17 @@ BLOOPER_STATIC_ASSERT(
                         meta::type_c<JuceLookAndFeel>),
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getUndoManager()),
-                        meta::type_c<JuceUndoManager>))) {}) ^
+                        meta::type_c<JuceUndoManager>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getCommandManager()),
+                        meta::type_c<JuceCommandManager>))) {}) ^
             meta::inherit ^
             meta::check(
                 [](auto&& toCheck)
                     -> decltype(toCheck.getEngine(),
                                 toCheck.getLookAndFeel(),
-                                toCheck.getUndoManager()) {}));
+                                toCheck.getUndoManager(),
+                                toCheck.getCommandManager()) {}));
 
 [[maybe_unused]] inline constexpr auto isContext =
     meta::satisfies_all(
@@ -335,11 +340,32 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   [[maybe_unused]] inline ~AbstractAnyCoreContext() override = default;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceEngine&
-  getEngine() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const JuceFile&
+  getRootDir() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceEngine&
-  getEngine() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline JuceFile&
+  getRootDir() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceFile&
+  getProjectsDir() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceFile&
+  getProjectsDir() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceXmlFile&
+  getProperties() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceXmlFile&
+  getProperties() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceState&
+  getSettings() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceState&
+  getSettings() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&
@@ -354,6 +380,27 @@ class [[maybe_unused]] AbstractAnyCoreContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceUndoManager&
   getUndoManager() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceCommandManager&
+  getCommandManager() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceCommandManager&
+  getCommandManager() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceLogger&
+  getLogger() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceLogger&
+  getLogger() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceEngine&
+  getEngine() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceEngine&
+  getEngine() noexcept = 0;
 };
 
 template<typename TStatefulTraits>
@@ -377,6 +424,20 @@ class [[maybe_unused]] AbstractAnyContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceProjectRef
   getProjectRef() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceState&
+  getProjectSettings() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceState&
+  getProjectSettings() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceState&
+  getProjectState() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceState&
+  getProjectState() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceEdit&
