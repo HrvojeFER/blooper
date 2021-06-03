@@ -13,9 +13,9 @@ HeaderComponent::HeaderComponent(
 {
   HeaderMenuBarComponent::Options menuBarOptions{};
 
-  menuBar =
+  this->menuBar =
       std::make_unique<HeaderMenuBarComponent>(
-          context,
+          this->getContext(),
           this->getState().getOrCreateChildWithName(
               HeaderMenuBarComponent::stateId,
               nullptr),
@@ -24,9 +24,9 @@ HeaderComponent::HeaderComponent(
 
   HeaderToolbarComponent::Options toolbarOptions{};
 
-  toolbar =
+  this->toolbar =
       std::make_unique<HeaderToolbarComponent>(
-          context,
+          this->getContext(),
           this->getState().getOrCreateChildWithName(
               HeaderToolbarComponent::stateId,
               nullptr),
@@ -35,13 +35,16 @@ HeaderComponent::HeaderComponent(
 
   ext::addAndMakeVisible(
       *this,
-      *menuBar,
-      *toolbar);
+      *this->menuBar,
+      *this->toolbar);
 }
 
 
 void HeaderComponent::resized()
 {
+  auto availableArea = this->getLocalBounds();
+
+  this->toolbar->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END

@@ -10,6 +10,9 @@ class EditPanelComponent : public ComponentBase
  public:
   BLOOPER_STATE_ID(EditPanelComponent);
 
+  BLOOPER_ID(editScrollRangeStart);
+  BLOOPER_ID(editScrollRangeEnd);
+
 
   struct Options
   {
@@ -20,11 +23,18 @@ class EditPanelComponent : public ComponentBase
       State            state,
       Options          options = {});
 
+  ~EditPanelComponent() override;
+
 
   void resized() override;
 
 
  private:
+  std::unique_ptr<class EditContentComponent> content;
+
+  std::unique_ptr<juce::Viewport> viewport;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditPanelComponent)
 };
 

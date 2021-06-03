@@ -1,7 +1,6 @@
 #ifndef BLOOPER_FILE_PATH_PROPERTY_COMPONENT_HPP
 #define BLOOPER_FILE_PATH_PROPERTY_COMPONENT_HPP
 
-
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/abstract.hpp>
 #include <blooper/internal/ext/ext.hpp>

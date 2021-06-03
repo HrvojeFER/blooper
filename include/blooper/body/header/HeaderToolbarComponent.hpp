@@ -10,6 +10,8 @@ class HeaderToolbarComponent : public ComponentBase
  public:
   BLOOPER_STATE_ID(HeaderToolbarComponent);
 
+  BLOOPER_ID(toolbarStateId);
+
 
   struct Options
   {
@@ -20,11 +22,19 @@ class HeaderToolbarComponent : public ComponentBase
       State            state,
       Options          options = {});
 
+  ~HeaderToolbarComponent();
+
 
   void resized() override;
 
 
  private:
+  std::unique_ptr<juce::Toolbar> toolbar;
+
+  class ItemFactory;
+  std::unique_ptr<ItemFactory> factory;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderToolbarComponent)
 };
 

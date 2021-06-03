@@ -5,17 +5,17 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class RackSliderComponent : public ComponentBase
+class ControlSurfaceSliderComponent : public ComponentBase
 {
  public:
-  BLOOPER_STATE_ID(RackSliderComponent);
+  BLOOPER_STATE_ID(ControlSurfaceSliderComponent);
 
 
   struct Options
   {
   } options;
 
-  explicit RackSliderComponent(
+  explicit ControlSurfaceSliderComponent(
       AbstractContext& context,
       State            state,
       Options          options = {});
@@ -25,7 +25,7 @@ class RackSliderComponent : public ComponentBase
 
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RackSliderComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlSurfaceSliderComponent)
 };
 
 BLOOPER_NAMESPACE_END

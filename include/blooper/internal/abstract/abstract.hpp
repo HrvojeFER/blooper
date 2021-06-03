@@ -291,6 +291,9 @@ BLOOPER_STATIC_ASSERT(
                         meta::typeid_(toCheck.getLogger()),
                         meta::type_c<JuceLogger>),
                     meta::traits::is_same(
+                        meta::typeid_(toCheck.getAssetManager()),
+                        meta::type_c<class AssetManager>),
+                    meta::traits::is_same(
                         meta::typeid_(toCheck.getUndoManager()),
                         meta::type_c<JuceUndoManager>),
                     meta::traits::is_same(
@@ -317,6 +320,7 @@ BLOOPER_STATIC_ASSERT(
                                 toCheck.getSettings(),
 
                                 toCheck.getLogger(),
+                                toCheck.getAssetManager(),
                                 toCheck.getUndoManager(),
                                 toCheck.getCommandManager(),
 
@@ -421,6 +425,13 @@ class [[maybe_unused]] AbstractAnyCoreContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceLogger&
   getLogger() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const class AssetManager&
+  getAssetManager() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline class AssetManager&
+  getAssetManager() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceUndoManager&

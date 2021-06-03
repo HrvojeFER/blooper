@@ -155,11 +155,15 @@ inline JuceState ensureValidState(
           *this->logFile,
           JuceString{});
 
+  this->assetManager = std::make_unique<AssetManager>(*this);
+
   this->undoManager = std::make_unique<JuceUndoManager>();
 
   this->commandManager = std::make_unique<JuceCommandManager>();
 
   this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
+  JuceLookAndFeel::setDefaultLookAndFeel(
+      this->lookAndFeel.get());
 
   this->engine =
       std::make_unique<JuceEngine>(
@@ -253,6 +257,8 @@ inline JuceState ensureValidState(
 
   this->commandManager.reset();
   this->undoManager.reset();
+
+  this->assetManager.reset();
 
   this->logger.reset();
   this->logFile.reset();

@@ -13,6 +13,11 @@
 #include <blooper/internal/utils/CoreContextFunctions.hpp>
 #include <blooper/internal/utils/ContextFunctions.hpp>
 
+#include <blooper/internal/utils/ContextCommands.hpp>
+
+#include <blooper/internal/utils/style.hpp>
+
+#include <blooper/internal/utils/BarComponents.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN

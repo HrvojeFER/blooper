@@ -14,6 +14,11 @@ BLOOPER_TRAITS_NAMESPACE_BEGIN
             -> decltype(type_c<decltype(f(
                             std::forward<decltype(args)>(args)...))>) {});
 
+[[maybe_unused]] inline constexpr auto is_castable =
+    check(
+        [](auto&& from, auto&& to)
+            -> decltype(static_cast<std::decay_t<decltype(to)>>(from)) {});
+
 BLOOPER_TRAITS_NAMESPACE_END
 
 #endif //BLOOPER_TRAITS_HPP

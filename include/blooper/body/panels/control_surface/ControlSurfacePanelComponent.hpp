@@ -5,17 +5,17 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class RackPanelComponent : public ComponentBase
+class ControlSurfacePanelComponent : public ComponentBase
 {
  public:
-  BLOOPER_STATE_ID(RackPanelComponent);
+  BLOOPER_STATE_ID(ControlSurfacePanelComponent);
 
 
   struct Options
   {
   } options;
 
-  explicit RackPanelComponent(
+  explicit ControlSurfacePanelComponent(
       AbstractContext& context,
       State            state,
       Options          options = {});
@@ -25,11 +25,11 @@ class RackPanelComponent : public ComponentBase
 
 
  private:
-  juce::OwnedArray<class RackKnobComponent>   knobs;
-  juce::OwnedArray<class RackSliderComponent> sliders;
+  juce::OwnedArray<class ControlSurfaceKnobComponent>   knobs;
+  juce::OwnedArray<class ControlSurfaceSliderComponent> sliders;
 
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RackPanelComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlSurfacePanelComponent)
 };
 
 BLOOPER_NAMESPACE_END

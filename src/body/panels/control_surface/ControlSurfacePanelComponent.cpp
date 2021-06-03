@@ -2,7 +2,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-RackPanelComponent::RackPanelComponent(
+ControlSurfacePanelComponent::ControlSurfacePanelComponent(
     AbstractContext& context,
     State            state,
     Options          options)
@@ -14,7 +14,7 @@ RackPanelComponent::RackPanelComponent(
 }
 
 
-void RackPanelComponent::resized()
+void ControlSurfacePanelComponent::resized()
 {
 }
 

@@ -74,7 +74,7 @@ te::SelectionManager* UIBehaviour::getCurrentlyFocusedSelectionManager()
 }
 
 te::SelectionManager* UIBehaviour::getSelectionManagerForRack(
-    const te::RackType& rackType)
+    const te::RackType&)
 {
   auto& manager = this->getContext().getSelectionManager();
 

@@ -21,7 +21,7 @@ PropertyStorage::PropertyStorage(
       media(this->getContext()
                 .getRootDir()
                 .getChildFile(
-                    PropertyStorage::mediaDirName)),
+                    PropertyStorage::mediaDirName))
 {
   if (!cache.exists()) cache.createDirectory();
   if (!prefs.exists()) prefs.createDirectory();
@@ -163,7 +163,7 @@ void PropertyStorage::setDefaultLoadSaveDirectory(
   juce::ignoreUnused(label);
 
   // TODO: figure this out
-  this->= newPath;
+  this->media = newPath;
 }
 
 juce::File PropertyStorage::getDefaultLoadSaveDirectory(

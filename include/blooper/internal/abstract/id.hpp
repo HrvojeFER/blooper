@@ -28,6 +28,9 @@ BLOOPER_ID(viewY);
 
 BLOOPER_ID(bpm);
 
+
+BLOOPER_ID(trackSize);
+
 BLOOPER_ID_NAMESPACE_END
 
 #endif // BLOOPER_ID_HPP

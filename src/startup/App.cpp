@@ -61,7 +61,6 @@ void App::initialise(const juce::String&)
         }
       });
 
-  // TODO:
   options.onProjectUnload =
       ([app = juce::WeakReference<App>(this)] {
         maybeUnused(app);
@@ -76,6 +75,10 @@ void App::initialise(const juce::String&)
   this->context = std::make_unique<Context>(
       JUCE_APPLICATION_NAME_STRING,
       options);
+
+  this->context->getCommandManager()
+      .registerAllCommandsForTarget(
+          this);
 }
 
 // TODO

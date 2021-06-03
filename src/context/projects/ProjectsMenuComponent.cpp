@@ -67,7 +67,7 @@ BLOOPER_NAMESPACE_BEGIN
   addProjectButton.onClick = [this] {
     if (this->isAddingProject)
     {
-      util::addProject(
+      addProject(
           this->getContext(),
           ext::splitPath(projectPath),
           JuceFile{projectFile});
@@ -82,7 +82,7 @@ BLOOPER_NAMESPACE_BEGIN
     auto row = list.getSelectedRow();
     if (!this->isValidRow(row)) return;
 
-    util::deleteProject(
+    deleteProject(
         this->getContext(),
         projects[row]);
 
@@ -267,7 +267,7 @@ void ProjectsMenuComponent::resized()
 {
   if (!this->isValidRow(row)) return;
 
-  util::deleteProject(
+  deleteProject(
       this->getContext(),
       projects[row]);
 

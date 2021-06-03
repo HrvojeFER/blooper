@@ -5,17 +5,17 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class RackKnobComponent : public ComponentBase
+class ControlSurfaceKnobComponent : public ComponentBase
 {
  public:
-  BLOOPER_STATE_ID(RackKnobComponent);
+  BLOOPER_STATE_ID(ControlSurfaceKnobComponent);
 
 
   struct Options
   {
   } options;
 
-  explicit RackKnobComponent(
+  explicit ControlSurfaceKnobComponent(
       AbstractContext& context,
       State            state,
       Options          options = {});
@@ -25,7 +25,7 @@ class RackKnobComponent : public ComponentBase
 
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RackKnobComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlSurfaceKnobComponent)
 };
 
 BLOOPER_NAMESPACE_END

@@ -25,6 +25,12 @@ class PanelsComponent : public ComponentBase
 
 
  private:
+  std::unique_ptr<class EditPanelComponent>           editPanel;
+  std::unique_ptr<class ControlSurfacePanelComponent> controlSurfacePanel;
+
+  std::unique_ptr<class MasterPanelComponent> masterPanel;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PanelsComponent)
 };
 

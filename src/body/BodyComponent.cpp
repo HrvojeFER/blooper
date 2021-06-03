@@ -54,15 +54,14 @@ BodyComponent::BodyComponent(
 
 void BodyComponent::resized()
 {
-  auto       availableArea = getLocalBounds();
-  const auto bodyHeight = availableArea.getHeight();
+  auto availableArea = getLocalBounds();
 
   header->setBounds(
       availableArea.removeFromTop(
-          int(bodyHeight * 0.1)));
+          this->getLookAndFeel().getDefaultMenuBarHeight() * 2));
   footer->setBounds(
       availableArea.removeFromBottom(
-          int(bodyHeight * 0.05)));
+          this->getLookAndFeel().getDefaultMenuBarHeight()));
 
   panels->setBounds(availableArea);
 }

@@ -13,6 +13,8 @@
 
 #include <blooper/body/panels/edit/EditTrackComponent.hpp>
 
+#include <blooper/body/panels/edit/EditContentComponent.hpp>
+
 #include <blooper/body/panels/edit/EditPanelComponent.hpp>
 
 #endif // BLOOPER_EDIT_PANEL_HPP

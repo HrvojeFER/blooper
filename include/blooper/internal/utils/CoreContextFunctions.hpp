@@ -5,20 +5,9 @@
 #include <blooper/internal/abstract/abstract.hpp>
 #include <blooper/internal/ext/ext.hpp>
 
-BLOOPER_UTIL_NAMESPACE_BEGIN
+BLOOPER_NAMESPACE_BEGIN
 
-[[maybe_unused]] inline JuceFile getPrefsFolder(AbstractCoreContext& context)
-{
-  return context.getEngine().getPropertyStorage().getAppPrefsFolder();
-}
-
-[[maybe_unused]] inline JuceFile getProjectsFolder(AbstractCoreContext& context)
-{
-  return context.getEngine().getPropertyStorage().getDefaultLoadSaveDirectory(Pro)
-}
-
-
-[[maybe_unused]] inline JuceValueTree addProjectFolder(
+[[maybe_unused]] inline auto addProjectFolder(
     AbstractCoreContext&   context,
     const JuceStringArray& path)
 {
@@ -94,6 +83,6 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
     manager.deleteProjectFolder(projectNode);
 }
 
-BLOOPER_UTIL_NAMESPACE_END
+BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_CORE_CONTEXT_FUNCTIONS_HPP

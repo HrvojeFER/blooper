@@ -2,7 +2,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-RackSliderComponent::RackSliderComponent(
+ControlSurfaceSliderComponent::ControlSurfaceSliderComponent(
     AbstractContext& context,
     State            state,
     Options          options)
@@ -14,7 +14,7 @@ RackSliderComponent::RackSliderComponent(
 }
 
 
-void RackSliderComponent::resized()
+void ControlSurfaceSliderComponent::resized()
 {
 }
 

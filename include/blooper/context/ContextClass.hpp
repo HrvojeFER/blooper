@@ -99,11 +99,18 @@ class Context :
   getSettings() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
-  getLookAndFeel() const noexcept final;
+  [[maybe_unused, nodiscard]] inline const JuceLogger&
+  getLogger() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
-  getLookAndFeel() noexcept final;
+  [[maybe_unused, nodiscard]] inline JuceLogger&
+  getLogger() noexcept final;
+
+
+  [[maybe_unused, nodiscard]] inline const class AssetManager&
+  getAssetManager() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline class AssetManager&
+  getAssetManager() noexcept final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceUndoManager&
@@ -120,11 +127,11 @@ class Context :
   getCommandManager() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceLogger&
-  getLogger() const noexcept final;
+  [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
+  getLookAndFeel() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceLogger&
-  getLogger() noexcept final;
+  [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
+  getLookAndFeel() noexcept final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceEngine&
@@ -203,6 +210,8 @@ class Context :
   [[maybe_unused]] std::unique_ptr<JuceFile>   logDir;
   [[maybe_unused]] std::unique_ptr<JuceFile>   logFile;
   [[maybe_unused]] std::unique_ptr<JuceLogger> logger;
+
+  [[maybe_unused]] std::unique_ptr<class AssetManager> assetManager;
 
   [[maybe_unused]] std::unique_ptr<JuceUndoManager>    undoManager;
   [[maybe_unused]] std::unique_ptr<JuceCommandManager> commandManager;
@@ -305,14 +314,25 @@ State& Context::getSettings() noexcept
 }
 
 
-const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
+const JuceLogger& Context::getLogger() const noexcept
 {
-  return *this->lookAndFeel;
+  return *this->logger;
 }
 
-JuceLookAndFeel& Context::getLookAndFeel() noexcept
+JuceLogger& Context::getLogger() noexcept
 {
-  return *this->lookAndFeel;
+  return *this->logger;
+}
+
+
+const class AssetManager& Context::getAssetManager() const noexcept
+{
+  return *this->assetManager;
+}
+
+class AssetManager& Context::getAssetManager() noexcept
+{
+  return *this->assetManager;
 }
 
 
@@ -338,14 +358,14 @@ JuceCommandManager& Context::getCommandManager() noexcept
 }
 
 
-const JuceLogger& Context::getLogger() const noexcept
+const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
 {
-  return *this->logger;
+  return *this->lookAndFeel;
 }
 
-JuceLogger& Context::getLogger() noexcept
+JuceLookAndFeel& Context::getLookAndFeel() noexcept
 {
-  return *this->logger;
+  return *this->lookAndFeel;
 }
 
 
