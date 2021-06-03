@@ -38,6 +38,9 @@ class Context :
   [[maybe_unused]] inline constexpr static auto logDirName =
       "log";
 
+  [[maybe_unused]] inline constexpr static auto logFileNamePrefix =
+      "blooper_";
+
   [[maybe_unused]] inline constexpr static auto logFileNameSuffix =
       ".log";
 

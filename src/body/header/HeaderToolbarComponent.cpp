@@ -149,7 +149,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Mute",
             assetManager.getDrawable(
-                assets::DrawableAssetId::notImplementedIcon),
+                assets::DrawableAssetId::mutedIcon),
             {});
         break;
 

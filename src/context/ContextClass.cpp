@@ -141,19 +141,30 @@ inline JuceState ensureValidState(
           this->getRootDir().getChildFile(Context::logDirName));
 
   this->logFile =
-      ensureExistingFile(this->logDir->getChildFile(
-          juce::Time::getCurrentTime()
-              .toString(
-                  true,
-                  true,
-                  true,
-                  true) +
-          Context::logFileNameSuffix));
+      ensureExistingFile(
+          this->logDir->getChildFile(
+              JuceFile::createLegalFileName(
+                  Context::logFileNamePrefix +
+                  juce::Time::getCurrentTime()
+                      .toString(
+                          true,
+                          true,
+                          true,
+                          true) +
+                  Context::logFileNameSuffix)
+                  .replaceCharacter(
+                      ' ',
+                      '_')));
 
   this->logger =
       std::make_unique<juce::FileLogger>(
           *this->logFile,
-          JuceString{});
+          JuceString{"This is a blooper log file! "
+                     "If you are reading this, chances are that you are "
+                     "having problems with blooper so I encourage you "
+                     "not to edit this file and send it to the "
+                     "development team if necessary."});
+  JuceLogger::setCurrentLogger(this->logger.get());
 
   this->assetManager = std::make_unique<AssetManager>(*this);
 
@@ -203,17 +214,19 @@ inline JuceState ensureValidState(
             projectManager.folders,
             JuceFile{this->openProjectFilePath}));
   }
+
+  JuceLogger::writeToLog("Loaded context.");
 }
 
 [[maybe_unused]] void Context::setup()
 {
   if (!this->didLoad()) return;
 
-
   // TODO: commands
 
-
   this->setupProject();
+
+  JuceLogger::writeToLog("Setup context.");
 }
 
 [[maybe_unused]] void Context::save()
@@ -240,11 +253,16 @@ inline JuceState ensureValidState(
       Context::fileKey,
       this->getState().createXml().get());
   this->stateFile->save();
+
+
+  JuceLogger::writeToLog("Saved context.");
 }
 
 [[maybe_unused]] void Context::unload()
 {
   if (!this->didLoad()) return;
+
+  JuceLogger::writeToLog("Unloading context.");
 
 
   this->unloadProject();
@@ -260,6 +278,7 @@ inline JuceState ensureValidState(
 
   this->assetManager.reset();
 
+  JuceLogger::setCurrentLogger(nullptr);
   this->logger.reset();
   this->logFile.reset();
   this->logDir.reset();
@@ -388,11 +407,14 @@ inline JuceState ensureValidState(
         if (!context.wasObjectDeleted())
           context->options.onProjectLoad();
       });
+
+
+  JuceLogger::writeToLog("Loaded project.");
 }
 
-// TODO?
 [[maybe_unused]] void Context::setupProject()
 {
+  JuceLogger::writeToLog("Setup project.");
 }
 
 
@@ -419,11 +441,16 @@ inline JuceState ensureValidState(
 
 
   this->project->save();
+
+
+  JuceLogger::writeToLog("Saved project.");
 }
 
 [[maybe_unused]] void Context::unloadProject()
 {
   if (!this->didLoadProject()) return;
+
+  JuceLogger::writeToLog("Unloading project.");
 
 
   this->transport = nullptr;
