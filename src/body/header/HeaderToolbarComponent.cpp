@@ -49,10 +49,6 @@ class HeaderToolbarComponent::ItemFactory :
 
     addTrackButtonId = 17,
     addPluginButtonId = 18,
-
-    toggleMasterButtonId = 19,
-    toggleControlSurfaceButtonId = 20,
-    toggleBrowserButtonId = 21,
   };
 
 
@@ -89,10 +85,6 @@ class HeaderToolbarComponent::ItemFactory :
 
     ids.add(addTrackButtonId);
     ids.add(addPluginButtonId);
-
-    ids.add(toggleMasterButtonId);
-    ids.add(toggleControlSurfaceButtonId);
-    ids.add(toggleBrowserButtonId);
   }
 
 
@@ -132,12 +124,6 @@ class HeaderToolbarComponent::ItemFactory :
 
     ids.add(addTrackButtonId);
     ids.add(addPluginButtonId);
-
-    ids.add(spacerId);
-
-    ids.add(toggleMasterButtonId);
-    ids.add(toggleControlSurfaceButtonId);
-    ids.add(toggleBrowserButtonId);
   }
 
 
@@ -155,7 +141,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Play",
             assetManager.getDrawable(
-                assets::IconAssetId::playIcon),
+                assets::IconAssetId::play),
             {});
         commandId = CommandId::play;
         break;
@@ -165,7 +151,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Pause",
             assetManager.getDrawable(
-                assets::IconAssetId::pauseIcon),
+                assets::IconAssetId::pause),
             {});
         commandId = CommandId::pause;
         break;
@@ -175,7 +161,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Stop",
             assetManager.getDrawable(
-                assets::IconAssetId::stopIcon),
+                assets::IconAssetId::stop),
             {});
         commandId = CommandId::stop;
         break;
@@ -185,7 +171,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Record",
             assetManager.getDrawable(
-                assets::IconAssetId::recordIcon),
+                assets::IconAssetId::record),
             {});
         commandId = CommandId::record;
         break;
@@ -196,7 +182,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Mute",
             assetManager.getDrawable(
-                assets::IconAssetId::mutedIcon),
+                assets::IconAssetId::muteTrack),
             {});
         commandId = CommandId::muteTrack;
         break;
@@ -206,7 +192,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Solo",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::soloTrack),
             {});
         commandId = CommandId::soloTrack;
         break;
@@ -216,7 +202,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Arm",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::armTrack),
             {});
         commandId = CommandId::armTrack;
         break;
@@ -227,7 +213,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Nudge Up",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::nudgeUp),
             {});
         commandId = CommandId::nudgeUp;
         break;
@@ -237,7 +223,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Nudge Down",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::nudgeDown),
             {});
         commandId = CommandId::nudgeDown;
         break;
@@ -248,7 +234,8 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Delete",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId
+                : del),
             {});
         commandId = CommandId::del;
         break;
@@ -258,7 +245,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Cut",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::cut),
             {});
         commandId = CommandId::cut;
         break;
@@ -268,7 +255,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Copy",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::copy),
             {});
         commandId = CommandId::copy;
         break;
@@ -278,7 +265,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Paste",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::paste),
             {});
         commandId = CommandId::paste;
         break;
@@ -289,7 +276,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Undo",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::undo),
             {});
         commandId = CommandId::undo;
         break;
@@ -299,7 +286,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Redo",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::redo),
             {});
         commandId = CommandId::redo;
         break;
@@ -310,7 +297,7 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Add Track",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::add),
             {});
         commandId = CommandId::addTrack;
         break;
@@ -320,40 +307,9 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Add Plugin",
             assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
+                assets::IconAssetId::addOther),
             {});
         commandId = CommandId::addPlugin;
-        break;
-
-
-      case toggleMasterButtonId:
-        result = new juce::ToolbarButton(
-            itemId,
-            "Show Master Track",
-            assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
-            {});
-        commandId = CommandId::toggleMasterTrack;
-        break;
-
-      case toggleControlSurfaceButtonId:
-        result = new juce::ToolbarButton(
-            itemId,
-            "Show Control Surface",
-            assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
-            {});
-        commandId = CommandId::toggleControlSurface;
-        break;
-
-      case toggleBrowserButtonId:
-        result = new juce::ToolbarButton(
-            itemId,
-            "Show Browser",
-            assetManager.getDrawable(
-                assets::IconAssetId::notImplementedIcon),
-            {});
-        commandId = CommandId::toggleBrowser;
         break;
 
 

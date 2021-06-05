@@ -34,67 +34,67 @@ enum class IconAssetId : ResourceIndex
 
   // app icons
 
-  quitIcon [[maybe_unused]] = 1000,
-  saveIcon [[maybe_unused]] = 1001,
-  saveAndQuitIcon [[maybe_unused]] = 1002,
-  saveAllIcon [[maybe_unused]] = 1003,
-  saveAsIcon [[maybe_unused]] = 1004,
+  quit [[maybe_unused]] = 1000,
+  save [[maybe_unused]] = 1001,
+  saveAndQuit [[maybe_unused]] = 1002,
+  saveAll [[maybe_unused]] = 1003,
+  saveAs [[maybe_unused]] = 1004,
 
-  settingsIcon [[maybe_unused]] = 1100,
-  projectSettingsIcon [[maybe_unused]] = 1101,
-  deviceManagerIcon [[maybe_unused]] = 1102,
+  settings [[maybe_unused]] = 1100,
+  projectSettings [[maybe_unused]] = 1101,
+  deviceManager [[maybe_unused]] = 1102,
 
-  openProjectIcon [[maybe_unused]] = 1200, // TODO
+  openProject [[maybe_unused]] = 1200, // TODO
 
-  helpIcon [[maybe_unused]] = 1300,
-  infoIcon [[maybe_unused]] = 1301,
-  devIcon [[maybe_unused]] = 1302,
+  help [[maybe_unused]] = 1300,
+  info [[maybe_unused]] = 1301,
+  dev [[maybe_unused]] = 1302,
 
-  toggleMasterTrackPanelIcon [[maybe_unused]] = 1400,
-  toggleControlSurfacePanelIcon [[maybe_unused]] = 1401,
-  toggleBrowserPanelIcon [[maybe_unused]] = 1402,
+  toggleMasterTrackPanel [[maybe_unused]] = 1400,
+  toggleControlSurfacePanel [[maybe_unused]] = 1401,
+  toggleBrowserPanel [[maybe_unused]] = 1402,
 
 
   // edit icons
 
-  deleteIcon [[maybe_unused]] = 2000,
-  cutIcon [[maybe_unused]] = 2001,
-  copyIcon [[maybe_unused]] = 2002,
-  pasteIcon [[maybe_unused]] = 2003,
+  del [[maybe_unused]] = 2000,
+  cut [[maybe_unused]] = 2001,
+  copy [[maybe_unused]] = 2002,
+  paste [[maybe_unused]] = 2003,
 
-  addIcon [[maybe_unused]] = 2100,
-  addOtherIcon [[maybe_unused]] = 2101,
+  add [[maybe_unused]] = 2100,
+  addOther [[maybe_unused]] = 2101,
 
-  undoIcon [[maybe_unused]] = 2200,
-  redoIcon [[maybe_unused]] = 2201,
+  undo [[maybe_unused]] = 2200,
+  redo [[maybe_unused]] = 2201,
 
 
   // transport icons
 
-  playIcon [[maybe_unused]] = 3000,
-  pauseIcon [[maybe_unused]] = 3001,
-  stopIcon [[maybe_unused]] = 3002,
-  recordIcon [[maybe_unused]] = 3003,
+  play [[maybe_unused]] = 3000,
+  pause [[maybe_unused]] = 3001,
+  stop [[maybe_unused]] = 3002,
+  record [[maybe_unused]] = 3003,
 
 
   // track icons
 
-  muteIcon [[maybe_unused]] = 4001,
-  soloIcon [[maybe_unused]] = 4002,
-  armIcon [[maybe_unused]] = 4003,
+  muteTrack [[maybe_unused]] = 4001,
+  soloTrack [[maybe_unused]] = 4002,
+  armTrack [[maybe_unused]] = 4003,
 
-  pluginIcon [[maybe_unused]] = 4100,
+  plugin [[maybe_unused]] = 4100,
 
-  cycleTrackModeIcon [[maybe_unused]] = 4200,
-  syncTrackModeIcon [[maybe_unused]] = 4201,
-  oneShotTrackModeIcon [[maybe_unused]] = 4202,
-  freeTrackModeIcon [[maybe_unused]] = 4203,
+  cycleTrackMode [[maybe_unused]] = 4200,
+  syncTrackMode [[maybe_unused]] = 4201, // TODO
+  oneShotTrackMode [[maybe_unused]] = 4202,
+  freeTrackMode [[maybe_unused]] = 4203,
 
 
   // parameter icons
 
-  nudgeUpIcon [[maybe_unused]] = 5000,
-  nudgeDownIcon [[maybe_unused]] = 5001,
+  nudgeUp [[maybe_unused]] = 5000,
+  nudgeDown [[maybe_unused]] = 5001,
 };
 
 [[maybe_unused]] inline auto getIconAssetUnsafe(ResourceIndex index)
