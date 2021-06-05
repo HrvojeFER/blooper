@@ -7,7 +7,9 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-enum class CommandId : JuceCommandIdUnderlyingType
+namespace CommandId
+{
+enum _ : JuceCommandId
 {
   // These are commands copied from JUCE
 
@@ -46,26 +48,219 @@ enum class CommandId : JuceCommandIdUnderlyingType
 
   // These are blooper commands
 
-  addTrack [[maybe_unused]],
+  none [[maybe_unused]] = -1,
 
-  deleteTrack [[maybe_unused]]
+  play [[maybe_unused]] = 1,
+  pause [[maybe_unused]] = 2,
+  stop [[maybe_unused]] = 3,
+  record [[maybe_unused]] = 4,
+  nudgeUp [[maybe_unused]] = 5,
+  nudgeDown [[maybe_unused]] = 6,
+
+  muteTrack [[maybe_unused]] = 7,
+  soloTrack [[maybe_unused]] = 8,
+  armTrack [[maybe_unused]] = 9,
+  cycleTrackMode [[maybe_unused]] = 10,
+  addTrack [[maybe_unused]] = 11,
+  addPlugin [[maybe_unused]] = 12,
+
+  toggleMasterTrack [[maybe_unused]] = 13,
+  toggleControlSurface [[maybe_unused]] = 14,
+  toggleBrowser [[maybe_unused]] = 15,
 };
-
+}
 
 [[maybe_unused]] inline void dispatch(
     AbstractCoreContext& context,
-    CommandId            commandId)
+    JuceCommandId        commandId)
 {
-  const auto id = static_cast<std::underlying_type_t<CommandId>>(commandId);
+  if (commandId == CommandId::none) return;
 
-  context.getCommandManager().invokeDirectly(id, true);
+  context.getCommandManager().invokeDirectly(commandId, true);
 }
 
 [[maybe_unused]] inline void dispatch(
     AbstractCoreContext& context,
     JuceCommand          command)
 {
+  if (command.commandID == -1) return;
+
   context.getCommandManager().invoke(move(command), true);
+}
+
+
+template<typename... TCommandIds>
+[[maybe_unused]] inline void fillCommands(
+    juce::Array<JuceCommandId>& in,
+    TCommandIds... ids)
+{
+  static_assert(
+      meta::and_(
+          meta::true_c,
+          meta::traits::is_castable(
+              meta::typeid_(ids),
+              meta::type_c<JuceCommandId>)...),
+      "Ids passed to addCommands must be castable to JuceCommandId.");
+
+  (in.add(static_cast<JuceCommandId>(ids)), ...);
+}
+
+[[maybe_unused]] inline void fillCommandInfo(
+    JuceCommandInfo& in,
+    JuceCommandId    commandId)
+{
+  in.commandID = commandId;
+
+  switch (commandId)
+  {
+    case CommandId::none:
+      in.categoryName = "General";
+      in.shortName = "None";
+      in.description = "No-op.";
+      break;
+
+
+    case CommandId::quit:
+      in.categoryName = "General";
+      in.shortName = "Quit";
+      in.description = "Quits blooper.";
+      break;
+
+
+    case CommandId::del:
+      in.categoryName = "General";
+      in.shortName = "Delete";
+      in.description = "Delete selection.";
+      break;
+
+    case CommandId::cut:
+      in.categoryName = "General";
+      in.shortName = "Cut";
+      in.description = "Cut selection.";
+      break;
+
+    case CommandId::copy:
+      in.categoryName = "General";
+      in.shortName = "Copy";
+      in.description = "Copy selection.";
+      break;
+
+    case CommandId::paste:
+      in.categoryName = "General";
+      in.shortName = "Paste";
+      in.description = "Paste clipboard to selection.";
+      break;
+
+
+    case CommandId::undo:
+      in.categoryName = "General";
+      in.shortName = "Undo";
+      in.description = "Undo last undoable action.";
+      break;
+
+    case CommandId::redo:
+      in.categoryName = "General";
+      in.shortName = "Redo";
+      in.description = "Redo last undoable action.";
+      break;
+
+
+    case CommandId::play:
+      in.categoryName = "Control";
+      in.shortName = "Play";
+      in.description = "Starts the blooper loop.";
+      break;
+
+    case CommandId::pause:
+      in.categoryName = "Control";
+      in.shortName = "Pause";
+      in.description = "Pauses the blooper loop.";
+      break;
+
+    case CommandId::stop:
+      in.categoryName = "Control";
+      in.shortName = "Stop";
+      in.description = "Stops the blooper loop.";
+      break;
+
+    case CommandId::record:
+      in.categoryName = "Control";
+      in.shortName = "Record";
+      in.description = "Records input into armed tracks.";
+      break;
+
+    case CommandId::nudgeUp:
+      in.categoryName = "Control";
+      in.shortName = "Nudge Up";
+      in.description = "Nudge up the controls in selection.";
+      break;
+
+    case CommandId::nudgeDown:
+      in.categoryName = "Control";
+      in.shortName = "Nudge Down";
+      in.description = "Nudge down the controls in selection.";
+      break;
+
+
+    case CommandId::muteTrack:
+      in.categoryName = "Tracks";
+      in.shortName = "Mute Tracks";
+      in.description = "Mute selected tracks.";
+      break;
+
+    case CommandId::soloTrack:
+      in.categoryName = "Tracks";
+      in.shortName = "Solo Tracks";
+      in.description = "Solo selected tracks.";
+      break;
+
+    case CommandId::armTrack:
+      in.categoryName = "Tracks";
+      in.shortName = "Arm Tracks";
+      in.description = "Arm selected tracks.";
+      break;
+
+    case CommandId::cycleTrackMode:
+      in.categoryName = "Tracks";
+      in.shortName = "Cycle Track mode";
+      in.description = "Cycle selected track mode.";
+      break;
+
+    case CommandId::addTrack:
+      in.categoryName = "Control";
+      in.shortName = "Add track";
+      in.description = "Add track.";
+      break;
+
+    case CommandId::addPlugin:
+      in.categoryName = "Tracks";
+      in.shortName = "Add Plugin";
+      in.description = "Add new plugin to the selected tracks.";
+      break;
+
+
+    case CommandId::toggleMasterTrack:
+      in.categoryName = "Views";
+      in.shortName = "Toggle Master Track";
+      in.description = "Toggle Master Track panel view.";
+      break;
+
+    case CommandId::toggleControlSurface:
+      in.categoryName = "Views";
+      in.shortName = "Toggle Control Surface";
+      in.description = "Toggle Control Surface panel view.";
+      break;
+
+    case CommandId::toggleBrowser:
+      in.categoryName = "Views";
+      in.shortName = "Toggle Browser";
+      in.description = "Toggle Browser panel view.";
+      break;
+
+
+    default:
+      break;
+  }
 }
 
 BLOOPER_NAMESPACE_END

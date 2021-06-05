@@ -84,21 +84,6 @@ using JuceLogger [[maybe_unused]] = juce::Logger;
 using JuceUndoManager [[maybe_unused]] = juce::UndoManager;
 using JuceUndoableAction [[maybe_unused]] = juce::UndoableAction;
 
-using JuceCommandManager [[maybe_unused]] = juce::ApplicationCommandManager;
-
-using JuceCommandIdUnderlyingType [[maybe_unused]] =
-    std::decay_t<
-        decltype(std::declval<
-                     juce::ApplicationCommandTarget::InvocationInfo>()
-                     .commandID)>;
-
-using JuceCommandId [[maybe_unused]] =
-    juce::CommandID;
-
-using JuceCommand [[maybe_unused]] =
-    juce::ApplicationCommandTarget::InvocationInfo;
-
-
 using JuceSelectionManager [[maybe_unused]] = te::SelectionManager;
 
 [[maybe_unused]] inline constexpr auto isJuceLookAndFeel =
@@ -108,10 +93,39 @@ using JuceSelectionManager [[maybe_unused]] = te::SelectionManager;
 
 
 using JuceLookAndFeel [[maybe_unused]] = juce::LookAndFeel;
+using JuceColourId [[maybe_unused]] = int;
+using JuceColour [[maybe_unused]] = juce::Colour;
 
 BLOOPER_STATIC_ASSERT(
     isJuceLookAndFeel(meta::type_c<juce::LookAndFeel_V4>),
     "LookAndFeel_V4 must satisfy JuceLookAndFeel.");
+
+
+// Commands
+
+using JuceCommandManager [[maybe_unused]] = juce::ApplicationCommandManager;
+
+using JuceCommandId [[maybe_unused]] =
+    juce::CommandID;
+
+using JuceCommand [[maybe_unused]] =
+    juce::ApplicationCommandTarget::InvocationInfo;
+
+using JuceCommandInfo [[maybe_unused]] =
+    juce::ApplicationCommandInfo;
+
+
+[[maybe_unused]] inline constexpr auto isJuceCommandTarget =
+    meta::reverse_partial(
+        meta::traits::is_convertible,
+        meta::type_c<juce::ApplicationCommandTarget&&>);
+
+
+using JuceCommandTarget [[maybe_unused]] = juce::ApplicationCommandTarget;
+
+BLOOPER_STATIC_ASSERT(
+    isJuceCommandTarget(meta::type_c<JuceCommandTarget>),
+    "JuceCommandTarget must satisfy JuceCommandTarget.");
 
 
 // Component

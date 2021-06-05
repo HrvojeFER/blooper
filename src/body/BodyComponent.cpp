@@ -58,7 +58,9 @@ void BodyComponent::resized()
 
   header->setBounds(
       availableArea.removeFromTop(
-          this->getLookAndFeel().getDefaultMenuBarHeight() * 2));
+          static_cast<int>(
+              this->getLookAndFeel().getDefaultMenuBarHeight() *
+              1.5)));
   footer->setBounds(
       availableArea.removeFromBottom(
           this->getLookAndFeel().getDefaultMenuBarHeight()));

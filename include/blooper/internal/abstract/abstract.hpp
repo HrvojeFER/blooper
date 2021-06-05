@@ -17,7 +17,8 @@
 //  state/listener/identifier abstractions,
 //  base construction assumptions,
 //  UndoManager management,
-//  fix template base tests
+//  fix template base tests,
+//  abstract/base asset manager
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -270,6 +271,7 @@ BLOOPER_STATIC_ASSERT(
     meta::satisfies_all(
         isAnyStateful,
         isAnyContext,
+        isJuceCommandTarget,
         meta::attribute(
             [](auto&& toCheck)
                 -> decltype(meta::and_(
@@ -322,7 +324,12 @@ BLOOPER_STATIC_ASSERT(
                                 toCheck.getLogger(),
                                 toCheck.getAssetManager(),
                                 toCheck.getUndoManager(),
+
                                 toCheck.getCommandManager(),
+                                toCheck.registerCommandTarget(
+                                    std::declval<JuceCommandTarget*>()),
+                                toCheck.unregisterCommandTarget(
+                                    std::declval<JuceCommandTarget*>()),
 
                                 toCheck.getLookAndFeel(),
 
@@ -369,7 +376,8 @@ BLOOPER_STATIC_ASSERT(
 
 template<typename TStatefulTraits>
 class [[maybe_unused]] AbstractAnyCoreContext :
-    public virtual TStatefulTraits::abstractType
+    public virtual TStatefulTraits::abstractType,
+    public juce::ApplicationCommandTarget
 {
   using stateType [[maybe_unused]] =
       typename TStatefulTraits::stateType;
@@ -446,6 +454,12 @@ class [[maybe_unused]] AbstractAnyCoreContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceCommandManager&
   getCommandManager() noexcept = 0;
+
+  [[maybe_unused]] virtual inline void
+  registerCommandTarget(JuceCommandTarget* target) noexcept = 0;
+
+  [[maybe_unused]] virtual inline void
+  unregisterCommandTarget(JuceCommandTarget* target) noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&

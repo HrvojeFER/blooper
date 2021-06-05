@@ -54,6 +54,8 @@ class Context :
     std::function<void()> onProjectLoad;
     std::function<void()> onProjectUnload;
     std::function<void()> onClose;
+
+    JuceCommandTarget* nextCommandTarget;
   } options;
 
   explicit Context(
@@ -129,6 +131,12 @@ class Context :
   [[maybe_unused, nodiscard]] inline JuceCommandManager&
   getCommandManager() noexcept final;
 
+  [[maybe_unused]] inline void
+  registerCommandTarget(JuceCommandTarget* target) noexcept final;
+
+  [[maybe_unused]] inline void
+  unregisterCommandTarget(JuceCommandTarget* target) noexcept final;
+
 
   [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
   getLookAndFeel() const noexcept final;
@@ -194,6 +202,17 @@ class Context :
   getTransport() noexcept final;
 
 
+  // Commands
+
+  ApplicationCommandTarget* getNextCommandTarget() override;
+
+  void getAllCommands(juce::Array<JuceCommandId>& commands) override;
+
+  void getCommandInfo(JuceCommandId id, JuceCommandInfo& info) override;
+
+  bool perform(const JuceCommand& command) override;
+
+
  private:
   [[maybe_unused]] std::unique_ptr<JuceFile> rootDir;
 
@@ -216,10 +235,15 @@ class Context :
 
   [[maybe_unused]] std::unique_ptr<class AssetManager> assetManager;
 
-  [[maybe_unused]] std::unique_ptr<JuceUndoManager>    undoManager;
+  [[maybe_unused]] std::unique_ptr<JuceUndoManager> undoManager;
+
   [[maybe_unused]] std::unique_ptr<JuceCommandManager> commandManager;
+  [[maybe_unused]] juce::Array<juce::WeakReference<JuceCommandTarget>>
+      commandTargets;
 
   [[maybe_unused]] std::unique_ptr<JuceLookAndFeel> lookAndFeel;
+
+  [[maybe_unused]] std::unique_ptr<juce::TooltipWindow> tooltipWindow;
 
   [[maybe_unused]] std::unique_ptr<JuceEngine> engine;
 
@@ -358,6 +382,21 @@ const JuceCommandManager& Context::getCommandManager() const noexcept
 JuceCommandManager& Context::getCommandManager() noexcept
 {
   return *this->commandManager;
+}
+
+void Context::registerCommandTarget(JuceCommandTarget* target) noexcept
+{
+  if (!target) return;
+
+  this->commandTargets.add(target);
+  this->getCommandManager().registerAllCommandsForTarget(this);
+}
+
+void Context::unregisterCommandTarget(JuceCommandTarget* target) noexcept
+{
+  if (!target) return;
+
+  this->commandTargets.removeFirstMatchingValue(target);
 }
 
 

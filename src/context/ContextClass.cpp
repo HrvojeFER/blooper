@@ -139,7 +139,6 @@ inline JuceState ensureValidState(
   this->logDir =
       ensureExistingDirectory(
           this->getRootDir().getChildFile(Context::logDirName));
-
   this->logFile =
       ensureExistingFile(
           this->logDir->getChildFile(
@@ -155,7 +154,6 @@ inline JuceState ensureValidState(
                   .replaceCharacter(
                       ' ',
                       '_')));
-
   this->logger =
       std::make_unique<juce::FileLogger>(
           *this->logFile,
@@ -171,17 +169,21 @@ inline JuceState ensureValidState(
   this->undoManager = std::make_unique<JuceUndoManager>();
 
   this->commandManager = std::make_unique<JuceCommandManager>();
+  this->commandTargets.clear();
+  this->commandManager->setFirstCommandTarget(this);
 
   this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
   JuceLookAndFeel::setDefaultLookAndFeel(
       this->lookAndFeel.get());
+
+  this->tooltipWindow = std::make_unique<juce::TooltipWindow>();
+  this->tooltipWindow->setLookAndFeel(this->lookAndFeel.get());
 
   this->engine =
       std::make_unique<JuceEngine>(
           std::make_unique<PropertyStorage>(move(name), *this),
           std::make_unique<UIBehaviour>(*this),
           std::make_unique<EngineBehaviour>(*this));
-
   this->getEngine().getProjectManager().loadList();
 
   this->selectionManager =
@@ -271,9 +273,14 @@ inline JuceState ensureValidState(
   this->selectionManager.reset();
   this->engine.reset();
 
+  this->tooltipWindow.reset();
+
   this->lookAndFeel.reset();
 
+  this->commandTargets.clear();
+  this->commandManager->setFirstCommandTarget(nullptr);
   this->commandManager.reset();
+
   this->undoManager.reset();
 
   this->assetManager.reset();
@@ -412,6 +419,7 @@ inline JuceState ensureValidState(
   JuceLogger::writeToLog("Loaded project.");
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 [[maybe_unused]] void Context::setupProject()
 {
   JuceLogger::writeToLog("Setup project.");
@@ -477,6 +485,130 @@ inline JuceState ensureValidState(
         if (!context.wasObjectDeleted())
           context->options.onProjectUnload();
       });
+}
+
+
+// Commands
+
+juce::ApplicationCommandTarget* Context::getNextCommandTarget()
+{
+  return this->options.nextCommandTarget;
+}
+
+void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
+{
+  fillCommands(
+      commands,
+
+      CommandId::play,
+      CommandId::pause,
+      CommandId::stop,
+      CommandId::record,
+
+      CommandId::undo,
+      CommandId::redo);
+}
+
+void Context::getCommandInfo(JuceCommandId commandID, JuceCommandInfo& result)
+{
+  fillCommandInfo(
+      result,
+      commandID);
+
+  result.flags = 0;
+}
+
+bool Context::perform(const JuceCommand& command)
+{
+  switch (command.commandID)
+  {
+    case CommandId::play:
+      if (this->didLoadProject())
+      {
+        this->getTransport().play(false);
+      }
+      return true;
+
+    case CommandId::pause:
+      if (this->didLoadProject())
+      {
+        this->getTransport().stop(false, false);
+      }
+      return true;
+
+    case CommandId::stop:
+      if (this->didLoadProject())
+      {
+        this->getTransport().stop(true, false);
+        this->getTransport().setCurrentPosition(0.0);
+      }
+      return true;
+
+    case CommandId::record:
+      if (this->didLoadProject())
+      {
+        this->getTransport().record(false);
+      }
+      return true;
+
+
+    case CommandId::undo:
+      if (this->didLoadProject())
+      {
+        if (auto focusedEdit =
+                this->getEngine()
+                    .getUIBehaviour()
+                    .getCurrentlyFocusedEdit())
+          focusedEdit->undo();
+      }
+      else
+      {
+        this->getUndoManager().undo();
+      }
+      return true;
+
+    case CommandId::redo:
+      if (this->didLoadProject())
+      {
+        if (auto focusedEdit =
+                this->getEngine()
+                    .getUIBehaviour()
+                    .getCurrentlyFocusedEdit())
+          focusedEdit->redo();
+      }
+      else
+      {
+        this->getUndoManager().redo();
+      }
+      return true;
+
+    default:
+      break;
+  }
+
+
+  bool             actionPerformed = false;
+  juce::Array<int> deletedTargets{};
+
+  for (int i = 0; i < this->commandTargets.size(); ++i)
+  {
+    const auto& target = this->commandTargets[i];
+
+    if (target.wasObjectDeleted())
+    {
+      deletedTargets.add(i);
+      continue;
+    }
+
+    if (auto targetPerformer = target->getTargetForCommand(command.commandID))
+      if (targetPerformer->perform(command))
+        actionPerformed = true;
+  }
+
+  for (auto deleted : deletedTargets)
+    this->commandTargets.remove(deleted);
+
+  return actionPerformed;
 }
 
 BLOOPER_NAMESPACE_END

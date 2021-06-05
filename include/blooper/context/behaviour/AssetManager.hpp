@@ -16,7 +16,7 @@ class AssetManager :
   getDrawableUnsafe(assets::ResourceIndex index);
 
   [[maybe_unused]] inline std::unique_ptr<JuceDrawable>
-  getDrawable(assets::DrawableAssetId id)
+  getDrawable(assets::IconAssetId id)
   {
     return getDrawableUnsafe(static_cast<assets::ResourceIndex>(id));
   }

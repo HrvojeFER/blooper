@@ -25,34 +25,95 @@ getAsset(TId                       id,
          AssetType<TConstructor>&& _default = {});
 
 
-enum class DrawableAssetId : ResourceIndex
+enum class IconAssetId : ResourceIndex
 {
-  playIcon [[maybe_unused]] = 0,
-  repeatIcon [[maybe_unused]] = 1,
-  pauseIcon [[maybe_unused]] = 2,
-  stopIcon [[maybe_unused]] = 3,
-  recordIcon [[maybe_unused]] = 4,
+  // dev icons
 
-  mutedIcon [[maybe_unused]] = 5,
-  lowVolumeIcon [[maybe_unused]] = 6,
-  midVolumeIcon [[maybe_unused]] = 7,
-  highVolumeIcon [[maybe_unused]] = 8,
+  notImplementedIcon [[maybe_unused]] = 0,
 
-  notImplementedIcon [[maybe_unused]] = 9,
+
+  // app icons
+
+  quitIcon [[maybe_unused]] = 1000,
+  saveIcon [[maybe_unused]] = 1001,
+  saveAndQuitIcon [[maybe_unused]] = 1002,
+  saveAllIcon [[maybe_unused]] = 1003,
+  saveAsIcon [[maybe_unused]] = 1004,
+
+  settingsIcon [[maybe_unused]] = 1100,
+  projectSettingsIcon [[maybe_unused]] = 1101,
+  deviceManagerIcon [[maybe_unused]] = 1102,
+
+  openProjectIcon [[maybe_unused]] = 1200, // TODO
+
+  helpIcon [[maybe_unused]] = 1300,
+  infoIcon [[maybe_unused]] = 1301,
+  devIcon [[maybe_unused]] = 1302,
+
+  toggleMasterTrackPanelIcon [[maybe_unused]] = 1400,
+  toggleControlSurfacePanelIcon [[maybe_unused]] = 1401,
+  toggleBrowserPanelIcon [[maybe_unused]] = 1402,
+
+
+  // edit icons
+
+  deleteIcon [[maybe_unused]] = 2000,
+  cutIcon [[maybe_unused]] = 2001,
+  copyIcon [[maybe_unused]] = 2002,
+  pasteIcon [[maybe_unused]] = 2003,
+
+  addIcon [[maybe_unused]] = 2100,
+  addOtherIcon [[maybe_unused]] = 2101,
+
+  undoIcon [[maybe_unused]] = 2200,
+  redoIcon [[maybe_unused]] = 2201,
+
+
+  // transport icons
+
+  playIcon [[maybe_unused]] = 3000,
+  pauseIcon [[maybe_unused]] = 3001,
+  stopIcon [[maybe_unused]] = 3002,
+  recordIcon [[maybe_unused]] = 3003,
+
+
+  // track icons
+
+  muteIcon [[maybe_unused]] = 4001,
+  soloIcon [[maybe_unused]] = 4002,
+  armIcon [[maybe_unused]] = 4003,
+
+  pluginIcon [[maybe_unused]] = 4100,
+
+  cycleTrackModeIcon [[maybe_unused]] = 4200,
+  syncTrackModeIcon [[maybe_unused]] = 4201,
+  oneShotTrackModeIcon [[maybe_unused]] = 4202,
+  freeTrackModeIcon [[maybe_unused]] = 4203,
+
+
+  // parameter icons
+
+  nudgeUpIcon [[maybe_unused]] = 5000,
+  nudgeDownIcon [[maybe_unused]] = 5001,
 };
 
-[[maybe_unused]] inline auto getDrawableAssetUnsafe(ResourceIndex index)
+[[maybe_unused]] inline auto getIconAssetUnsafe(ResourceIndex index)
 {
-  return getAsset(
-      index,
-      [](auto resource, auto size) {
-        return JuceDrawable::createFromImageData(resource, size);
-      });
+  if (auto asset = getAsset(
+          index,
+          [](auto resource, auto size) {
+            return JuceDrawable::createFromImageData(resource, size);
+          }))
+    return std::move(asset);
+
+  return getIconAssetUnsafe(
+      static_cast<ResourceIndex>(
+          IconAssetId::notImplementedIcon));
 }
 
-[[maybe_unused]] inline auto getDrawableAsset(DrawableAssetId id)
+[[maybe_unused]] inline auto getIconAsset(IconAssetId id)
 {
-  return getDrawableAssetUnsafe(static_cast<ResourceIndex>(id));
+  return getIconAssetUnsafe(static_cast<ResourceIndex>(id));
 }
 
 
