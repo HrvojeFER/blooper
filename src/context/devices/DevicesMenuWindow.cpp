@@ -23,6 +23,14 @@ DevicesMenuWindow::DevicesMenuWindow(
 }
 
 
+// Window
+
+[[maybe_unused]] void DevicesMenuWindow::closeButtonPressed()
+{
+  delete this;
+}
+
+
 [[maybe_unused]] DevicesMenuWindow* showDevicesMenu(
     AbstractCoreContext&       context,
     DevicesMenuWindow::Options options)

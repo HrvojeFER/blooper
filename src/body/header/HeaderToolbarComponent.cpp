@@ -6,7 +6,10 @@ class HeaderToolbarComponent::ItemFactory :
     public juce::ToolbarItemFactory
 {
  public:
-  explicit ItemFactory(HeaderToolbarComponent* parent) : parent(parent) { }
+  explicit ItemFactory(HeaderToolbarComponent* parent)
+      : parent(parent)
+  {
+  }
 
 
   enum Ids : JuceToolbarItemId
@@ -140,7 +143,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Play",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::play),
             {});
         commandId = CommandId::play;
@@ -150,7 +153,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Pause",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::pause),
             {});
         commandId = CommandId::pause;
@@ -160,7 +163,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Stop",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::stop),
             {});
         commandId = CommandId::stop;
@@ -170,7 +173,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Record",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::record),
             {});
         commandId = CommandId::record;
@@ -181,7 +184,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Mute",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::muteTrack),
             {});
         commandId = CommandId::muteTrack;
@@ -191,7 +194,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Solo",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::soloTrack),
             {});
         commandId = CommandId::soloTrack;
@@ -201,7 +204,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Arm",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::armTrack),
             {});
         commandId = CommandId::armTrack;
@@ -212,7 +215,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Nudge Up",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::nudgeUp),
             {});
         commandId = CommandId::nudgeUp;
@@ -222,7 +225,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Nudge Down",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::nudgeDown),
             {});
         commandId = CommandId::nudgeDown;
@@ -233,9 +236,8 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Delete",
-            assetManager.getDrawable(
-                assets::IconAssetId
-                : del),
+            assetManager.getIcon(
+                assets::IconAssetId::del),
             {});
         commandId = CommandId::del;
         break;
@@ -244,7 +246,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Cut",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::cut),
             {});
         commandId = CommandId::cut;
@@ -254,7 +256,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Copy",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::copy),
             {});
         commandId = CommandId::copy;
@@ -264,7 +266,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Paste",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::paste),
             {});
         commandId = CommandId::paste;
@@ -275,7 +277,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Undo",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::undo),
             {});
         commandId = CommandId::undo;
@@ -285,7 +287,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Redo",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::redo),
             {});
         commandId = CommandId::redo;
@@ -296,7 +298,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Add Track",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::add),
             {});
         commandId = CommandId::addTrack;
@@ -306,7 +308,7 @@ class HeaderToolbarComponent::ItemFactory :
         result = new juce::ToolbarButton(
             itemId,
             "Add Plugin",
-            assetManager.getDrawable(
+            assetManager.getIcon(
                 assets::IconAssetId::addOther),
             {});
         commandId = CommandId::addPlugin;

@@ -1,5 +1,21 @@
 #include <blooper/blooper.hpp>
 
-BLOOPER_DEV_NAMESPACE_BEGIN
+BLOOPER_NAMESPACE_BEGIN
 
-BLOOPER_DEV_NAMESPACE_END
+DevValueTreeComponent::DevValueTreeComponent(
+    AbstractContext& context,
+    State            state,
+    Options          options)
+    : ComponentBase(
+          context,
+          move(state)),
+      options(move(options))
+{
+}
+
+
+void DevValueTreeComponent::resized()
+{
+}
+
+BLOOPER_NAMESPACE_END

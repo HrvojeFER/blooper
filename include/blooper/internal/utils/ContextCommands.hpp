@@ -11,62 +11,78 @@ namespace CommandId
 {
 enum _ : JuceCommandId
 {
-  // These are commands copied from JUCE
-
-  /** This command ID should be used to send a "Quit the App" command.
-
-      This command is recognised by the JUCEApplication class, so if it is invoked
-      and no other ApplicationCommandTarget handles the event first, the JUCEApplication
-      object will catch it and call JUCEApplicationBase::systemRequestedQuit().
-  */
-  quit [[maybe_unused]] = 0x1001,
-
-  /** The command ID that should be used to send a "Delete" command. */
-  del [[maybe_unused]] = 0x1002,
-
-  /** The command ID that should be used to send a "Cut" command. */
-  cut [[maybe_unused]] = 0x1003,
-
-  /** The command ID that should be used to send a "Copy to clipboard" command. */
-  copy [[maybe_unused]] = 0x1004,
-
-  /** The command ID that should be used to send a "Paste from clipboard" command. */
-  paste [[maybe_unused]] = 0x1005,
-
-  /** The command ID that should be used to send a "Select all" command. */
-  selectAll [[maybe_unused]] = 0x1006,
-
-  /** The command ID that should be used to send a "Deselect all" command. */
-  deselectAll [[maybe_unused]] = 0x1007,
-
-  /** The command ID that should be used to send a "undo" command. */
-  undo [[maybe_unused]] = 0x1008,
-
-  /** The command ID that should be used to send a "redo" command. */
-  redo [[maybe_unused]] = 0x1009,
-
-
-  // These are blooper commands
+  // Special
 
   none [[maybe_unused]] = -1,
 
-  play [[maybe_unused]] = 1,
-  pause [[maybe_unused]] = 2,
-  stop [[maybe_unused]] = 3,
-  record [[maybe_unused]] = 4,
-  nudgeUp [[maybe_unused]] = 5,
-  nudgeDown [[maybe_unused]] = 6,
 
-  muteTrack [[maybe_unused]] = 7,
-  soloTrack [[maybe_unused]] = 8,
-  armTrack [[maybe_unused]] = 9,
-  cycleTrackMode [[maybe_unused]] = 10,
-  addTrack [[maybe_unused]] = 11,
-  addPlugin [[maybe_unused]] = 12,
+  // App
 
-  toggleMasterTrack [[maybe_unused]] = 13,
-  toggleControlSurface [[maybe_unused]] = 14,
-  toggleBrowser [[maybe_unused]] = 15,
+  quit [[maybe_unused]] = 1000,
+  save [[maybe_unused]] = 1001,
+  saveAndQuit [[maybe_unused]] = 1002,
+  saveAll [[maybe_unused]] = 1003,
+  saveAs [[maybe_unused]] = 1004,
+
+  openSettings [[maybe_unused]] = 1100,
+  openProjectSettings [[maybe_unused]] = 1101,
+  openDeviceManager [[maybe_unused]] = 1102,
+
+  openProject [[maybe_unused]] = 1200,
+
+  openHelp [[maybe_unused]] = 1300,
+  openInfo [[maybe_unused]] = 1301,
+  openDev [[maybe_unused]] = 1302,
+
+  toggleMasterTrackPanel [[maybe_unused]] = 1400,
+  toggleControlSurfacePanel [[maybe_unused]] = 1401,
+  toggleBrowserPanel [[maybe_unused]] = 1402,
+
+
+  // Edit
+
+  del [[maybe_unused]] = 2000,
+  cut [[maybe_unused]] = 2001,
+  copy [[maybe_unused]] = 2002,
+  paste [[maybe_unused]] = 2003,
+
+  addTrack [[maybe_unused]] = 2100,
+  addPlugin [[maybe_unused]] = 2101,
+
+  undo [[maybe_unused]] = 2200,
+  redo [[maybe_unused]] = 2201,
+
+  selectAll [[maybe_unused]] = 2300,
+  deselectAll [[maybe_unused]] = 2301,
+
+
+  // Transport
+
+  play [[maybe_unused]] = 3000,
+  pause [[maybe_unused]] = 3001,
+  stop [[maybe_unused]] = 3002,
+  record [[maybe_unused]] = 3003,
+
+  toggleMonitoring [[maybe_unused]] = 3100,
+
+
+  // Track
+
+  muteTrack [[maybe_unused]] = 4001,
+  soloTrack [[maybe_unused]] = 4002,
+  armTrack [[maybe_unused]] = 4003,
+
+  cycleTrackMode [[maybe_unused]] = 4200,
+
+  clearTrack [[maybe_unused]] = 4300,
+
+
+  // Parameter
+
+  nudgeUp [[maybe_unused]] = 5000,
+  nudgeDown [[maybe_unused]] = 5001,
+
+  elevateParameter [[maybe_unused]] = 5100,
 };
 }
 
@@ -76,7 +92,10 @@ enum _ : JuceCommandId
 {
   if (commandId == CommandId::none) return;
 
-  context.getCommandManager().invokeDirectly(commandId, true);
+  context.getCommandManager()
+      .invokeDirectly(
+          commandId,
+          true);
 }
 
 [[maybe_unused]] inline void dispatch(
@@ -85,7 +104,10 @@ enum _ : JuceCommandId
 {
   if (command.commandID == -1) return;
 
-  context.getCommandManager().invoke(move(command), true);
+  context.getCommandManager()
+      .invoke(
+          move(command),
+          true);
 }
 
 
@@ -113,6 +135,8 @@ template<typename... TCommandIds>
 
   switch (commandId)
   {
+      // Special
+
     case CommandId::none:
       in.categoryName = "General";
       in.shortName = "None";
@@ -120,141 +144,250 @@ template<typename... TCommandIds>
       break;
 
 
+      // App
+
     case CommandId::quit:
-      in.categoryName = "General";
+      in.categoryName = "App";
       in.shortName = "Quit";
       in.description = "Quits blooper.";
       break;
 
+    case CommandId::save:
+      in.categoryName = "App";
+      in.shortName = "Save";
+      in.description = "Save project.";
+      break;
+
+    case CommandId::saveAndQuit:
+      in.categoryName = "App";
+      in.shortName = "Save And Quit";
+      in.description = "Save project and quit blooper.";
+      break;
+
+    case CommandId::saveAll:
+      in.categoryName = "App";
+      in.shortName = "Save All";
+      in.description = "Save project and settings.";
+      break;
+
+    case CommandId::saveAs:
+      in.categoryName = "App";
+      in.shortName = "Save As...";
+      in.description = "Save project in a specified location.";
+      break;
+
+
+    case CommandId::openSettings:
+      in.categoryName = "App";
+      in.shortName = "Open Settings";
+      in.description = "Open the Settings window.";
+      break;
+
+    case CommandId::openProjectSettings:
+      in.categoryName = "App";
+      in.shortName = "Open Settings";
+      in.description = "Open the Project Settings window.";
+      break;
+
+    case CommandId::openDeviceManager:
+      in.categoryName = "App";
+      in.shortName = "Open Device Manager";
+      in.description = "Open the Device Manager window.";
+      break;
+
+
+    case CommandId::openProject:
+      in.categoryName = "App";
+      in.shortName = "Open Project...";
+      in.description = "Unload the current project and open a new one.";
+      break;
+
+
+    case CommandId::openHelp:
+      in.categoryName = "App";
+      in.shortName = "Open Help";
+      in.description = "Open the Help window.";
+      break;
+
+    case CommandId::openInfo:
+      in.categoryName = "App";
+      in.shortName = "Open Info";
+      in.description = "Open the Info window.";
+      break;
+
+    case CommandId::openDev:
+      in.categoryName = "App";
+      in.shortName = "Open Dev";
+      in.description = "Open the Developers window.";
+      break;
+
+
+    case CommandId::toggleMasterTrackPanel:
+      in.categoryName = "App";
+      in.shortName = "Toggle Master Track Panel";
+      in.description = "Toggle Master Track panel view.";
+      break;
+
+    case CommandId::toggleControlSurfacePanel:
+      in.categoryName = "App";
+      in.shortName = "Toggle Control Surface Panel";
+      in.description = "Toggle Control Surface panel view.";
+      break;
+
+    case CommandId::toggleBrowserPanel:
+      in.categoryName = "App";
+      in.shortName = "Toggle Browser Panel";
+      in.description = "Toggle Browser panel view.";
+      break;
+
+
+      // Edit
 
     case CommandId::del:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Delete";
       in.description = "Delete selection.";
       break;
 
     case CommandId::cut:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Cut";
       in.description = "Cut selection.";
       break;
 
     case CommandId::copy:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Copy";
       in.description = "Copy selection.";
       break;
 
     case CommandId::paste:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Paste";
       in.description = "Paste clipboard to selection.";
       break;
 
 
+    case CommandId::addTrack:
+      in.categoryName = "Edit";
+      in.shortName = "Add Track";
+      in.description = "Add a new Track.";
+      break;
+
+    case CommandId::addPlugin:
+      in.categoryName = "Edit";
+      in.shortName = "Plugin";
+      in.description = "Add a new Plugin to the selected Tracks.";
+      break;
+
+
     case CommandId::undo:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Undo";
       in.description = "Undo last undoable action.";
       break;
 
     case CommandId::redo:
-      in.categoryName = "General";
+      in.categoryName = "Edit";
       in.shortName = "Redo";
       in.description = "Redo last undoable action.";
       break;
 
 
+    case CommandId::selectAll:
+      in.categoryName = "Edit";
+      in.shortName = "Select All";
+      in.description = "Select everything Selectable in current Component.";
+      break;
+
+    case CommandId::deselectAll:
+      in.categoryName = "Edit";
+      in.shortName = "Deselect All";
+      in.description = "Deselect all selections.";
+      break;
+
+
+      // Transport
+
     case CommandId::play:
-      in.categoryName = "Control";
+      in.categoryName = "Transport";
       in.shortName = "Play";
       in.description = "Starts the blooper loop.";
       break;
 
     case CommandId::pause:
-      in.categoryName = "Control";
+      in.categoryName = "Transport";
       in.shortName = "Pause";
       in.description = "Pauses the blooper loop.";
       break;
 
     case CommandId::stop:
-      in.categoryName = "Control";
+      in.categoryName = "Transport";
       in.shortName = "Stop";
       in.description = "Stops the blooper loop.";
       break;
 
     case CommandId::record:
-      in.categoryName = "Control";
+      in.categoryName = "Transport";
       in.shortName = "Record";
       in.description = "Records input into armed tracks.";
       break;
 
+
+    case CommandId::toggleMonitoring:
+      in.categoryName = "Transport";
+      in.shortName = "Toggle Monitoring";
+      in.description = "Toggle Monitoring of all inputs.";
+      break;
+
+
+      // Track
+
+    case CommandId::muteTrack:
+      in.categoryName = "Track";
+      in.shortName = "Mute Tracks";
+      in.description = "Mute selected Tracks.";
+      break;
+
+    case CommandId::soloTrack:
+      in.categoryName = "Track";
+      in.shortName = "Solo Tracks";
+      in.description = "Solo selected Tracks.";
+      break;
+
+    case CommandId::armTrack:
+      in.categoryName = "Track";
+      in.shortName = "Arm Tracks";
+      in.description = "Arm selected Tracks.";
+      break;
+
+
+    case CommandId::cycleTrackMode:
+      in.categoryName = "Track";
+      in.shortName = "Cycle Track Mode";
+      in.description = "Cycle Track Mode of the first Track in Selection.";
+      break;
+
+
+    case CommandId::clearTrack:
+      in.categoryName = "Track";
+      in.shortName = "Clear Track";
+      in.description = "Clear tracks in selection.";
+      break;
+
+
+      // Parameter
+
     case CommandId::nudgeUp:
-      in.categoryName = "Control";
+      in.categoryName = "Parameter";
       in.shortName = "Nudge Up";
       in.description = "Nudge up the controls in selection.";
       break;
 
     case CommandId::nudgeDown:
-      in.categoryName = "Control";
+      in.categoryName = "Parameter";
       in.shortName = "Nudge Down";
       in.description = "Nudge down the controls in selection.";
-      break;
-
-
-    case CommandId::muteTrack:
-      in.categoryName = "Tracks";
-      in.shortName = "Mute Tracks";
-      in.description = "Mute selected tracks.";
-      break;
-
-    case CommandId::soloTrack:
-      in.categoryName = "Tracks";
-      in.shortName = "Solo Tracks";
-      in.description = "Solo selected tracks.";
-      break;
-
-    case CommandId::armTrack:
-      in.categoryName = "Tracks";
-      in.shortName = "Arm Tracks";
-      in.description = "Arm selected tracks.";
-      break;
-
-    case CommandId::cycleTrackMode:
-      in.categoryName = "Tracks";
-      in.shortName = "Cycle Track mode";
-      in.description = "Cycle selected track mode.";
-      break;
-
-    case CommandId::addTrack:
-      in.categoryName = "Control";
-      in.shortName = "Add track";
-      in.description = "Add track.";
-      break;
-
-    case CommandId::addPlugin:
-      in.categoryName = "Tracks";
-      in.shortName = "Add Plugin";
-      in.description = "Add new plugin to the selected tracks.";
-      break;
-
-
-    case CommandId::toggleMasterTrack:
-      in.categoryName = "Views";
-      in.shortName = "Toggle Master Track";
-      in.description = "Toggle Master Track panel view.";
-      break;
-
-    case CommandId::toggleControlSurface:
-      in.categoryName = "Views";
-      in.shortName = "Toggle Control Surface";
-      in.description = "Toggle Control Surface panel view.";
-      break;
-
-    case CommandId::toggleBrowser:
-      in.categoryName = "Views";
-      in.shortName = "Toggle Browser";
-      in.description = "Toggle Browser panel view.";
       break;
 
 

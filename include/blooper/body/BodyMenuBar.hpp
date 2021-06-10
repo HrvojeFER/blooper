@@ -8,7 +8,8 @@ BLOOPER_NAMESPACE_BEGIN
 class BodyMenuBar :
     public ContextualBase,
     public StatefulBase,
-    public juce::MenuBarModel
+
+    private juce::MenuBarModel
 {
  public:
   BLOOPER_STATE_ID(BodyMenuBar);
@@ -24,8 +25,11 @@ class BodyMenuBar :
       Options          options);
 
 
+  // MenuBarModel
+
  private:
   friend class juce::MenuBarComponent;
+  friend class BodyWindow;
 
   [[maybe_unused]] juce::StringArray getMenuBarNames() override;
 

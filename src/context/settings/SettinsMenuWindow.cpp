@@ -25,6 +25,14 @@ SettingsMenuWindow::SettingsMenuWindow(
 }
 
 
+// Window
+
+[[maybe_unused]] void SettingsMenuWindow::closeButtonPressed()
+{
+  delete this;
+}
+
+
 [[maybe_unused]] SettingsMenuWindow* showSettingsMenu(
     AbstractCoreContext&        context,
     SettingsMenuWindow::Options options)

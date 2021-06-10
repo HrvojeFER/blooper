@@ -62,9 +62,12 @@ class ProjectsMenuComponent :
 
   [[maybe_unused]] void reloadProjects();
 
-  [[maybe_unused]] bool isValidRow(int row) const noexcept;
+  [[maybe_unused, nodiscard]] bool isValidRow(int row) const noexcept;
 
 
+  // ListBoxModel
+
+ private:
   [[maybe_unused]] int getNumRows() override;
 
   [[maybe_unused]] void paintListBoxItem(

@@ -2,7 +2,7 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-EditPanelComponent::EditPanelComponent(
+ProjectPanelComponent::ProjectPanelComponent(
     AbstractContext& context,
     State            state,
     Options          options)
@@ -11,20 +11,20 @@ EditPanelComponent::EditPanelComponent(
           move(state)),
       options(move(options))
 {
-  EditContentComponent::Options contentOptions{};
+  ProjectContentComponent::Options contentOptions{};
 
   this->content =
-      std::make_unique<EditContentComponent>(
+      std::make_unique<ProjectContentComponent>(
           this->getContext(),
           this->getState().getOrCreateChildWithName(
-              EditContentComponent::stateId,
+              ProjectContentComponent::stateId,
               nullptr),
           move(contentOptions));
 
 
   this->viewport =
       std::make_unique<juce::Viewport>(
-          "EditPanel");
+          "ProjectPanel");
 
   this->viewport->setLookAndFeel(
       std::addressof(this->getLookAndFeel()));
@@ -45,8 +45,8 @@ EditPanelComponent::EditPanelComponent(
   auto& projectState = this->getContext().getProjectState();
 
   juce::Range<double> scrollRange{
-      projectState.getProperty(EditPanelComponent::editScrollRangeStart),
-      projectState.getProperty(EditPanelComponent::editScrollRangeEnd)};
+      projectState.getProperty(ProjectPanelComponent::editScrollRangeStart),
+      projectState.getProperty(ProjectPanelComponent::editScrollRangeEnd)};
 
   this->viewport->getHorizontalScrollBar().setCurrentRange(scrollRange);
 
@@ -56,7 +56,7 @@ EditPanelComponent::EditPanelComponent(
       *this->viewport);
 }
 
-EditPanelComponent::~EditPanelComponent()
+ProjectPanelComponent::~ProjectPanelComponent()
 {
   auto& projectState = this->getContext().getProjectState();
 
@@ -64,18 +64,18 @@ EditPanelComponent::~EditPanelComponent()
       this->viewport->getHorizontalScrollBar().getCurrentRange();
 
   projectState.setProperty(
-      EditPanelComponent::editScrollRangeStart,
+      ProjectPanelComponent::editScrollRangeStart,
       currentScrollRange.getStart(),
       nullptr);
 
   projectState.setProperty(
-      EditPanelComponent::editScrollRangeEnd,
+      ProjectPanelComponent::editScrollRangeEnd,
       currentScrollRange.getEnd(),
       nullptr);
 }
 
 
-void EditPanelComponent::resized()
+void ProjectPanelComponent::resized()
 {
   auto availableArea = this->getLocalBounds();
 

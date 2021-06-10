@@ -37,18 +37,21 @@ void EngineBehaviour::describeWaveDevices(
 
 // Plugins
 
-juce::ReferenceCountedObjectPtr<te::RackType> EngineBehaviour::createPresetRackType(int i, te::Edit& edit)
+juce::ReferenceCountedObjectPtr<te::RackType>
+EngineBehaviour::createPresetRackType(int i, te::Edit& edit)
 {
   return te::EngineBehaviour::createPresetRackType(i, edit);
 }
 
-te::Plugin::Ptr EngineBehaviour::createCustomPlugin(te::PluginCreationInfo info)
+te::Plugin::Ptr
+EngineBehaviour::createCustomPlugin(te::PluginCreationInfo info)
 {
   return te::EngineBehaviour::createCustomPlugin(info);
 }
 
 
-std::unique_ptr<juce::PluginDescription> EngineBehaviour::findDescriptionForFileOrID(const juce::String& string)
+std::unique_ptr<juce::PluginDescription>
+EngineBehaviour::findDescriptionForFileOrID(const juce::String& string)
 {
   return te::EngineBehaviour::findDescriptionForFileOrID(string);
 }

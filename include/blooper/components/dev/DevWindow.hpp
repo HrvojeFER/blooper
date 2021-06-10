@@ -3,12 +3,37 @@
 
 #include <blooper/internal/internal.hpp>
 
-BLOOPER_DEV_NAMESPACE_BEGIN
+BLOOPER_NAMESPACE_BEGIN
 
-class Window : public juce::DocumentWindow
+class DevWindow : public WindowBase
 {
+ public:
+  BLOOPER_STATE_ID(DevWindow);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit DevWindow(
+      AbstractContext& context,
+      State            state,
+      Options          options = {});
+
+
+  // Window
+
+ private:
+  [[maybe_unused]] void closeButtonPressed() override;
+
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevWindow);
 };
 
-BLOOPER_DEV_NAMESPACE_END
+[[maybe_unused]] DevWindow* showDev(
+    AbstractContext&   context,
+    DevWindow::Options options = {});
+
+BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_DEV_WINDOW_HPP

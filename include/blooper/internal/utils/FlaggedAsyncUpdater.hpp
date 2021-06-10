@@ -17,13 +17,23 @@ class [[maybe_unused]] FlaggedAsyncUpdater :
     triggerAsyncUpdate();
   }
 
+  void markAndUpdate(JuceFlag& flag)
+  {
+    flag = true;
+    triggerAsyncUpdate();
+  }
+
   static bool compareAndReset(bool& flag) noexcept
   {
-    if (!flag)
-      return false;
+    if (!flag) return false;
 
     flag = false;
     return true;
+  }
+
+  static bool compareAndReset(JuceFlag& flag) noexcept
+  {
+    return flag.compareAndSetBool(false, true);
   }
 };
 

@@ -7,163 +7,227 @@ PropertyStorage::PropertyStorage(
     AbstractCoreContext& context)
     : CoreContextualBase(context),
 
-      te::PropertyStorage(move(name)),
-
-      cache(this->getContext()
-                .getRootDir()
-                .getChildFile(
-                    PropertyStorage::cacheDirName)),
-      prefs(this->getContext()
-                .getRootDir()
-                .getChildFile(
-                    PropertyStorage::prefsDirName)),
-
-      media(this->getContext()
-                .getRootDir()
-                .getChildFile(
-                    PropertyStorage::mediaDirName))
+      te::PropertyStorage(move(name))
 {
-  if (!cache.exists()) cache.createDirectory();
-  if (!prefs.exists()) prefs.createDirectory();
+  auto& rootDir = this->getContext().getRootDir();
 
-  if (!media.exists()) media.createDirectory();
+  this->cache =
+      std::make_unique<juce::File>(
+          rootDir.getChildFile(PropertyStorage::cacheDirName));
+  if (!this->cache->exists()) this->cache->createDirectory();
+
+  this->media =
+      std::make_unique<juce::File>(
+          rootDir.getChildFile(PropertyStorage::mediaDirName));
+  if (!this->media->exists()) this->media->createDirectory();
+
+  this->prefs =
+      std::make_unique<juce::File>(
+          rootDir.getChildFile(PropertyStorage::prefsDirName));
+  if (!this->prefs->exists()) this->prefs->createDirectory();
 }
 
 
+[[maybe_unused]] JuceState
+PropertyStorage::getProperties()
+{
+  return this->getContext()
+      .getEngineSettings()
+      .getOrCreateChildWithName(
+          id::properties,
+          nullptr);
+}
+
+JuceState
+PropertyStorage::getChild(
+    te::SettingID childId)
+{
+  auto undoManager = this->getContext().getUndoManagerPtr();
+
+  const auto idVar = JuceVar(te::PropertyStorage::settingToString(childId));
+
+  auto properties = this->getProperties();
+  auto child = properties.getChildWithProperty(id::name, idVar);
+
+  if (!child.isValid())
+  {
+    child = JuceState{id::property};
+    child.setProperty(id::name, idVar, nullptr);
+    properties.addChild(child, -1, undoManager);
+  }
+
+  return child;
+}
+
+JuceState
+PropertyStorage::getGrandchild(
+    te::SettingID   childId,
+    juce::StringRef grandchildName)
+{
+  auto undoManager = this->getContext().getUndoManagerPtr();
+
+  const auto itemVar = ext::toVar(grandchildName);
+
+  auto child = this->getChild(childId);
+  auto grandchild = child.getChildWithProperty(id::name, itemVar);
+
+  if (!grandchild.isValid())
+  {
+    grandchild = JuceState{id::property};
+    grandchild.setProperty(id::name, itemVar, nullptr);
+    child.addChild(grandchild, -1, undoManager);
+  }
+
+  return grandchild;
+}
+
+
+// PropertyStorage
+
 juce::File PropertyStorage::getAppCacheFolder()
 {
-  return cache;
+  return *this->cache;
 }
 
 juce::File PropertyStorage::getAppPrefsFolder()
 {
-  return prefs;
+  return *this->prefs;
 }
 
 
 void PropertyStorage::flushSettingsToDisk()
 {
-  this->getContext().getProperties().save();
+  this->getContext().saveEngineSettings();
 }
 
 
-void PropertyStorage::removeProperty(te::SettingID setting)
+void PropertyStorage::removeProperty(te::SettingID id)
 {
-  this->getContext().getProperties().removeValue(
-      te::PropertyStorage::settingToString(setting));
+  auto child = this->getChild(id);
+
+  child.getParent().removeChild(
+      child,
+      this->getContext().getUndoManagerPtr());
 }
 
 juce::var PropertyStorage::getProperty(
-    te::SettingID    setting,
+    te::SettingID    id,
     const juce::var& defaultValue)
 {
-  return this->getContext().getProperties().getValue(
-      te::PropertyStorage::settingToString(setting),
-      defaultValue);
+  return this->getChild(id)
+      .getProperty(
+          id::value,
+          defaultValue);
 }
 
 void PropertyStorage::setProperty(
-    te::SettingID    setting,
+    te::SettingID    id,
     const juce::var& value)
 {
-  this->getContext().getProperties().setValue(
-      PropertyStorage::settingToString(setting),
-      value);
+  this->getChild(id)
+      .setProperty(
+          id::value,
+          value,
+          this->getContext().getUndoManagerPtr());
 }
 
+
 std::unique_ptr<juce::XmlElement> PropertyStorage::getXmlProperty(
-    te::SettingID setting)
+    te::SettingID id)
 {
-  return std::unique_ptr<juce::XmlElement>(
-      this->getContext().getProperties().getXmlValue(
-          te::PropertyStorage::settingToString(setting)));
+  return juce::parseXML(
+      this->getChild(id)
+          .getProperty(
+              id::value,
+              ""));
 }
 
 void PropertyStorage::setXmlProperty(
-    te::SettingID           setting,
+    te::SettingID           id,
     const juce::XmlElement& xml)
 {
-  this->getContext().getProperties().setValue(
-      te::PropertyStorage::settingToString(setting),
-      &xml);
+  this->getChild(id)
+      .setProperty(
+          id::value,
+          xml.toString(
+              JuceXml::TextFormat{}.withoutHeader().singleLine()),
+          this->getContext().getUndoManagerPtr());
 }
 
 
 void PropertyStorage::removePropertyItem(
-    te::SettingID   setting,
+    te::SettingID   id,
     juce::StringRef item)
 {
-  this->getContext().getProperties().removeValue(
-      te::PropertyStorage::settingToString(setting) +
-      "_" +
-      item);
+  auto grandchild = this->getGrandchild(id, item);
+
+  grandchild.getParent().removeChild(
+      grandchild,
+      this->getContext().getUndoManagerPtr());
 }
 
 juce::var PropertyStorage::getPropertyItem(
-    te::SettingID    setting,
+    te::SettingID    id,
     juce::StringRef  item,
     const juce::var& defaultValue)
 {
-  return this->getContext().getProperties().getValue(
-      te::PropertyStorage::settingToString(setting) +
-          "_" +
-          item,
-      defaultValue);
+  return this->getGrandchild(id, item)
+      .getProperty(
+          id::value,
+          defaultValue);
 }
 
 void PropertyStorage::setPropertyItem(
-    te::SettingID    setting,
+    te::SettingID    id,
     juce::StringRef  item,
     const juce::var& value)
 {
-  this->getContext().getProperties().setValue(
-      te::PropertyStorage::settingToString(setting) +
-          "_" +
-          item,
-      value);
+  this->getGrandchild(id, item)
+      .setProperty(
+          id::value,
+          value,
+          this->getContext().getUndoManagerPtr());
 }
 
+
 std::unique_ptr<juce::XmlElement> PropertyStorage::getXmlPropertyItem(
-    te::SettingID   setting,
+    te::SettingID   id,
     juce::StringRef item)
 {
-  return std::unique_ptr<juce::XmlElement>(
-      this->getContext().getProperties().getXmlValue(
-          te::PropertyStorage::settingToString(setting) +
-          "_" +
-          item));
+  return juce::parseXML(
+      this->getGrandchild(id, item)
+          .getProperty(
+              id::value,
+              ""));
 }
 
 void PropertyStorage::setXmlPropertyItem(
-    te::SettingID           setting,
+    te::SettingID           id,
     juce::StringRef         item,
     const juce::XmlElement& xml)
 {
-  this->getContext().getProperties().setValue(
-      te::PropertyStorage::settingToString(setting) +
-          "_" +
-          item,
-      &xml);
+  this->getGrandchild(id, item)
+      .setProperty(
+          id::value,
+          xml.toString(
+              JuceXml::TextFormat{}.withoutHeader().singleLine()),
+          this->getContext().getUndoManagerPtr());
 }
 
 
 juce::File PropertyStorage::getDefaultLoadSaveDirectory(
-    juce::StringRef label)
+    juce::StringRef)
 {
-  juce::ignoreUnused(label);
-
   // TODO: figure this out
-  return this->media;
+  return *this->media;
 }
 
 void PropertyStorage::setDefaultLoadSaveDirectory(
-    juce::StringRef   label,
+    juce::StringRef,
     const juce::File& newPath)
 {
-  juce::ignoreUnused(label);
-
   // TODO: figure this out
-  this->media = newPath;
+  *this->media = newPath;
 }
 
 juce::File PropertyStorage::getDefaultLoadSaveDirectory(

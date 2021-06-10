@@ -10,22 +10,37 @@ class AssetManager :
 {
  public:
   explicit AssetManager(AbstractCoreContext& context);
+
   ~AssetManager() override;
 
-  [[maybe_unused]] std::unique_ptr<JuceDrawable>
-  getDrawableUnsafe(assets::ResourceIndex index);
 
-  [[maybe_unused]] inline std::unique_ptr<JuceDrawable>
-  getDrawable(assets::IconAssetId id)
+  [[maybe_unused]] const JuceDrawable*
+  getIconViewUnsafe(assets::ResourceIndex index);
+
+  [[maybe_unused]] inline auto
+  getIconView(assets::IconAssetId id)
   {
-    return getDrawableUnsafe(static_cast<assets::ResourceIndex>(id));
+    return getIconViewUnsafe(static_cast<assets::ResourceIndex>(id));
   }
 
+  [[maybe_unused]] inline auto
+  getIconUnsafe(assets::ResourceIndex index)
+  {
+    return getIconViewUnsafe(index)->createCopy();
+  }
+
+  [[maybe_unused]] inline auto
+  getIcon(assets::IconAssetId id)
+  {
+    return getIconUnsafe(static_cast<assets::ResourceIndex>(id));
+  }
+
+
  private:
-  std::unordered_map<
-      assets::ResourceIndex,
-      std::unique_ptr<JuceDrawable>>
-      drawables;
+  using DrawableCollection [[maybe_unused]] =
+      std::unordered_map<assets::ResourceIndex, std::unique_ptr<JuceDrawable>>;
+
+  DrawableCollection drawables;
 };
 
 BLOOPER_NAMESPACE_END

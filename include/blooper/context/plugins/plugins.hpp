@@ -15,7 +15,4 @@
 #include <blooper/context/plugins/PluginEditorComponent.hpp>
 #include <blooper/context/plugins/PluginEditorWindow.hpp>
 
-// TODO: remove
-#include <blooper/context/plugins/PluginWindow.hpp>
-
 #endif //BLOOPER_PLUGINS_HPP

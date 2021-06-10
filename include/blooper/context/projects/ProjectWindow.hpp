@@ -26,6 +26,12 @@ class ProjectWindow : public WindowBase
   JuceProjectRef project;
 
 
+  // Window
+
+ private:
+  [[maybe_unused]] void closeButtonPressed() override;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectWindow);
 };
 

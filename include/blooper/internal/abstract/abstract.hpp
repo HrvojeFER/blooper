@@ -11,6 +11,8 @@
 
 #include <blooper/internal/abstract/juceTraits.hpp>
 
+#include <blooper/internal/abstract/time.hpp>
+
 
 // TODO:
 //  concepts (Core)?(Contextual|Component|Window),
@@ -18,7 +20,7 @@
 //  base construction assumptions,
 //  UndoManager management,
 //  fix template base tests,
-//  abstract/base asset manager
+//  abstract/base asset, edit, sync
 
 
 BLOOPER_NAMESPACE_BEGIN
@@ -283,8 +285,9 @@ BLOOPER_STATIC_ASSERT(
                         meta::type_c<JuceFile>),
 
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getProperties()),
-                        meta::type_c<JuceXmlFile>),
+                        meta::typeid_(toCheck.getEngineSettings()),
+                        meta::type_c<JuceState>),
+
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getSettings()),
                         meta::type_c<JuceState>),
@@ -318,10 +321,14 @@ BLOOPER_STATIC_ASSERT(
                     -> decltype(toCheck.getRootDir(),
                                 toCheck.getProjectsDir(),
 
-                                toCheck.getProperties(),
+                                toCheck.getEngineSettings(),
+                                toCheck.saveEngineSettings(),
+
                                 toCheck.getSettings(),
 
                                 toCheck.getLogger(),
+                                toCheck.log(std::declval<juce::String>()),
+
                                 toCheck.getAssetManager(),
                                 toCheck.getUndoManager(),
 
@@ -357,11 +364,11 @@ BLOOPER_STATIC_ASSERT(
                         meta::type_c<JuceState>),
 
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getEdit()),
-                        meta::type_c<JuceEdit>),
+                        meta::typeid_(toCheck.getEditManager()),
+                        meta::type_c<class EditManager>),
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getTransport()),
-                        meta::type_c<JuceTransport>))) {}) ^
+                        meta::typeid_(toCheck.getSynchronizer()),
+                        meta::type_c<class Synchronizer>))) {}) ^
             meta::inherit ^
             meta::check(
                 [](auto&& toCheck)
@@ -371,8 +378,8 @@ BLOOPER_STATIC_ASSERT(
                                 toCheck.getProjectSettings(),
                                 toCheck.getProjectState(),
 
-                                toCheck.getEdit(),
-                                toCheck.getTransport()) {}));
+                                toCheck.getEditManager(),
+                                toCheck.getSynchronizer()) {}));
 
 template<typename TStatefulTraits>
 class [[maybe_unused]] AbstractAnyCoreContext :
@@ -414,11 +421,14 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   getProjectsDir() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceXmlFile&
-  getProperties() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const JuceState&
+  getEngineSettings() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceXmlFile&
-  getProperties() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline JuceState&
+  getEngineSettings() noexcept = 0;
+
+  [[maybe_unused]] virtual void
+  saveEngineSettings() = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceState&
@@ -434,6 +444,9 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   [[maybe_unused, nodiscard]] virtual inline JuceLogger&
   getLogger() noexcept = 0;
 
+  [[maybe_unused]] virtual void
+  log(const JuceString& message) = 0;
+
 
   [[maybe_unused, nodiscard]] virtual inline const class AssetManager&
   getAssetManager() const noexcept = 0;
@@ -448,6 +461,12 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   [[maybe_unused, nodiscard]] virtual inline JuceUndoManager&
   getUndoManager() noexcept = 0;
 
+  [[maybe_unused, nodiscard]] virtual inline const JuceUndoManager*
+  getUndoManagerPtr() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceUndoManager*
+  getUndoManagerPtr() noexcept = 0;
+
 
   [[maybe_unused, nodiscard]] virtual inline const JuceCommandManager&
   getCommandManager() const noexcept = 0;
@@ -455,11 +474,11 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   [[maybe_unused, nodiscard]] virtual inline JuceCommandManager&
   getCommandManager() noexcept = 0;
 
-  [[maybe_unused]] virtual inline void
-  registerCommandTarget(JuceCommandTarget* target) noexcept = 0;
+  [[maybe_unused]] virtual void
+  registerCommandTarget(JuceCommandTarget* target) = 0;
 
-  [[maybe_unused]] virtual inline void
-  unregisterCommandTarget(JuceCommandTarget* target) noexcept = 0;
+  [[maybe_unused]] virtual void
+  unregisterCommandTarget(JuceCommandTarget* target) = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&
@@ -520,18 +539,18 @@ class [[maybe_unused]] AbstractAnyContext :
   getProjectState() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceEdit&
-  getEdit() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const class EditManager&
+  getEditManager() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceEdit&
-  getEdit() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline class EditManager&
+  getEditManager() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceTransport&
-  getTransport() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const class Synchronizer&
+  getSynchronizer() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline JuceTransport&
-  getTransport() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline class Synchronizer&
+  getSynchronizer() noexcept = 0;
 };
 
 
@@ -1317,6 +1336,15 @@ class [[maybe_unused]] AnyWindowBase :
           lookAndFeel.findColour(
               juce::ResizableWindow::backgroundColourId));
     }
+  }
+
+
+  // Window
+
+ protected:
+  [[maybe_unused]] void closeButtonPressed() override
+  {
+    delete this;
   }
 };
 

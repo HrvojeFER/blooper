@@ -13,20 +13,21 @@ PluginEditorWindow::PluginEditorWindow(
           move(state)),
       options(move(options)),
 
-      plugin(move(plugin)),
-
-      component(
-          std::make_unique<PluginEditorComponent>(
-              this->getContext(),
-              this->getState().getOrCreateChildWithName(
-                  PluginEditorComponent::stateId,
-                  nullptr),
-              this->getPluginRef(),
-              PluginEditorComponent::Options{}))
+      plugin(move(plugin))
 {
+  this->component =
+      std::make_unique<PluginEditorComponent>(
+          this->getContext(),
+          this->getState().getOrCreateChildWithName(
+              PluginEditorComponent::stateId,
+              nullptr),
+          this->getPluginRef(),
+          PluginEditorComponent::Options{});
+
   this->setContentNonOwned(
-      &this->getComponent(),
+      this->component.get(),
       true);
+
 
   this->initialiseResizingLimits();
   this->initialiseResizingBehaviour();
@@ -55,16 +56,17 @@ PluginEditorWindow::~PluginEditorWindow()
   auto halfHeight = bounds.getHeight() / 2;
   auto halfWidth = bounds.getWidth() / 2;
 
-  this->getConstrainer()->setMinimumOnscreenAmounts(
-      halfHeight,
-      halfWidth,
-      halfHeight,
-      halfWidth);
+  this->getConstrainer()
+      ->setMinimumOnscreenAmounts(
+          halfHeight,
+          halfWidth,
+          halfHeight,
+          halfWidth);
 
   this->setResizeLimits(
       PluginEditorWindow::minimumWidth,
       PluginEditorWindow::minimumHeight,
-      PluginEditorWindow::maximumHeight,
+      PluginEditorWindow::maximumWidth,
       PluginEditorWindow::maximumHeight);
 
   this->setBoundsConstrained(bounds);
@@ -99,18 +101,21 @@ PluginEditorWindow::~PluginEditorWindow()
   }
 }
 
-void PluginEditorWindow::moved()
+
+// Window
+
+[[maybe_unused]] void PluginEditorWindow::moved()
 {
   this->getLastBounds() = this->getBounds();
   this->getPluginEdit().pluginChanged(this->getPlugin());
 }
 
-void PluginEditorWindow::userTriedToCloseWindow()
+[[maybe_unused]] void PluginEditorWindow::userTriedToCloseWindow()
 {
   this->getWindowState().closeWindowExplicitly();
 }
 
-void PluginEditorWindow::closeButtonPressed()
+[[maybe_unused]] void PluginEditorWindow::closeButtonPressed()
 {
   this->userTriedToCloseWindow();
 }
@@ -122,27 +127,33 @@ PluginEditorWindow::getDesktopScaleFactor() const
 }
 
 
-[[maybe_unused]] std::unique_ptr<PluginEditorWindow> showPluginEditorWindow(
+[[maybe_unused]] PluginEditorWindow* showPluginEditorWindow(
     AbstractCoreContext&        context,
     JucePluginRef               plugin,
     PluginEditorWindow::Options options)
 {
   if (!plugin) return nullptr;
 
-  auto messageLoopBlocker =
-      util::blockMessageLoopInScopeIfNeeded(context, *plugin);
-  auto dpiDisabler =
-      util::disableDPIInScopeIfNeeded(context, *plugin);
 
-  auto window = std::make_unique<PluginEditorWindow>(
-      context,
-      context.getState().getOrCreateChildWithName(
-          PluginEditorWindow::stateId,
-          nullptr),
-      move(plugin),
-      move(options));
+  PluginEditorWindow* window;
+
+  {
+    auto messageLoopBlocker =
+        util::blockMessageLoopInScopeIfNeeded(context, *plugin);
+    auto dpiDisabler =
+        util::disableDPIInScopeIfNeeded(context, *plugin);
+
+    window = new PluginEditorWindow(
+        context,
+        context.getState().getOrCreateChildWithName(
+            PluginEditorWindow::stateId,
+            nullptr),
+        move(plugin),
+        move(options));
+  }
 
   window->show();
+
 
   return window;
 }

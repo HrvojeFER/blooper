@@ -40,9 +40,38 @@ class App : public juce::JUCEApplication
   std::unique_ptr<class BodyWindow> bodyWindow;
 
 
+  template<typename TOnClose>
+  void closeAllModalWindowsAsync(TOnClose onClose);
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(App)
   JUCE_DECLARE_WEAK_REFERENCEABLE(App)
 };
+
+
+template<typename TOnClose>
+void App::closeAllModalWindowsAsync(TOnClose onClose)
+{
+  static_assert(
+      isCallback(meta::typeid_(onClose)),
+      "onClose passed to closeAllModalWindowsAsync has to satisfy Callback.");
+
+
+  if (juce::ModalComponentManager::getInstance()->cancelAllModalComponents())
+  {
+    juce::Timer::callAfterDelay(
+        App::quitRetryIntervalMilliseconds,
+        [app = juce::WeakReference<App>(this),
+         onClose = move(onClose)]() {
+          if (app.wasObjectDeleted()) return;
+          app->closeAllModalWindowsAsync(move(onClose));
+        });
+  }
+  else
+  {
+    onClose();
+  }
+}
 
 BLOOPER_NAMESPACE_END
 

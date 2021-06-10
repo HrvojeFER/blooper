@@ -40,6 +40,16 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   return split(path, pathSeparator);
 }
 
+[[maybe_unused]] inline auto toId(juce::StringRef ref)
+{
+  return JuceStateIdentifier(ref.operator const char*());
+}
+
+[[maybe_unused]] inline auto toVar(juce::StringRef ref)
+{
+  return JuceVar(ref.operator const char*());
+}
+
 BLOOPER_EXT_NAMESPACE_END
 
 #endif // BLOOPER_EXT_STRING_HPP

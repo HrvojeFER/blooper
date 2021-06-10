@@ -5,6 +5,12 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+#if JUCE_LINUX
+constexpr bool shouldAddPluginWindowToDesktop = false;
+#else
+constexpr bool shouldAddPluginWindowToDesktop = true;
+#endif
+
 class PluginEditorWindow : public CoreWindowBase
 {
  public:
@@ -93,11 +99,14 @@ class PluginEditorWindow : public CoreWindowBase
   [[maybe_unused]] void initialiseVisibilityBehaviour();
 
 
-  void moved() override;
+  // Window
 
-  void userTriedToCloseWindow() override;
+ private:
+  [[maybe_unused]] void moved() override;
 
-  void closeButtonPressed() override;
+  [[maybe_unused]] void closeButtonPressed() override;
+
+  [[maybe_unused]] void userTriedToCloseWindow() override;
 
   [[maybe_unused, nodiscard]] float getDesktopScaleFactor() const override;
 
@@ -106,7 +115,7 @@ class PluginEditorWindow : public CoreWindowBase
 };
 
 
-[[maybe_unused]] std::unique_ptr<PluginEditorWindow> showPluginEditorWindow(
+[[maybe_unused]] PluginEditorWindow* showPluginEditorWindow(
     AbstractCoreContext&        context,
     JucePluginRef               plugin,
     PluginEditorWindow::Options options = {});
@@ -186,12 +195,12 @@ PluginEditorWindow::getComponent() noexcept
 }
 
 
-[[maybe_unused]] void
-PluginEditorWindow::show()
+[[maybe_unused]] void PluginEditorWindow::show()
 {
-  this->setVisible(true);
-  this->toFront(false);
   this->setBoundsConstrained(this->getBounds());
+  this->toFront(false);
+
+  this->setVisible(true);
 }
 
 BLOOPER_NAMESPACE_END

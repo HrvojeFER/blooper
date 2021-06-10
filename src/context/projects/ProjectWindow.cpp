@@ -31,6 +31,14 @@ ProjectWindow::ProjectWindow(
 }
 
 
+// Window
+
+[[maybe_unused]] void ProjectWindow::closeButtonPressed()
+{
+  delete this;
+}
+
+
 [[maybe_unused]] ProjectWindow* showProject(
     AbstractContext&       context,
     JuceProjectRef         project,

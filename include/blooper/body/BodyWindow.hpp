@@ -25,13 +25,16 @@ class BodyWindow : public WindowBase
   ~BodyWindow() override;
 
 
-  void closeButtonPressed() override;
-
-
  private:
   std::unique_ptr<class BodyComponent> component;
 
   std::unique_ptr<class BodyMenuBar> menuBar;
+
+
+  // Window
+
+ private:
+  [[maybe_unused]] void closeButtonPressed() override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)

@@ -49,7 +49,9 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 }
 
 
-void ProjectsMenuWindow::closeButtonPressed()
+// Window
+
+[[maybe_unused]] void ProjectsMenuWindow::closeButtonPressed()
 {
   this->options.onCancel();
 }

@@ -29,19 +29,6 @@ BLOOPER_ID_NAMESPACE_END
 
 // internal namespaces
 
-#define BLOOPER_DEV_NAMESPACE_BEGIN \
-  namespace blooper::dev            \
-  {                                 \
-  namespace                         \
-  {
-#define BLOOPER_DEV_NAMESPACE_END \
-  } /* namespace */               \
-  } /* namespace blooper::dev */
-
-BLOOPER_DEV_NAMESPACE_BEGIN
-BLOOPER_DEV_NAMESPACE_END
-
-
 #define BLOOPER_EXT_NAMESPACE_BEGIN \
   namespace blooper::ext            \
   {                                 \

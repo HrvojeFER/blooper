@@ -56,7 +56,9 @@ BodyWindow::~BodyWindow()
 }
 
 
-void BodyWindow::closeButtonPressed()
+// Window
+
+[[maybe_unused]] void BodyWindow::closeButtonPressed()
 {
   this->options.onClose();
 }

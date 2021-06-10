@@ -21,7 +21,12 @@ class DevicesMenuWindow : public CoreWindowBase
       Options              options = {});
 
 
+  // Window
+
  private:
+  [[maybe_unused]] void closeButtonPressed() override;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevicesMenuWindow);
 };
 

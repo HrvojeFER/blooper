@@ -5,8 +5,27 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class HelpComponent : public juce::Component
+class HelpComponent : public ComponentBase
 {
+ public:
+  BLOOPER_STATE_ID(HelpComponent);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit HelpComponent(
+      AbstractContext& context,
+      State            state,
+      Options          options = {});
+
+
+  [[maybe_unused]] void resized() override;
+
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HelpComponent)
 };
 
 BLOOPER_NAMESPACE_END

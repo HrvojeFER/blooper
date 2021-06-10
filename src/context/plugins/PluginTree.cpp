@@ -174,24 +174,25 @@ PluginTreeGroup* PluginTreeGroup::createRacksGroup(AbstractContext& context)
           false,
           false));
 
-  const auto& racks = context.getEdit().getRackList().getTypes();
-  std::for_each(
-      racks.begin(),
-      racks.end(),
-      [&context, racksFolder, i = 0](auto rack) mutable {
-        racksFolder->addOwned(
-            new PluginTreeItem(
-                context,
-
-                juce::String(++i) + rackUniqueIdSuffix,
-
-                rack->rackName,
-
-                te::RackInstance::xmlTypeName,
-
-                false,
-                false));
-      });
+  // TODO
+  //  const auto& racks = context.getEdit().getRackList().getTypes();
+  //  std::for_each(
+  //      racks.begin(),
+  //      racks.end(),
+  //      [&context, racksFolder, i = 0](auto rack) mutable {
+  //        racksFolder->addOwned(
+  //            new PluginTreeItem(
+  //                context,
+  //
+  //                juce::String(++i) + rackUniqueIdSuffix,
+  //
+  //                rack->rackName,
+  //
+  //                te::RackInstance::xmlTypeName,
+  //
+  //                false,
+  //                false));
+  //      });
 
   return racksFolder;
 }
@@ -256,10 +257,17 @@ PluginTreeItem::PluginTreeItem(
 
 te::Plugin::Ptr PluginTreeItem::createPlugin()
 {
-  return getContext()
-      .getEdit()
-      .getPluginCache()
-      .createNewPlugin(xmlType, description);
+  if (auto edit =
+          this->getContext()
+              .getEngine()
+              .getUIBehaviour()
+              .getCurrentlyFocusedEdit())
+  {
+    return edit->getPluginCache()
+        .createNewPlugin(xmlType, description);
+  }
+
+  return {};
 }
 
 BLOOPER_NAMESPACE_END

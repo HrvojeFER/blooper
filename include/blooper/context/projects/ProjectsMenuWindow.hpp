@@ -23,10 +23,12 @@ class ProjectsMenuWindow : public CoreWindowBase
       Options              options = {});
 
 
-  void closeButtonPressed() override;
-
+  // Window
 
  private:
+  [[maybe_unused]] void closeButtonPressed() override;
+
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuWindow)
 };
 

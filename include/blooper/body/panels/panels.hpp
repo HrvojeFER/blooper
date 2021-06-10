@@ -2,7 +2,7 @@
 #define BLOOPER_PANELS_HPP
 
 #include <blooper/body/panels/browser/browser.hpp>
-#include <blooper/body/panels/edit/edit.hpp>
+#include <blooper/body/panels/project/project.hpp>
 #include <blooper/body/panels/control_surface/control_surface.hpp>
 #include <blooper/body/panels/automation/automation.hpp>
 #include <blooper/body/panels/master/master.hpp>

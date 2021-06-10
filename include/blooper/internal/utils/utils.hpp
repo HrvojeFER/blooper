@@ -15,6 +15,10 @@
 
 #include <blooper/internal/utils/ContextCommands.hpp>
 
+#include <blooper/internal/utils/EditTrack.hpp>
+
+#include <blooper/internal/utils/selection.hpp>
+
 #include <blooper/internal/utils/style.hpp>
 
 #include <blooper/internal/utils/BarComponents.hpp>
@@ -77,6 +81,13 @@ template<typename TCallback>
 
   to.setFixedAspectRatio(
       from.getFixedAspectRatio());
+}
+
+template<typename T>
+[[maybe_unused]] inline constexpr auto toggle(T& _) noexcept
+    -> decltype(auto)
+{
+  return _ = !_;
 }
 
 BLOOPER_UTIL_NAMESPACE_END

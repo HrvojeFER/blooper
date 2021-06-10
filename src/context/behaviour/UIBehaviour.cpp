@@ -14,36 +14,51 @@ UIBehaviour::~UIBehaviour() = default;
 
 te::Edit* UIBehaviour::getCurrentlyFocusedEdit()
 {
-  if (auto fullContext =
-          dynamic_cast<AbstractContext*>(
-              std::addressof(this->getContext())))
-    return std::addressof(fullContext->getEdit());
+  if (auto selection = this->getCurrentlyFocusedSelectionManager())
+  {
+    if (auto track = selection->getFirstItemOfType<EditTrack>())
+    {
+      return std::addressof(track->getEdit());
+    }
+  }
 
   return nullptr;
 }
 
 te::Edit* UIBehaviour::getLastFocusedEdit()
 {
-  if (auto fullContext =
-          dynamic_cast<AbstractContext*>(
-              std::addressof(this->getContext())))
-    return std::addressof(fullContext->getEdit());
+  if (auto selection = this->getCurrentlyFocusedSelectionManager())
+  {
+    if (auto track = selection->getFirstItemOfType<EditTrack>())
+    {
+      return std::addressof(track->getEdit());
+    }
+  }
 
   return nullptr;
 }
 
 juce::Array<te::Edit*> UIBehaviour::getAllOpenEdits()
 {
-  if (auto fullContext =
-          dynamic_cast<AbstractContext*>(
-              std::addressof(this->getContext())))
-    return {std::addressof(fullContext->getEdit())};
+  if (auto fullContext = dynamic_cast<AbstractContext*>(
+          std::addressof(this->getContext())))
+  {
+    juce::Array<te::Edit*> result;
+
+    fullContext->getEditManager().visit(
+        [&result](EditTrack* track) {
+          result.add(std::addressof(track->getEdit()));
+        });
+
+    return result;
+  }
 
   return {};
 }
 
 bool UIBehaviour::isEditVisibleOnScreen(const te::Edit&)
 {
+  // TODO
   if (dynamic_cast<AbstractContext*>(std::addressof(this->getContext())))
     return true;
 
@@ -361,10 +376,11 @@ std::unique_ptr<JuceComponent> UIBehaviour::createPluginWindow(
   {
     PluginEditorWindow::Options windowOptions{};
 
-    return showPluginEditorWindow(
-        getContext(),
-        concreteWindowState->plugin,
-        move(windowOptions));
+    return std::unique_ptr<JuceComponent>{
+        showPluginEditorWindow(
+            getContext(),
+            concreteWindowState->plugin,
+            move(windowOptions))};
   }
 
   return te::UIBehaviour::createPluginWindow(windowState);

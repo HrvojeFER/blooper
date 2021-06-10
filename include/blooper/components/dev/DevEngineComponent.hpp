@@ -3,12 +3,31 @@
 
 #include <blooper/internal/internal.hpp>
 
-BLOOPER_DEV_NAMESPACE_BEGIN
+BLOOPER_NAMESPACE_BEGIN
 
-class EngineComponent : public juce::Component
+class DevEngineComponent : public ComponentBase
 {
+ public:
+  BLOOPER_STATE_ID(DevEngineComponent);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit DevEngineComponent(
+      AbstractContext& context,
+      State            state,
+      Options          options = {});
+
+
+  [[maybe_unused]] void resized() override;
+
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevEngineComponent)
 };
 
-BLOOPER_DEV_NAMESPACE_END
+BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_DEV_ENGINE_COMPONENT_HPP

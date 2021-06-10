@@ -25,7 +25,7 @@ template<typename TOnNode>
 }
 
 template<typename TOnNode>
-[[maybe_unused]] inline void visit_ancestors(
+[[maybe_unused]] inline void visitAncestors(
     const JuceValueTree& root,
     TOnNode              onNode)
 {
@@ -39,7 +39,7 @@ template<typename TOnNode>
   onNode(root);
 
   if (auto parent = root.getParent(); parent.isValid())
-    visit_ancestors(parent, onNode);
+    visitAncestors(parent, onNode);
 }
 
 template<typename TPredicate>
@@ -66,7 +66,7 @@ template<typename TPredicate>
 }
 
 template<typename TPredicate>
-[[maybe_unused]] inline juce::ValueTree find_ancestor(
+[[maybe_unused]] inline juce::ValueTree findAncestor(
     const JuceValueTree& root,
     TPredicate           predicate)
 {
@@ -89,7 +89,7 @@ template<typename TPredicate>
 }
 
 
-[[maybe_unused]] inline auto ensureAllItemsHaveUIDs(
+[[maybe_unused]] inline auto ensureAllItemsHaveUids(
     const JuceValueTree& root)
 {
   visit(
@@ -104,7 +104,7 @@ template<typename TPredicate>
       });
 }
 
-[[maybe_unused]] inline auto findUID(
+[[maybe_unused]] inline auto findUid(
     const JuceValueTree& root,
     const JuceString&    id)
 {
@@ -113,6 +113,69 @@ template<typename TPredicate>
       [&id](const JuceValueTree& node) {
         return node[te::IDs::uid].toString() == id;
       });
+}
+
+
+[[maybe_unused]] inline std::unique_ptr<JuceFile> ensureExistingDirectory(
+    const JuceFile& file)
+{
+  if (!file.exists()) file.createDirectory();
+
+  return std::make_unique<JuceFile>(file);
+}
+
+[[maybe_unused]] inline std::unique_ptr<JuceFile> ensureExistingFile(
+    const JuceFile& file)
+{
+  if (!file.existsAsFile()) file.create();
+
+  return std::make_unique<JuceFile>(file);
+}
+
+[[maybe_unused]] inline std::unique_ptr<JuceXmlFile> ensureValidStateFile(
+    const JuceFile& file)
+{
+  JuceXmlFile::Options options;
+  options.millisecondsBeforeSaving = 2000;
+  options.storageFormat = JuceXmlFile::storeAsXML;
+  options.commonToAllUsers = false;
+
+  // If not valid, just delete it and it will create a new one when needed.
+  if (!JuceXmlFile(file, options).isValidFile())
+    file.deleteFile();
+
+  return std::make_unique<JuceXmlFile>(file, options);
+}
+
+[[maybe_unused]] inline JuceState ensureValidState(
+    JuceXmlFile&               file,
+    const JuceString&          key,
+    const JuceStateIdentifier& id)
+{
+  JuceState state{};
+
+  auto xml = file.getXmlValue(key);
+
+  if (!xml)
+  {
+    state = State(id);
+    xml = state.createXml();
+
+    file.setValue(key, xml.get());
+  }
+  else
+  {
+    state = JuceState::fromXml(*xml);
+  }
+
+
+  if (!state.isValid() || !state.hasType(id))
+  {
+    state = State(id);
+    file.setValue(key, state.createXml().get());
+  }
+
+  return state;
 }
 
 BLOOPER_EXT_NAMESPACE_END

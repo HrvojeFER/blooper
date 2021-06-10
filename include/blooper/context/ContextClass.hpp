@@ -11,8 +11,6 @@ class Context :
  public:
   BLOOPER_STATE_ID(Context);
 
-  BLOOPER_ID(openProjectId);
-
 
   [[maybe_unused]] inline constexpr static auto fileKey =
       "context";
@@ -25,8 +23,8 @@ class Context :
       ".blooper";
 
 
-  [[maybe_unused]] inline constexpr static auto propertiesFileName =
-      "properties.xml";
+  [[maybe_unused]] inline constexpr static auto engineSettingsFileName =
+      "engineSettings.xml";
 
   [[maybe_unused]] inline constexpr static auto settingsFileName =
       "settings.xml";
@@ -51,16 +49,27 @@ class Context :
 
   struct Options
   {
-    std::function<void()> onProjectLoad;
-    std::function<void()> onProjectUnload;
-    std::function<void()> onClose;
+    Options();
 
-    JuceCommandTarget* nextCommandTarget;
+    std::function<void()> quit;
+
+    std::function<void()> onLoad;
+    std::function<void()> afterLoad;
+    std::function<void()> onUnload;
+    std::function<void()> afterUnload;
+
+    std::function<void()> onEngineLoad;
+    std::function<void()> afterEngineLoad;
+    std::function<void()> onEngineUnload;
+    std::function<void()> afterEngineUnload;
+
+    std::function<void()> onProjectLoad;
+    std::function<void()> afterProjectLoad;
+    std::function<void()> onProjectUnload;
+    std::function<void()> afterProjectUnload;
   } options;
 
-  explicit Context(
-      JuceString name,
-      Options    options = {});
+  explicit Context(Options options = Options());
 
   ~Context() override;
 
@@ -74,14 +83,13 @@ class Context :
   getState() noexcept final;
 
 
-  // Core
+  // Context
 
   [[maybe_unused, nodiscard]] inline const JuceFile&
   getRootDir() const noexcept final;
 
   [[maybe_unused, nodiscard]] inline JuceFile&
   getRootDir() noexcept final;
-
 
   [[maybe_unused, nodiscard]] inline const JuceFile&
   getProjectsDir() const noexcept final;
@@ -90,12 +98,14 @@ class Context :
   getProjectsDir() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceXmlFile&
-  getProperties() const noexcept final;
+  [[maybe_unused, nodiscard]] inline const JuceState&
+  getEngineSettings() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceXmlFile&
-  getProperties() noexcept final;
+  [[maybe_unused, nodiscard]] inline JuceState&
+  getEngineSettings() noexcept final;
 
+  [[maybe_unused]] void
+  saveEngineSettings() final;
 
   [[maybe_unused, nodiscard]] inline const JuceState&
   getSettings() const noexcept final;
@@ -110,12 +120,8 @@ class Context :
   [[maybe_unused, nodiscard]] inline JuceLogger&
   getLogger() noexcept final;
 
-
-  [[maybe_unused, nodiscard]] inline const class AssetManager&
-  getAssetManager() const noexcept final;
-
-  [[maybe_unused, nodiscard]] inline class AssetManager&
-  getAssetManager() noexcept final;
+  [[maybe_unused]] inline void
+  log(const juce::String& message) final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceUndoManager&
@@ -123,6 +129,12 @@ class Context :
 
   [[maybe_unused, nodiscard]] inline JuceUndoManager&
   getUndoManager() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline const JuceUndoManager*
+  getUndoManagerPtr() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceUndoManager*
+  getUndoManagerPtr() noexcept final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceCommandManager&
@@ -132,10 +144,10 @@ class Context :
   getCommandManager() noexcept final;
 
   [[maybe_unused]] inline void
-  registerCommandTarget(JuceCommandTarget* target) noexcept final;
+  registerCommandTarget(JuceCommandTarget* target) final;
 
   [[maybe_unused]] inline void
-  unregisterCommandTarget(JuceCommandTarget* target) noexcept final;
+  unregisterCommandTarget(JuceCommandTarget* target) final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
@@ -143,6 +155,15 @@ class Context :
 
   [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
   getLookAndFeel() noexcept final;
+
+
+  // Engine
+
+  [[maybe_unused, nodiscard]] inline const class AssetManager&
+  getAssetManager() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline class AssetManager&
+  getAssetManager() noexcept final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceEngine&
@@ -159,7 +180,7 @@ class Context :
   getSelectionManager() noexcept final;
 
 
-  // Non-core
+  // Project
 
   [[maybe_unused, nodiscard]] inline const JuceProject&
   getProject() const noexcept final;
@@ -173,13 +194,11 @@ class Context :
   [[maybe_unused, nodiscard]] inline JuceProjectRef
   getProjectRef() noexcept final;
 
-
   [[maybe_unused, nodiscard]] inline const JuceState&
   getProjectSettings() const noexcept final;
 
   [[maybe_unused, nodiscard]] inline JuceState&
   getProjectSettings() noexcept final;
-
 
   [[maybe_unused, nodiscard]] inline const JuceState&
   getProjectState() const noexcept final;
@@ -188,22 +207,174 @@ class Context :
   getProjectState() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceEdit&
-  getEdit() const noexcept final;
+  [[maybe_unused, nodiscard]] inline const class EditManager&
+  getEditManager() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceEdit&
-  getEdit() noexcept final;
-
-
-  [[maybe_unused, nodiscard]] inline const JuceTransport&
-  getTransport() const noexcept final;
-
-  [[maybe_unused, nodiscard]] inline JuceTransport&
-  getTransport() noexcept final;
+  [[maybe_unused, nodiscard]] inline class EditManager&
+  getEditManager() noexcept final;
 
 
-  // Commands
+  [[maybe_unused, nodiscard]] inline const class Synchronizer&
+  getSynchronizer() const noexcept final;
 
+  [[maybe_unused, nodiscard]] inline class Synchronizer&
+  getSynchronizer() noexcept final;
+
+
+  // Special, Async
+
+  [[maybe_unused]] void startAsync();
+
+  [[maybe_unused]] void pickOrLoadProjectAsync();
+  [[maybe_unused]] void pickProjectAsync();
+
+  [[maybe_unused]] void saveEverythingAsync();
+
+  [[maybe_unused]] void quitAsync();
+
+
+  // Special, Sync
+
+  [[maybe_unused]] void pickOrLoadProject();
+  [[maybe_unused]] void pickProject();
+
+  [[maybe_unused]] void saveEverything();
+
+  [[maybe_unused]] void quit();
+
+
+  // Safe, Async
+
+  [[maybe_unused]] void loadAsync();
+  [[maybe_unused]] void saveAsync();
+  [[maybe_unused]] void unloadAsync();
+
+  [[maybe_unused]] void loadEngineAsync(JuceString name);
+  [[maybe_unused]] void saveEngineAsync();
+  [[maybe_unused]] void unloadEngineAsync();
+
+  [[maybe_unused]] void loadProjectAsync(JuceProjectRef ref);
+  [[maybe_unused]] void saveProjectAsync();
+  [[maybe_unused]] void unloadProjectAsync();
+
+
+  // Safe, Sync
+
+  [[maybe_unused]] void load();
+  [[maybe_unused]] void unload();
+  [[maybe_unused]] void save();
+
+  [[maybe_unused]] void loadEngine(JuceString name);
+  [[maybe_unused]] void unloadEngine();
+  [[maybe_unused]] void saveEngine();
+
+  [[maybe_unused]] void loadProject(JuceProjectRef ref);
+  [[maybe_unused]] void unloadProject();
+  [[maybe_unused]] void saveProject();
+
+
+  // Unsafe, sync
+
+  [[maybe_unused]] bool didLoad() const;
+  [[maybe_unused]] bool didLoadEngine() const;
+  [[maybe_unused]] bool didLoadProject() const;
+
+
+ private:
+  using Lock = juce::SpinLock;
+  using ScopedLock = Lock::ScopedLockType;
+
+  Lock lock;
+
+
+  std::unique_ptr<JuceFile> rootDir;
+
+  std::unique_ptr<JuceFile> projectsDir;
+
+  std::unique_ptr<JuceXmlFile> engineSettingsFile;
+  JuceState                    engineSettings;
+
+  std::unique_ptr<JuceXmlFile> settingsFile;
+  JuceState                    settings;
+
+  std::unique_ptr<JuceXmlFile> stateFile;
+  JuceState                    state;
+
+  JuceCached<JuceString> openProjectFilePath;
+
+  std::unique_ptr<JuceFile>         logDir;
+  std::unique_ptr<JuceFile>         logFile;
+  std::unique_ptr<juce::FileLogger> logger;
+
+  std::unique_ptr<JuceUndoManager> undoManager;
+
+  std::unique_ptr<JuceCommandManager>                 commandManager;
+  juce::Array<juce::WeakReference<JuceCommandTarget>> commandTargets;
+
+  std::unique_ptr<JuceLookAndFeel> lookAndFeel;
+
+  bool loaded;
+
+
+  std::unique_ptr<class AssetManager> assetManager;
+
+  std::unique_ptr<juce::TooltipWindow> tooltipWindow;
+
+  std::unique_ptr<JuceEngine> engine;
+  JuceCached<bool>            monitored;
+
+  std::unique_ptr<JuceSelectionManager> selectionManager;
+
+  bool loadedEngine;
+
+
+  JuceProjectRef project;
+
+  [[maybe_unused]] JuceProjectItemRef projectSettingsItem;
+  std::unique_ptr<JuceXmlFile>        projectSettingsFile;
+  JuceState                           projectSettings;
+
+  [[maybe_unused]] JuceProjectItemRef projectStateItem;
+  std::unique_ptr<JuceXmlFile>        projectStateFile;
+  JuceState                           projectState;
+
+  std::unique_ptr<class Synchronizer> synchronizer;
+
+  std::unique_ptr<class EditManager> editManager;
+
+  bool loadedProject;
+
+
+  // Special, Async
+
+  void reloadProjectAsync(JuceProjectRef ref);
+  void reloadProjectAsync();
+
+
+  // Special, Sync
+
+  void reloadProject(JuceProjectRef ref);
+  void reloadProject();
+
+
+  // Unsafe, Sync
+
+  void loadUnsafe();
+  void unloadUnsafe();
+  void saveUnsafe();
+
+  void loadEngineUnsafe(JuceString name);
+  void unloadEngineUnsafe();
+  void saveEngineUnsafe();
+
+  void loadProjectUnsafe(JuceProjectRef ref);
+  void unloadProjectUnsafe();
+  void saveProjectUnsafe();
+
+
+  // CommandTarget
+
+ private:
   ApplicationCommandTarget* getNextCommandTarget() override;
 
   void getAllCommands(juce::Array<JuceCommandId>& commands) override;
@@ -211,70 +382,6 @@ class Context :
   void getCommandInfo(JuceCommandId id, JuceCommandInfo& info) override;
 
   bool perform(const JuceCommand& command) override;
-
-
- private:
-  [[maybe_unused]] std::unique_ptr<JuceFile> rootDir;
-
-  [[maybe_unused]] std::unique_ptr<JuceFile> projectsDir;
-
-  [[maybe_unused]] std::unique_ptr<JuceXmlFile> propertiesFile;
-
-  [[maybe_unused]] std::unique_ptr<JuceXmlFile> settingsFile;
-  [[maybe_unused]] JuceState                    settings;
-
-  [[maybe_unused]] std::unique_ptr<JuceXmlFile> stateFile;
-  [[maybe_unused]] JuceState                    state;
-
-  [[maybe_unused]] JuceCached<JuceString> openProjectFilePath;
-
-
-  [[maybe_unused]] std::unique_ptr<JuceFile>   logDir;
-  [[maybe_unused]] std::unique_ptr<JuceFile>   logFile;
-  [[maybe_unused]] std::unique_ptr<JuceLogger> logger;
-
-  [[maybe_unused]] std::unique_ptr<class AssetManager> assetManager;
-
-  [[maybe_unused]] std::unique_ptr<JuceUndoManager> undoManager;
-
-  [[maybe_unused]] std::unique_ptr<JuceCommandManager> commandManager;
-  [[maybe_unused]] juce::Array<juce::WeakReference<JuceCommandTarget>>
-      commandTargets;
-
-  [[maybe_unused]] std::unique_ptr<JuceLookAndFeel> lookAndFeel;
-
-  [[maybe_unused]] std::unique_ptr<juce::TooltipWindow> tooltipWindow;
-
-  [[maybe_unused]] std::unique_ptr<JuceEngine> engine;
-
-  [[maybe_unused]] std::unique_ptr<JuceSelectionManager> selectionManager;
-
-
-  [[maybe_unused]] JuceProjectRef project;
-
-  [[maybe_unused]] JuceProjectItemRef           projectSettingsItem;
-  [[maybe_unused]] std::unique_ptr<JuceXmlFile> projectSettingsFile;
-  [[maybe_unused]] JuceState                    projectSettings;
-
-  [[maybe_unused]] JuceProjectItemRef           projectStateItem;
-  [[maybe_unused]] std::unique_ptr<JuceXmlFile> projectStateFile;
-  [[maybe_unused]] JuceState                    projectState;
-
-  [[maybe_unused]] std::unique_ptr<JuceEdit> edit;
-  [[maybe_unused]] JuceTransport*            transport{nullptr};
-
-
-  [[maybe_unused]] bool didLoad();
-  [[maybe_unused]] void load(JuceString name);
-  [[maybe_unused]] void setup();
-  [[maybe_unused]] void save();
-  [[maybe_unused]] void unload();
-
-  [[maybe_unused]] bool didLoadProject();
-  [[maybe_unused]] void loadProject(JuceProjectRef ref);
-  [[maybe_unused]] void setupProject();
-  [[maybe_unused]] void saveProject();
-  [[maybe_unused]] void unloadProject();
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
@@ -295,7 +402,7 @@ State& Context::getState() noexcept
 }
 
 
-// Core
+// Context
 
 const JuceFile& Context::getRootDir() const noexcept
 {
@@ -306,7 +413,6 @@ JuceFile& Context::getRootDir() noexcept
 {
   return *this->rootDir;
 }
-
 
 const JuceFile& Context::getProjectsDir() const noexcept
 {
@@ -319,23 +425,22 @@ JuceFile& Context::getProjectsDir() noexcept
 }
 
 
-const JuceXmlFile& Context::getProperties() const noexcept
+const JuceState& Context::getEngineSettings() const noexcept
 {
-  return *this->propertiesFile;
+  return this->engineSettings;
 }
 
-JuceXmlFile& Context::getProperties() noexcept
+JuceState& Context::getEngineSettings() noexcept
 {
-  return *this->propertiesFile;
+  return this->engineSettings;
 }
 
-
-const State& Context::getSettings() const noexcept
+const JuceState& Context::getSettings() const noexcept
 {
   return this->settings;
 }
 
-State& Context::getSettings() noexcept
+JuceState& Context::getSettings() noexcept
 {
   return this->settings;
 }
@@ -351,15 +456,11 @@ JuceLogger& Context::getLogger() noexcept
   return *this->logger;
 }
 
-
-const class AssetManager& Context::getAssetManager() const noexcept
+void Context::log(const JuceString& message)
 {
-  return *this->assetManager;
-}
+  BLOOPER_ASSERT(this->loadedEngine);
 
-class AssetManager& Context::getAssetManager() noexcept
-{
-  return *this->assetManager;
+  this->logger->logMessage(message);
 }
 
 
@@ -373,6 +474,16 @@ JuceUndoManager& Context::getUndoManager() noexcept
   return *this->undoManager;
 }
 
+const JuceUndoManager* Context::getUndoManagerPtr() const noexcept
+{
+  return this->undoManager.get();
+}
+
+JuceUndoManager* Context::getUndoManagerPtr() noexcept
+{
+  return this->undoManager.get();
+}
+
 
 const JuceCommandManager& Context::getCommandManager() const noexcept
 {
@@ -384,7 +495,7 @@ JuceCommandManager& Context::getCommandManager() noexcept
   return *this->commandManager;
 }
 
-void Context::registerCommandTarget(JuceCommandTarget* target) noexcept
+void Context::registerCommandTarget(JuceCommandTarget* target)
 {
   if (!target) return;
 
@@ -392,7 +503,7 @@ void Context::registerCommandTarget(JuceCommandTarget* target) noexcept
   this->getCommandManager().registerAllCommandsForTarget(this);
 }
 
-void Context::unregisterCommandTarget(JuceCommandTarget* target) noexcept
+void Context::unregisterCommandTarget(JuceCommandTarget* target)
 {
   if (!target) return;
 
@@ -408,6 +519,19 @@ const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
 JuceLookAndFeel& Context::getLookAndFeel() noexcept
 {
   return *this->lookAndFeel;
+}
+
+
+// Engine
+
+const class AssetManager& Context::getAssetManager() const noexcept
+{
+  return *this->assetManager;
+}
+
+class AssetManager& Context::getAssetManager() noexcept
+{
+  return *this->assetManager;
 }
 
 
@@ -433,7 +557,7 @@ JuceSelectionManager& Context::getSelectionManager() noexcept
 }
 
 
-// Non-core
+// Project
 
 const JuceProject& Context::getProject() const noexcept
 {
@@ -478,25 +602,25 @@ JuceState& Context::getProjectState() noexcept
 }
 
 
-const JuceEdit& Context::getEdit() const noexcept
+const class EditManager& Context::getEditManager() const noexcept
 {
-  return *this->edit;
+  return *this->editManager;
 }
 
-JuceEdit& Context::getEdit() noexcept
+class EditManager& Context::getEditManager() noexcept
 {
-  return *this->edit;
+  return *this->editManager;
 }
 
 
-const JuceTransport& Context::getTransport() const noexcept
+const class Synchronizer& Context::getSynchronizer() const noexcept
 {
-  return *this->transport;
+  return *this->synchronizer;
 }
 
-JuceTransport& Context::getTransport() noexcept
+class Synchronizer& Context::getSynchronizer() noexcept
 {
-  return *this->transport;
+  return *this->synchronizer;
 }
 
 

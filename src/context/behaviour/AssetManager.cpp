@@ -10,13 +10,13 @@ AssetManager::AssetManager(AbstractCoreContext& context)
 AssetManager::~AssetManager() = default;
 
 
-std::unique_ptr<JuceDrawable>
-AssetManager::getDrawableUnsafe(assets::ResourceIndex index)
+const JuceDrawable*
+AssetManager::getIconViewUnsafe(assets::ResourceIndex index)
 {
   auto& drawable = drawables[index];
   if (!drawable) drawable = assets::getIconAssetUnsafe(index);
 
-  return drawable->createCopy();
+  return drawable.get();
 }
 
 BLOOPER_NAMESPACE_END

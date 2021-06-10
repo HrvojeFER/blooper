@@ -16,6 +16,11 @@ class PropertyStorage :
   inline constexpr static auto mediaDirName = "media";
 
 
+  inline constexpr static auto propertiesKey = "properties";
+
+  BLOOPER_ID(propertiesId);
+
+
   explicit PropertyStorage(
       JuceString           name,
       AbstractCoreContext& context);
@@ -91,11 +96,21 @@ class PropertyStorage :
 
 
  private:
-  juce::File
+  std::unique_ptr<juce::File>
       cache,
       prefs,
 
       media;
+
+
+  [[maybe_unused]] JuceState
+  getProperties();
+
+  [[maybe_unused]] JuceState
+  getChild(te::SettingID childId);
+
+  [[maybe_unused]] JuceState
+  getGrandchild(te::SettingID childId, juce::StringRef grandchildName);
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertyStorage)

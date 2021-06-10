@@ -5,8 +5,27 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class TutorialComponent : public juce::Component
+class TutorialComponent : public ComponentBase
 {
+ public:
+  BLOOPER_STATE_ID(TutorialComponent);
+
+
+  struct Options
+  {
+  } options;
+
+  explicit TutorialComponent(
+      AbstractContext& context,
+      State            state,
+      Options          options = {});
+
+
+  [[maybe_unused]] void resized() override;
+
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TutorialComponent)
 };
 
 BLOOPER_NAMESPACE_END

@@ -27,12 +27,12 @@ getAsset(TId                       id,
 
 enum class IconAssetId : ResourceIndex
 {
-  // dev icons
+  // Special
 
   notImplementedIcon [[maybe_unused]] = 0,
 
 
-  // app icons
+  // App
 
   quit [[maybe_unused]] = 1000,
   save [[maybe_unused]] = 1001,
@@ -55,7 +55,7 @@ enum class IconAssetId : ResourceIndex
   toggleBrowserPanel [[maybe_unused]] = 1402,
 
 
-  // edit icons
+  // Edit
 
   del [[maybe_unused]] = 2000,
   cut [[maybe_unused]] = 2001,
@@ -69,15 +69,17 @@ enum class IconAssetId : ResourceIndex
   redo [[maybe_unused]] = 2201,
 
 
-  // transport icons
+  // Transport
 
   play [[maybe_unused]] = 3000,
   pause [[maybe_unused]] = 3001,
   stop [[maybe_unused]] = 3002,
   record [[maybe_unused]] = 3003,
 
+  monitor [[maybe_unused]] = 3100, // TODO
 
-  // track icons
+
+  // Track
 
   muteTrack [[maybe_unused]] = 4001,
   soloTrack [[maybe_unused]] = 4002,
@@ -90,11 +92,15 @@ enum class IconAssetId : ResourceIndex
   oneShotTrackMode [[maybe_unused]] = 4202,
   freeTrackMode [[maybe_unused]] = 4203,
 
+  clearTrack [[maybe_unused]] = 4300, // TODO
 
-  // parameter icons
+
+  // Parameter
 
   nudgeUp [[maybe_unused]] = 5000,
   nudgeDown [[maybe_unused]] = 5001,
+
+  elevate [[maybe_unused]] = 5100,
 };
 
 [[maybe_unused]] inline auto getIconAssetUnsafe(ResourceIndex index)

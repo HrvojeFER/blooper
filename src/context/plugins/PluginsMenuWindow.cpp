@@ -25,6 +25,14 @@ PluginsMenuWindow::PluginsMenuWindow(
 }
 
 
+// Window
+
+[[maybe_unused]] void PluginsMenuWindow::closeButtonPressed()
+{
+  delete this;
+}
+
+
 [[maybe_unused]] PluginsMenuWindow* showPluginsMenu(
     AbstractCoreContext&       context,
     PluginsMenuWindow::Options options)
