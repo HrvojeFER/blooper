@@ -24,6 +24,8 @@ PluginEditorWindow::PluginEditorWindow(
           this->getPluginRef(),
           PluginEditorComponent::Options{});
 
+  this->component->setBounds(this->getBounds());
+
   this->setContentNonOwned(
       this->component.get(),
       true);

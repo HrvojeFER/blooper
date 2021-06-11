@@ -413,7 +413,6 @@ class [[maybe_unused]] AbstractAnyCoreContext :
   [[maybe_unused, nodiscard]] virtual inline JuceFile&
   getRootDir() noexcept = 0;
 
-
   [[maybe_unused, nodiscard]] virtual inline const JuceFile&
   getProjectsDir() const noexcept = 0;
 
@@ -429,7 +428,6 @@ class [[maybe_unused]] AbstractAnyCoreContext :
 
   [[maybe_unused]] virtual void
   saveEngineSettings() = 0;
-
 
   [[maybe_unused, nodiscard]] virtual inline const JuceState&
   getSettings() const noexcept = 0;
@@ -524,13 +522,11 @@ class [[maybe_unused]] AbstractAnyContext :
   [[maybe_unused, nodiscard]] virtual inline JuceProjectRef
   getProjectRef() noexcept = 0;
 
-
   [[maybe_unused, nodiscard]] virtual inline const JuceState&
   getProjectSettings() const noexcept = 0;
 
   [[maybe_unused, nodiscard]] virtual inline JuceState&
   getProjectSettings() noexcept = 0;
-
 
   [[maybe_unused, nodiscard]] virtual inline const JuceState&
   getProjectState() const noexcept = 0;
@@ -993,7 +989,14 @@ class [[maybe_unused]] AnyComponentBase :
       : contextualBaseType(context),
         statefulBaseType(move(state))
   {
-    this->setLookAndFeel(&context.getLookAndFeel());
+    if constexpr (
+        decltype(isCoreContext(
+            meta::typeid_(this->getContext()))){})
+    {
+      this->setLookAndFeel(
+          std::addressof(
+              this->getContext().getLookAndFeel()));
+    }
   }
 };
 
@@ -1325,7 +1328,9 @@ class [[maybe_unused]] AnyWindowBase :
     this->setTitleBarTextCentred(true);
 
 
-    if constexpr (decltype(isCoreContext(meta::typeid_(this->getContext()))){})
+    if constexpr (
+        decltype(isCoreContext(
+            meta::typeid_(this->getContext()))){})
     {
       auto& lookAndFeel = this->getContext().getLookAndFeel();
 

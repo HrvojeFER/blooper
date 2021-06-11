@@ -10,6 +10,8 @@ class ProjectComponent : public ComponentBase
  public:
   BLOOPER_STATE_ID(ProjectComponent);
 
+  BLOOPER_ID(panelOpennessStateId);
+
 
   class Options
   {
@@ -21,9 +23,29 @@ class ProjectComponent : public ComponentBase
       JuceProjectRef   project = {},
       Options          options = {});
 
+  ~ProjectComponent() override;
+
 
  private:
+  JuceCached<JuceString> panelOpennessState;
+
   JuceProjectRef project;
+
+
+  JuceCached<double> bpm;
+
+  std::unique_ptr<juce::PropertyPanel> panel;
+
+
+  std::unique_ptr<juce::Label> name;
+
+  std::unique_ptr<juce::TextEditor> description;
+
+
+  // Component
+
+ public:
+  void resized() override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectComponent);

@@ -81,7 +81,7 @@ SettingsMenuComponent::SettingsMenuComponent(
 
   this->tabs =
       std::make_unique<juce::TabbedComponent>(
-          juce::TabbedButtonBar::Orientation::TabsAtLeft);
+          juce::TabbedButtonBar::Orientation::TabsAtTop);
 
   this->tabs->addTab(
       "Appearance",

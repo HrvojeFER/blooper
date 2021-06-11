@@ -44,7 +44,10 @@ BodyWindow::BodyWindow(
           .getDefaultMenuBarHeight());
 
 
-  setFullScreen(true);
+  if (this->windowState->isEmpty())
+  {
+    setFullScreen(true);
+  }
 }
 
 BodyWindow::~BodyWindow()

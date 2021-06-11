@@ -11,6 +11,19 @@ SettingsDevicesComponent::SettingsDevicesComponent(
           move(state)),
       options(move(options))
 {
+  DevicesMenuComponent::Options menuOptions{};
+
+  this->menu = std::make_unique<DevicesMenuComponent>(
+      this->getContext(),
+      this->getState().getOrCreateChildWithName(
+          DevicesMenuComponent::stateId,
+          nullptr),
+      move(menuOptions));
+
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->menu);
 }
 
 
@@ -18,6 +31,9 @@ SettingsDevicesComponent::SettingsDevicesComponent(
 
 [[maybe_unused]] void SettingsDevicesComponent::resized()
 {
+  auto availableArea = this->getLocalBounds();
+
+  this->menu->setBounds(availableArea);
 }
 
 

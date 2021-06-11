@@ -105,8 +105,6 @@ BLOOPER_NAMESPACE_BEGIN
     if (!this->isValidRow(row)) return;
 
     this->options.onOpen(projects[row]);
-
-    this->reloadProjects();
   };
 
 
@@ -258,8 +256,6 @@ void ProjectsMenuComponent::resized()
   if (!this->isValidRow(row)) return;
 
   this->options.onOpen(projects[row]);
-
-  this->reloadProjects();
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::deleteKeyPressed(

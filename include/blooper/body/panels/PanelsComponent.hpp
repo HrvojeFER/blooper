@@ -55,6 +55,7 @@ class PanelsComponent :
   JuceCached<int> controlSurfacePanelSize;
   JuceCached<int> browserPanelSize;
 
+  JuceState appearanceSettings;
   JuceCached<bool> masterTrackPanelOpen;
   JuceCached<bool> controlSurfacePanelOpen;
   JuceCached<bool> browserPanelOpen;

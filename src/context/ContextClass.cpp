@@ -138,8 +138,10 @@ void Context::saveEverything()
 {
   ScopedLock scopedLock(this->lock);
 
+  BLOOPER_ASSERT(this->loaded);
   BLOOPER_ASSERT(this->loadedEngine);
-  if (!this->loadedEngine) return;
+  if (!this->loaded ||
+      !this->loadedEngine) return;
 
   if (this->openProjectFilePath->isEmpty())
   {
@@ -155,23 +157,27 @@ void Context::saveEverything()
 
 void Context::pickProject()
 {
-  ProjectsMenuWindow::Options projectsMenuOptions{};
+  ProjectsMenuWindow::Options windowOptions;
 
-  projectsMenuOptions.onOpen =
+  windowOptions.onOpen =
       ([context = juce::WeakReference<Context>(this)](
            JuceProjectRef projectRef) {
         if (context.wasObjectDeleted()) return;
+
         context->reloadProjectAsync(move(projectRef));
       });
 
-  projectsMenuOptions.onCancel =
+  windowOptions.onCancel =
       ([context = juce::WeakReference<Context>(this)] {
         if (context.wasObjectDeleted()) return;
-        ScopedLock scopedLock(context->lock);
-        if (!context->loadedProject) context->options.quit();
+
+        {
+          ScopedLock scopedLock(context->lock);
+          if (!context->loadedProject) context->quitAsync();
+        }
       });
 
-  showProjectsMenu(*this, move(projectsMenuOptions));
+  showProjectsMenu(*this, move(windowOptions));
 }
 
 
@@ -663,6 +669,7 @@ void Context::loadUnsafe()
 
   this->commandManager = std::make_unique<JuceCommandManager>();
   this->commandTargets.clear();
+  this->commandManager->registerAllCommandsForTarget(this);
   this->commandManager->setFirstCommandTarget(this);
 
   this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
@@ -741,6 +748,16 @@ void Context::loadEngineUnsafe(JuceString name)
 
 void Context::unloadEngineUnsafe()
 {
+  {
+    auto stateXml = this->getState().createXml();
+    this->stateFile->setValue(
+        Context::fileKey,
+        stateXml.get());
+  }
+
+  this->stateFile->save();
+
+
   this->selectionManager.reset();
 
   this->engine->getTemporaryFileManager()
@@ -890,6 +907,16 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
 
 void Context::unloadProjectUnsafe()
 {
+  {
+    auto stateXml = this->getProjectState().createXml();
+    this->projectStateFile->setValue(
+        Context::fileKey,
+        stateXml.get());
+  }
+
+  this->projectStateFile->save();
+
+
   this->editManager.reset();
 
   this->synchronizer.reset();
@@ -998,6 +1025,11 @@ void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
 
       CommandId::nudgeUp,
       CommandId::nudgeDown);
+
+
+  for (const auto& target : this->commandTargets)
+    if (!target.wasObjectDeleted())
+      target->getAllCommands(commands);
 }
 
 void Context::getCommandInfo(JuceCommandId commandID, JuceCommandInfo& result)
@@ -1007,6 +1039,10 @@ void Context::getCommandInfo(JuceCommandId commandID, JuceCommandInfo& result)
       commandID);
 
   result.setActive(true);
+
+  for (const auto& target : this->commandTargets)
+    if (!target.wasObjectDeleted())
+      target->getCommandInfo(commandID, result);
 }
 
 bool Context::perform(const JuceCommand& command)
@@ -1246,6 +1282,16 @@ bool Context::perform(const JuceCommand& command)
       return true;
 
 
+    case CommandId::toggleMonitoring:
+      {
+        auto& deviceManager = this->getEngine().getDeviceManager();
+        for (int i = 0; i < deviceManager.getNumInputDevices(); ++i)
+          if (auto input = deviceManager.getInputDevice(i))
+            input->flipEndToEnd();
+        return true;
+      }
+
+
       // Track
 
     case CommandId::muteTrack:
@@ -1258,12 +1304,14 @@ bool Context::perform(const JuceCommand& command)
       return true;
 
     case CommandId::soloTrack:
-      this->getEditManager().soloed =
-          this->getEngine()
-              .getUIBehaviour()
-              .getCurrentlyFocusedSelectionManager()
-              ->getFirstItemOfType<EditTrack>()
-              ->getId();
+      if (auto track =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedSelectionManager()
+                  ->getFirstItemOfType<EditTrack>())
+      {
+        this->getEditManager().soloed = track->getId();
+      }
       return true;
 
     case CommandId::armTrack:
@@ -1274,15 +1322,6 @@ bool Context::perform(const JuceCommand& command)
                ->getItemsOfType<EditTrack>())
         util::toggle(track->armed);
       return true;
-
-    case CommandId::toggleMonitoring:
-      {
-        auto& deviceManager = this->getEngine().getDeviceManager();
-        for (int i = 0; i < deviceManager.getNumInputDevices(); ++i)
-          if (auto input = deviceManager.getInputDevice(i))
-            input->flipEndToEnd();
-        return true;
-      }
 
 
       // Parameter

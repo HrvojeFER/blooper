@@ -393,12 +393,12 @@ class Context :
 
 const State& Context::getState() const noexcept
 {
-  return state;
+  return this->state;
 }
 
 State& Context::getState() noexcept
 {
-  return state;
+  return this->state;
 }
 
 
@@ -458,7 +458,7 @@ JuceLogger& Context::getLogger() noexcept
 
 void Context::log(const JuceString& message)
 {
-  BLOOPER_ASSERT(this->loadedEngine);
+  BLOOPER_ASSERT(this->loaded);
 
   this->logger->logMessage(message);
 }
@@ -500,7 +500,7 @@ void Context::registerCommandTarget(JuceCommandTarget* target)
   if (!target) return;
 
   this->commandTargets.add(target);
-  this->getCommandManager().registerAllCommandsForTarget(this);
+  this->commandManager->registerAllCommandsForTarget(target);
 }
 
 void Context::unregisterCommandTarget(JuceCommandTarget* target)
@@ -508,6 +508,7 @@ void Context::unregisterCommandTarget(JuceCommandTarget* target)
   if (!target) return;
 
   this->commandTargets.removeFirstMatchingValue(target);
+  this->commandManager->commandStatusChanged();
 }
 
 

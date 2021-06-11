@@ -19,15 +19,17 @@ ProjectWindow::ProjectWindow(
 
   ProjectComponent::Options componentOptions{};
 
-  setContentOwned(
-      new ProjectComponent(
-          getContext(),
-          getState().getOrCreateChildWithName(
-              ProjectsMenuComponent::stateId,
-              nullptr),
-          project,
-          move(componentOptions)),
-      true);
+  auto component = new ProjectComponent(
+      getContext(),
+      getState().getOrCreateChildWithName(
+          ProjectsMenuComponent::stateId,
+          nullptr),
+      project,
+      move(componentOptions));
+
+  component->setBounds(this->getBounds());
+
+  setContentOwned(component, true);
 }
 
 

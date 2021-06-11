@@ -21,6 +21,10 @@ class SettingsDevicesComponent : public CoreComponentBase
       Options              options = {});
 
 
+ private:
+  std::unique_ptr<class DevicesMenuComponent> menu;
+
+
   // Component
 
  public:

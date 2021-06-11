@@ -14,13 +14,18 @@ SettingsMenuWindow::SettingsMenuWindow(
 {
   SettingsMenuComponent::Options componentOptions{};
 
-  setContentOwned(
+  auto component =
       new SettingsMenuComponent(
           getContext(),
           getState().getOrCreateChildWithName(
               stateId,
               nullptr),
-          move(componentOptions)),
+          move(componentOptions));
+
+  component->setBounds(this->getBounds());
+
+  setContentOwned(
+      component,
       true);
 }
 

@@ -13,13 +13,18 @@ DevicesMenuWindow::DevicesMenuWindow(
 
       options(move(options))
 {
-  setContentOwned(
-      new DevicesMenuComponent(
-          getContext(),
-          getState().getOrCreateChildWithName(
-              DevicesMenuComponent::stateId,
-              nullptr)),
-      true);
+  DevicesMenuComponent::Options componentOptions{};
+
+  auto component = new DevicesMenuComponent(
+      getContext(),
+      getState().getOrCreateChildWithName(
+          DevicesMenuComponent::stateId,
+          nullptr),
+      move(componentOptions));
+
+  component->setBounds(this->getBounds());
+
+  setContentOwned(component, true);
 }
 
 

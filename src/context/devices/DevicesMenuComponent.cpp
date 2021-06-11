@@ -7,11 +7,14 @@ DevicesMenuComponent::DevicesMenuComponent(
     State                state,
     Options              options)
     : CoreComponentBase(context, move(state)),
+      options(move(options))
+{
+  auto& manager = getContext().getEngine().getDeviceManager();
+  auto& deviceManager = manager.deviceManager;
 
-      options(move(options)),
-
-      selector(
-          getContext().getEngine().getDeviceManager().deviceManager,
+  this->selector =
+      std::make_unique<juce::AudioDeviceSelectorComponent>(
+          deviceManager,
           0,
           512,
           1,
@@ -19,8 +22,11 @@ DevicesMenuComponent::DevicesMenuComponent(
           false,
           false,
           true,
-          true)
-{
+          true);
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->selector);
 }
 
 
@@ -28,7 +34,7 @@ void DevicesMenuComponent::resized()
 {
   auto availableArea = getLocalBounds();
 
-  selector.setBounds(availableArea);
+  selector->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END

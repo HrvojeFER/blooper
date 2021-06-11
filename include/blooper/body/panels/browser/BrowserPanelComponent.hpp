@@ -24,6 +24,8 @@ class BrowserPanelComponent :
       Options          options = {});
 
 
+  void paint(JuceGraphics&) override;
+
   void resized() override;
 
 

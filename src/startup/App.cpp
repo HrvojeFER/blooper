@@ -84,11 +84,18 @@ void App::initialise(const juce::String&)
         app->bodyWindow.reset();
       });
 
+  options.onEngineUnload =
+      ([app = juce::WeakReference<App>(this)] {
+        if (app.wasObjectDeleted()) return;
+
+        ext::visitWindows([](auto window) { delete window; });
+      });
+
   options.afterEngineUnload =
       ([app = juce::WeakReference<App>(this)] {
         if (app.wasObjectDeleted()) return;
 
-        app->closeAllModalWindowsAsync([app] {
+        app->closeAllModalComponentsAsync([app] {
           if (app.wasObjectDeleted()) return;
 
           app->context->unloadAsync();

@@ -11,11 +11,17 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
           move(state)),
       options(move(options))
 {
+  auto undoManager =
+      std::addressof(
+          this->getContext().getUndoManager());
+
+
   this->panelOpennessState.referTo(
       this->getState(),
       SettingsAppearanceComponent::panelOpennessStateId,
       nullptr,
       "");
+
 
   this->settingsRoot =
       this->getContext()
@@ -25,34 +31,53 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
               nullptr);
 
 
-  this->panel = std::make_unique<juce::PropertyPanel>("Appearance");
+  ext::referTo(
+      this->masterTrackPanelSize,
+      this->settingsRoot,
+      id::masterTrackPanelSize,
+      undoManager,
+      100);
 
-  auto undoManager =
-      std::addressof(
-          this->getContext().getUndoManager());
+  ext::referTo(
+      this->controlSurfacePanelSize,
+      this->settingsRoot,
+      id::controlSurfacePanelSize,
+      undoManager,
+      100);
+
+  ext::referTo(
+      this->browserPanelSize,
+      this->settingsRoot,
+      id::browserPanelSize,
+      undoManager,
+      100);
+
+  ext::referTo(
+      this->trackSize,
+      this->settingsRoot,
+      id::trackSize,
+      undoManager,
+      100);
+
+
+  this->panel = std::make_unique<juce::PropertyPanel>("Appearance");
 
   this->panel->addSection(
       "Panels",
       {new juce::SliderPropertyComponent(
-           settingsRoot.getPropertyAsValue(
-               id::masterTrackPanelSize,
-               undoManager),
+           this->masterTrackPanelSize.getPropertyAsValue(),
            "Master Track Panel size",
            50,
            500,
            1),
        new juce::SliderPropertyComponent(
-           settingsRoot.getPropertyAsValue(
-               id::controlSurfacePanelSize,
-               undoManager),
+           this->controlSurfacePanelSize.getPropertyAsValue(),
            "Control surface Panel size",
            50,
            500,
            1),
        new juce::SliderPropertyComponent(
-           settingsRoot.getPropertyAsValue(
-               id::browserPanelSize,
-               undoManager),
+           this->browserPanelSize.getPropertyAsValue(),
            "Browser Panel size",
            50,
            500,
@@ -64,9 +89,7 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
   this->panel->addSection(
       "Tracks",
       {new juce::SliderPropertyComponent(
-          settingsRoot.getPropertyAsValue(
-              id::trackSize,
-              undoManager),
+          this->trackSize.getPropertyAsValue(),
           "Track size",
           50,
           500,
@@ -74,6 +97,12 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
       true,
       -1,
       2);
+
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->panel);
+
 
   if (this->panelOpennessState->isNotEmpty())
   {

@@ -9,6 +9,8 @@ class Synchronizer :
     public ContextualBase,
     public StatefulBase,
 
+    public juce::ChangeBroadcaster,
+
     private juce::Timer
 {
  public:
@@ -27,11 +29,29 @@ class Synchronizer :
   ~Synchronizer() override;
 
 
-  Token every(Interval _, Callback _do);
+  [[maybe_unused, nodiscard]] inline double
+  getBpm() const noexcept;
 
-  Token on(Delay _, Callback _do);
 
-  void cancel(Token messageToken);
+  [[maybe_unused]] void everyAsync(
+      Interval             _,
+      Callback             _do,
+      std::weak_ptr<Token> tokenOut = {});
+
+  [[maybe_unused]] void onAsync(
+      Delay                _,
+      Callback             _do,
+      std::weak_ptr<Token> tokenOut = {});
+
+  [[maybe_unused]] void cancelAsync(
+      Token messageToken);
+
+
+  [[maybe_unused]] Token every(Interval _, Callback _do);
+
+  [[maybe_unused]] Token on(Delay _, Callback _do);
+
+  [[maybe_unused]] void cancel(Token messageToken);
 
 
  private:
@@ -51,7 +71,6 @@ class Synchronizer :
 
   using MessageCollection = std::vector<Message>;
 
-  // This scenario is perfect for a spinlock
   using Lock = juce::SpinLock;
   using ScopedLock = Lock::ScopedLockType;
 
@@ -80,16 +99,32 @@ class Synchronizer :
   inline void cycle() noexcept;
 
 
+  inline void restartTimer() noexcept;
+
+
+  // ValueTreeListener
+
+ private:
+  void valueTreePropertyChanged(
+      juce::ValueTree&        tree,
+      const juce::Identifier& id) override;
+
+
   // Timer
 
  private:
-  void
-  timerCallback() override;
+  void timerCallback() override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Synchronizer)
   JUCE_DECLARE_WEAK_REFERENCEABLE(Synchronizer)
 };
+
+
+double Synchronizer::getBpm() const noexcept
+{
+  return this->bpm;
+}
 
 
 const Synchronizer::Lock& Synchronizer::getLock() const noexcept
@@ -131,6 +166,15 @@ void Synchronizer::cycle() noexcept
   constexpr Tick mask = 63;
 
   this->currentTick = (this->currentTick + 1) & mask;
+}
+
+
+void Synchronizer::restartTimer() noexcept
+{
+  this->stopTimer();
+  this->startTimer(
+      static_cast<int>(
+          (1000 * 60) / (this->bpm * 4)));
 }
 
 BLOOPER_NAMESPACE_END

@@ -10,8 +10,8 @@ class ProjectPanelComponent : public ComponentBase
  public:
   BLOOPER_STATE_ID(ProjectPanelComponent);
 
-  BLOOPER_ID(editScrollRangeStart);
-  BLOOPER_ID(editScrollRangeEnd);
+  BLOOPER_ID(editScrollRangeStartId);
+  BLOOPER_ID(editScrollRangeEndId);
 
 
   struct Options
@@ -26,10 +26,17 @@ class ProjectPanelComponent : public ComponentBase
   ~ProjectPanelComponent() override;
 
 
+  void paint(JuceGraphics&) override;
+
   void resized() override;
 
 
  private:
+  JuceCached<double>
+      editScrollRangeStart,
+      editScrollRangeEnd;
+
+
   std::unique_ptr<class ProjectContentComponent> content;
 
   std::unique_ptr<juce::Viewport> viewport;

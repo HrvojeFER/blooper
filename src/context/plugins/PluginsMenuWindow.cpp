@@ -14,14 +14,16 @@ PluginsMenuWindow::PluginsMenuWindow(
 {
   PluginsMenuComponent::Options componentOptions{};
 
-  setContentOwned(
-      new PluginsMenuComponent(
-          getContext(),
-          getState().getOrCreateChildWithName(
-              PluginsMenuComponent::stateId,
-              nullptr),
-          move(componentOptions)),
-      true);
+  auto component = new PluginsMenuComponent(
+      getContext(),
+      getState().getOrCreateChildWithName(
+          PluginsMenuComponent::stateId,
+          nullptr),
+      move(componentOptions));
+
+  component->setBounds(this->getBounds());
+
+  setContentOwned(component, true);
 }
 
 

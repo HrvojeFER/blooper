@@ -95,9 +95,9 @@ EditTrack::~EditTrack()
 {
   te::EditFileOperations(*this->edit)
       .save(
+          false,
           true,
-          true,
-          true);
+          false);
 
   this->notifyListenersOfDeletion();
 }

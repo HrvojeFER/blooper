@@ -11,27 +11,35 @@ PanelsComponent::PanelsComponent(
           move(state)),
       options(move(options))
 {
-  auto& settings = this->getContext().getSettings();
-  settings.addListener(this);
-  this->getContext().registerCommandTarget(this);
+  this->appearanceSettings =
+      this->getContext()
+          .getSettings()
+          .getOrCreateChildWithName(
+              id::appearance,
+              nullptr);
+
+  auto undoManager =
+      std::addressof(
+          this->getContext().getUndoManager());
 
 
-  auto undoManager = std::addressof(this->getContext().getUndoManager());
-
-  this->masterTrackPanelSize.referTo(
-      settings,
+  ext::referTo(
+      this->masterTrackPanelSize,
+      this->appearanceSettings,
       id::masterTrackPanelSize,
       undoManager,
       PanelsComponent::defaultMasterTrackPanelSize);
 
-  this->controlSurfacePanelSize.referTo(
-      settings,
+  ext::referTo(
+      this->controlSurfacePanelSize,
+      this->appearanceSettings,
       id::controlSurfacePanelSize,
       undoManager,
       PanelsComponent::defaultControlSurfacePanelSize);
 
-  this->browserPanelSize.referTo(
-      settings,
+  ext::referTo(
+      this->browserPanelSize,
+      this->appearanceSettings,
       id::browserPanelSize,
       undoManager,
       PanelsComponent::defaultBrowserPanelSize);
@@ -98,13 +106,18 @@ PanelsComponent::PanelsComponent(
       *this,
       *this->projectPanel,
       *this->masterTrackPanel,
-      *this->controlSurfacePanel);
+      *this->controlSurfacePanel,
+      *this->browserPanel);
+
+
+  this->appearanceSettings.addListener(this);
+  this->getContext().registerCommandTarget(this);
 }
 
 PanelsComponent::~PanelsComponent()
 {
   this->getContext().unregisterCommandTarget(this);
-  this->getContext().getSettings().removeListener(this);
+  this->appearanceSettings.removeListener(this);
 }
 
 
@@ -117,25 +130,31 @@ void PanelsComponent::resized()
   if (this->controlSurfacePanelOpen)
   {
     this->controlSurfacePanel->setBounds(
-        availableArea.removeFromBottom(
-            this->controlSurfacePanelSize));
+        availableArea
+            .removeFromBottom(
+                this->controlSurfacePanelSize)
+            .reduced(2));
   }
 
   if (this->masterTrackPanelOpen)
   {
     this->masterTrackPanel->setBounds(
-        availableArea.removeFromRight(
-            this->masterTrackPanelSize));
+        availableArea
+            .removeFromRight(
+                this->masterTrackPanelSize)
+            .reduced(2));
   }
 
   if (this->browserPanelOpen)
   {
     this->browserPanel->setBounds(
-        availableArea.removeFromLeft(
-            this->browserPanelSize));
+        availableArea
+            .removeFromLeft(
+                this->browserPanelSize)
+            .reduced(2));
   }
 
-  this->projectPanel->setBounds(availableArea);
+  this->projectPanel->setBounds(availableArea.reduced(2));
 }
 
 
@@ -145,17 +164,36 @@ void PanelsComponent::resized()
     juce::ValueTree&        tree,
     const juce::Identifier& id)
 {
-  if (tree == this->getState() &&
-      (id == PanelsComponent::masterTrackPanelOpenId ||
-       id == PanelsComponent::controlSurfacePanelOpenId ||
-       id == PanelsComponent::browserPanelOpenId))
-    this->resized();
+  if (tree == this->getState())
+  {
+    if (id == PanelsComponent::masterTrackPanelOpenId)
+    {
+      this->masterTrackPanel->setVisible(
+          this->masterTrackPanelOpen);
+    }
+    else if (id == PanelsComponent::controlSurfacePanelOpenId)
+    {
+      this->controlSurfacePanel->setVisible(
+          this->controlSurfacePanelOpen);
+    }
+    else if (id == PanelsComponent::browserPanelOpenId)
+    {
+      this->browserPanel->setVisible(
+          this->browserPanelOpen);
+    }
 
-  if (tree == this->getContext().getSettings() &&
-      (id == id::masterTrackPanelSize ||
-       id == id::controlSurfacePanelSize ||
-       id == id::browserPanelSize))
     this->resized();
+  }
+
+  else if (tree == this->appearanceSettings)
+  {
+    if (id == id::masterTrackPanelSize ||
+        id == id::controlSurfacePanelSize ||
+        id == id::browserPanelSize)
+    {
+      this->resized();
+    }
+  }
 }
 
 
@@ -178,6 +216,8 @@ void PanelsComponent::getAllCommands(juce::Array<JuceCommandId>& commands)
 void PanelsComponent::getCommandInfo(JuceCommandId id, JuceCommandInfo& info)
 {
   fillCommandInfo(info, id);
+
+  info.setActive(true);
 }
 
 bool PanelsComponent::perform(const JuceCommand& command)
@@ -185,15 +225,15 @@ bool PanelsComponent::perform(const JuceCommand& command)
   switch (command.commandID)
   {
     case CommandId::toggleMasterTrackPanel:
-      this->masterTrackPanelOpen = !this->masterTrackPanelOpen;
+      util::toggle(this->masterTrackPanelOpen);
       return true;
 
     case CommandId::toggleControlSurfacePanel:
-      this->controlSurfacePanelOpen = !this->controlSurfacePanelOpen;
+      util::toggle(this->controlSurfacePanelOpen);
       return true;
 
     case CommandId::toggleBrowserPanel:
-      this->browserPanelOpen = !this->browserPanelOpen;
+      util::toggle(this->browserPanelOpen);
       return true;
 
     default:

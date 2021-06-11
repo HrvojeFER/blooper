@@ -10,6 +10,8 @@ BLOOPER_NAMESPACE_BEGIN
       StatefulBase(move(state)),
       options(move(options))
 {
+  this->setApplicationCommandManagerToWatch(
+      std::addressof(this->getContext().getCommandManager()));
 }
 
 

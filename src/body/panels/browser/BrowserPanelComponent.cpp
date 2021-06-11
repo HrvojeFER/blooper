@@ -40,13 +40,26 @@ BrowserPanelComponent::BrowserPanelComponent(
 }
 
 
+// Component
+
+void BrowserPanelComponent::paint(JuceGraphics& g)
+{
+  g.setColour(juce::Colours::whitesmoke);
+
+  g.drawRect(
+      this->getLocalBounds().reduced(2),
+      2);
+}
+
 void BrowserPanelComponent::resized()
 {
-  const auto availableArea = this->getLocalBounds();
+  auto availableArea = this->getLocalBounds().reduced(6);
 
   this->browser->setBounds(availableArea);
 }
 
+
+// FileBrowserListener
 
 void BrowserPanelComponent::selectionChanged()
 {

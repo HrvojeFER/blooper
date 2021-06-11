@@ -178,6 +178,23 @@ template<typename TPredicate>
   return state;
 }
 
+template<typename T, typename TDef = T>
+[[maybe_unused]] inline auto referTo(
+    juce::CachedValue<T>&  value,
+    juce::ValueTree&       tree,
+    const juce::Identifier id,
+    juce::UndoManager*     undo = nullptr,
+    const TDef&            def = {})
+    -> decltype(auto)
+{
+  value.referTo(tree, id, undo, def);
+
+  if (value.get() == def)
+  {
+    value.setValue(def, nullptr);
+  }
+}
+
 BLOOPER_EXT_NAMESPACE_END
 
 #endif // BLOOPER_EXT_VALUE_TREE_HPP

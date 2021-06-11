@@ -21,6 +21,8 @@ class MasterPanelComponent : public ComponentBase
       Options          options = {});
 
 
+  void paint(JuceGraphics&) override;
+
   void resized() override;
 
 

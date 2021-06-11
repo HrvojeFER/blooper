@@ -13,12 +13,23 @@ ProjectContentComponent::ProjectContentComponent(
 
       updateTracks(false)
 {
-  auto undoManager = std::addressof(this->getContext().getUndoManager());
-  this->trackSize.referTo(
-      this->getContext().getSettings(),
+  auto undoManager = this->getContext().getUndoManagerPtr();
+
+
+  this->appearanceSettings =
+      this->getContext()
+          .getSettings()
+          .getOrCreateChildWithName(
+              id::appearance,
+              nullptr);
+
+  ext::referTo(
+      this->trackSize,
+      this->appearanceSettings,
       id::trackSize,
       undoManager,
       ProjectContentComponent::defaultTrackSize);
+
 
   this->buildTracks();
 
@@ -82,7 +93,7 @@ void ProjectContentComponent::resizeTracks()
 
 void ProjectContentComponent::resized()
 {
-  auto availableArea = this->getLocalBounds();
+  auto availableArea = this->getLocalBounds().reduced(6);
   auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
 
   for (auto component : this->trackComponents)

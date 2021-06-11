@@ -17,16 +17,12 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 
   componentOptions.onOpen = [this](auto ref) {
     this->options.onOpen(move(ref));
-
-    if (this->isCurrentlyModal())
-      this->exitModalState(0);
+    delete this;
   };
 
   componentOptions.onCancel = [this] {
     this->options.onCancel();
-
-    if (this->isCurrentlyModal())
-      this->exitModalState(0);
+    delete this;
   };
 
   auto component =
@@ -37,11 +33,7 @@ ProjectsMenuWindow::ProjectsMenuWindow(
               nullptr),
           componentOptions);
 
-  component->setBounds(
-      0,
-      0,
-      this->getWidth(),
-      this->getHeight());
+  component->setBounds(this->getBounds());
 
   setContentOwned(
       component,
@@ -54,6 +46,7 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 [[maybe_unused]] void ProjectsMenuWindow::closeButtonPressed()
 {
   this->options.onCancel();
+  delete this;
 }
 
 
@@ -61,6 +54,12 @@ ProjectsMenuWindow::ProjectsMenuWindow(
     AbstractCoreContext&        context,
     ProjectsMenuWindow::Options options)
 {
+  ext::visitWindows([](auto window) {
+    // idk why this warning
+    if (auto projectsWindow = dynamic_cast<ProjectsMenuWindow*>(window))
+      delete projectsWindow;
+  });
+
   auto window =
       new ProjectsMenuWindow(
           context,
@@ -70,10 +69,7 @@ ProjectsMenuWindow::ProjectsMenuWindow(
                   nullptr),
           move(options));
 
-  window->enterModalState(
-      true,
-      nullptr,
-      true);
+  window->setVisible(true);
 
   return window;
 }

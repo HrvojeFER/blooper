@@ -84,11 +84,11 @@ EditTrackRef EditManager::add(
     auto track =
         new EditTrack(
             this->getContext(),
-            move(editChild),
+            editChild,
             move(item));
 
     this->edits.emplace(id, track);
-    this->getState().appendChild(editChild, undoManager);
+    this->getState().appendChild(move(editChild), undoManager);
     return track;
   }
   else

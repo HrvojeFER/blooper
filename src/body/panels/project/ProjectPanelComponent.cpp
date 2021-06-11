@@ -24,7 +24,7 @@ ProjectPanelComponent::ProjectPanelComponent(
 
   this->viewport =
       std::make_unique<juce::Viewport>(
-          "ProjectPanel");
+          "Project Panel");
 
   this->viewport->setLookAndFeel(
       std::addressof(this->getLookAndFeel()));
@@ -42,42 +42,66 @@ ProjectPanelComponent::ProjectPanelComponent(
   this->viewport->setScrollOnDragEnabled(
       true);
 
-  auto& projectState = this->getContext().getProjectState();
-
-  juce::Range<double> scrollRange{
-      projectState.getProperty(ProjectPanelComponent::editScrollRangeStart),
-      projectState.getProperty(ProjectPanelComponent::editScrollRangeEnd)};
-
-  this->viewport->getHorizontalScrollBar().setCurrentRange(scrollRange);
-
 
   ext::addAndMakeVisible(
       *this,
       *this->viewport);
+
+
+  ext::referTo(
+      this->editScrollRangeStart,
+      this->getState(),
+      ProjectPanelComponent::editScrollRangeStartId,
+      nullptr,
+      0);
+
+  ext::referTo(
+      this->editScrollRangeEnd,
+      this->getState(),
+      ProjectPanelComponent::editScrollRangeEndId,
+      nullptr,
+      0);
+
+  if (this->editScrollRangeStart == 0 && this->editScrollRangeEnd == 0)
+  {
+    this->viewport->getHorizontalScrollBar()
+        .scrollToBottom(
+            juce::sendNotificationAsync);
+  }
+  else
+  {
+    this->viewport->getHorizontalScrollBar().setCurrentRange(
+        {this->editScrollRangeStart.get(),
+         this->editScrollRangeEnd.get()},
+        juce::sendNotificationAsync);
+  }
 }
 
 ProjectPanelComponent::~ProjectPanelComponent()
 {
-  auto& projectState = this->getContext().getProjectState();
-
   auto currentScrollRange =
-      this->viewport->getHorizontalScrollBar().getCurrentRange();
+      this->viewport->getHorizontalScrollBar()
+          .getCurrentRange();
 
-  projectState.setProperty(
-      ProjectPanelComponent::editScrollRangeStart,
-      currentScrollRange.getStart(),
-      nullptr);
-
-  projectState.setProperty(
-      ProjectPanelComponent::editScrollRangeEnd,
-      currentScrollRange.getEnd(),
-      nullptr);
+  this->editScrollRangeStart = currentScrollRange.getStart();
+  this->editScrollRangeEnd = currentScrollRange.getEnd();
 }
 
 
+// Component
+
+void ProjectPanelComponent::paint(JuceGraphics& g)
+{
+  g.setColour(juce::Colours::whitesmoke);
+
+  g.drawRect(
+      this->getLocalBounds().reduced(2),
+      2);
+}
+
 void ProjectPanelComponent::resized()
 {
-  auto availableArea = this->getLocalBounds();
+  const auto availableArea = this->getLocalBounds().reduced(6);
 
   this->viewport->setBounds(availableArea);
 }

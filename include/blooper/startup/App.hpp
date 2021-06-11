@@ -41,7 +41,7 @@ class App : public juce::JUCEApplication
 
 
   template<typename TOnClose>
-  void closeAllModalWindowsAsync(TOnClose onClose);
+  void closeAllModalComponentsAsync(TOnClose onClose);
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(App)
@@ -50,11 +50,12 @@ class App : public juce::JUCEApplication
 
 
 template<typename TOnClose>
-void App::closeAllModalWindowsAsync(TOnClose onClose)
+void App::closeAllModalComponentsAsync(TOnClose onClose)
 {
   static_assert(
       isCallback(meta::typeid_(onClose)),
-      "onClose passed to closeAllModalWindowsAsync has to satisfy Callback.");
+      "onClose passed to closeAllModalComponentsAsync has to "
+      "satisfy Callback.");
 
 
   if (juce::ModalComponentManager::getInstance()->cancelAllModalComponents())
@@ -64,7 +65,7 @@ void App::closeAllModalWindowsAsync(TOnClose onClose)
         [app = juce::WeakReference<App>(this),
          onClose = move(onClose)]() {
           if (app.wasObjectDeleted()) return;
-          app->closeAllModalWindowsAsync(move(onClose));
+          app->closeAllModalComponentsAsync(move(onClose));
         });
   }
   else

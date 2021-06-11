@@ -25,7 +25,7 @@ class DevicesMenuComponent : public CoreComponentBase
 
 
  private:
-  juce::AudioDeviceSelectorComponent selector;
+  std::unique_ptr<juce::AudioDeviceSelectorComponent> selector;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevicesMenuComponent)

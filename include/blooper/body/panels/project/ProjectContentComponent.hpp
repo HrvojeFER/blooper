@@ -33,7 +33,10 @@ class ProjectContentComponent :
 
 
  private:
+  JuceState appearanceSettings;
+
   JuceCached<int> trackSize;
+
 
   JuceFlag updateTracks;
 

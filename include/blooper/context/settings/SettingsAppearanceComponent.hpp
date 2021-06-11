@@ -37,6 +37,15 @@ class SettingsAppearanceComponent : public CoreComponentBase
 
   JuceValueTree settingsRoot;
 
+  JuceCached<double>
+      masterTrackPanelSize,
+      controlSurfacePanelSize,
+      browserPanelSize;
+
+  JuceCached<double>
+      trackSize;
+
+
   std::unique_ptr<juce::PropertyPanel> panel;
 
 
