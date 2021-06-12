@@ -194,12 +194,26 @@ if (BLOOPER_BUILD_STANDALONE)
             JUCE_APPLICATION_NAME_STRING="${PROJECT_NAME}"
             JUCE_APPLICATION_VERSION_STRING="${PROJECT_VERSION}")
 
-    # inheritance via dominance
+    # TODO add these to Env
     if (ENV_MSVC)
+        # speed up:
+        # https://devblogs.microsoft.com/cppblog/recommendations-to-speed-c-builds-in-visual-studio/
+
         env_target_safely_compile_with(
                 standalone
                 PRIVATE
-                "/wd4250")
+                # inheritance via dominance
+                "/wd4250"
+                # multiprocess compilation
+                "/MP9")
+
+        env_target_link_with(
+                standalone
+                PRIVATE
+                # speed up linking
+                "/incremental"
+                # speed up for debug file generation
+                "/debug:fastlink")
     endif ()
 
     env_target_set_bin_output(

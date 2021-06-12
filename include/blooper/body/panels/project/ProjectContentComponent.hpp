@@ -29,6 +29,8 @@ class ProjectContentComponent :
   ~ProjectContentComponent() override;
 
 
+  void paint(JuceGraphics& g) override;
+
   void resized() override;
 
 

@@ -230,7 +230,7 @@ PluginTreeItem::PluginTreeItem(
       xmlType(move(xmlType)),
       isPlugin(isPlugin)
 {
-  jassert(xmlType.isNotEmpty());
+  BLOOPER_ASSERT(this->xmlType.isNotEmpty());
 
   description.pluginFormatName =
       (uniqueId.endsWith(builtinUniqueIdSuffix) ||

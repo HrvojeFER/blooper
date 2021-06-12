@@ -11,6 +11,93 @@ SettingsBehaviourComponent::SettingsBehaviourComponent(
           move(state)),
       options(move(options))
 {
+  auto undoManager =
+      std::addressof(
+          this->getContext().getUndoManager());
+
+
+  this->panelOpennessState.referTo(
+      this->getState(),
+      SettingsBehaviourComponent::panelOpennessStateId,
+      nullptr,
+      "");
+
+
+  this->settingsRoot =
+      this->getContext()
+          .getSettings()
+          .getOrCreateChildWithName(
+              id::behaviour,
+              nullptr);
+
+
+  const auto defaultRootBrowserFolder =
+      juce::File::getSpecialLocation(juce::File::userHomeDirectory)
+          .getFullPathName();
+
+  ext::referTo(
+      this->rootBrowserFolder,
+      this->settingsRoot,
+      id::rootBrowserFolder,
+      undoManager,
+      defaultRootBrowserFolder);
+
+
+  this->panel = std::make_unique<juce::PropertyPanel>("Behaviour");
+
+  this->panel->addSection(
+      "Browser",
+      {new util::FilePathPropertyComponent(
+          this->rootBrowserFolder.getPropertyAsValue(),
+          "Root folder",
+          true,
+          "*",
+          defaultRootBrowserFolder)},
+      true,
+      -1,
+      2);
+
+  this->panel->addSection(
+      "Tracks",
+      {},
+      true,
+      -1,
+      2);
+
+  this->panel->addSection(
+      "Master Track",
+      {},
+      true,
+      -1,
+      2);
+
+  this->panel->addSection(
+      "Control surface",
+      {},
+      true,
+      -1,
+      2);
+
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->panel);
+
+
+  if (this->panelOpennessState->isNotEmpty())
+  {
+    auto doc = JuceXmlDoc{this->panelOpennessState};
+    auto xml = doc.getDocumentElement();
+    this->panel->restoreOpennessState(*xml);
+  }
+}
+
+SettingsBehaviourComponent::~SettingsBehaviourComponent()
+{
+  {
+    auto xml = this->panel->getOpennessState();
+    this->panelOpennessState = xml->toString();
+  }
 }
 
 
@@ -18,6 +105,9 @@ SettingsBehaviourComponent::SettingsBehaviourComponent(
 
 [[maybe_unused]] void SettingsBehaviourComponent::resized()
 {
+  auto availableArea = this->getLocalBounds();
+
+  this->panel->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END

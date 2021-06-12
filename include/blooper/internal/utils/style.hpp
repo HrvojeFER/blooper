@@ -7,21 +7,26 @@
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
-enum class ColourId : JuceColourId
+namespace ColourId
 {
-  // TODO
+enum _ : JuceColourId
+{
+  none [[maybe_unused]] = 0,
+
+  panelBorderId [[maybe_unused]] =
 };
+}
 
 [[maybe_unused]] inline JuceColour findColour(
     const JuceLookAndFeel& from,
-    ColourId               id)
+    JuceColourId           id)
 {
   return from.findColour(static_cast<JuceColourId>(id));
 }
 
 [[maybe_unused]] inline JuceColour findColour(
     const JuceComponent& from,
-    ColourId             id,
+    JuceColourId         id,
     bool                 inheritFromParent = false)
 {
   return from.findColour(static_cast<JuceColourId>(id), inheritFromParent);

@@ -15,6 +15,25 @@ template<typename... TComponents>
   return (to.addAndMakeVisible(components), ...);
 }
 
+
+[[maybe_unused]] inline auto setHeight(
+    juce::Component& _for,
+    int              height)
+{
+  auto bounds = _for.getBounds();
+  bounds.setHeight(height);
+  _for.setBounds(move(bounds));
+}
+
+[[maybe_unused]] inline auto setWidth(
+    juce::Component& _for,
+    int              width)
+{
+  auto bounds = _for.getBounds();
+  bounds.setWidth(width);
+  _for.setBounds(move(bounds));
+}
+
 BLOOPER_EXT_NAMESPACE_END
 
 #endif // BLOOPER_EXT_COMPONENT_HPP

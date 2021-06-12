@@ -10,6 +10,8 @@ class SettingsBehaviourComponent : public CoreComponentBase
  public:
   BLOOPER_STATE_ID(SettingsBehaviourComponent);
 
+  BLOOPER_ID(panelOpennessStateId);
+
 
   struct Options
   {
@@ -19,6 +21,20 @@ class SettingsBehaviourComponent : public CoreComponentBase
       AbstractCoreContext& context,
       State                state,
       Options              options = {});
+
+  ~SettingsBehaviourComponent();
+
+
+ private:
+  JuceCached<JuceString> panelOpennessState;
+
+
+  JuceState settingsRoot;
+
+  JuceCached<JuceString> rootBrowserFolder;
+
+
+  std::unique_ptr<juce::PropertyPanel> panel;
 
 
   // Component

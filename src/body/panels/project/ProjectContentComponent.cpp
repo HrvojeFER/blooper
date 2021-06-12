@@ -53,16 +53,21 @@ ProjectContentComponent::~ProjectContentComponent()
 
 void ProjectContentComponent::resizeTracks()
 {
-  auto newBounds = this->getBounds();
-  newBounds.setWidth(this->trackSize * this->trackComponents.size());
-  this->setBounds(newBounds);
+  ext::setWidth(
+      *this,
+      this->trackSize *
+          this->trackComponents.size());
 }
 
 [[maybe_unused]] void ProjectContentComponent::buildTracks()
 {
   for (int i = 0; i < this->getChildren().size(); ++i)
+  {
     if (dynamic_cast<EditTrackComponent*>(this->getChildComponent(i)))
+    {
       this->removeChildComponent(i);
+    }
+  }
 
   this->trackComponents.clear();
 
@@ -83,7 +88,9 @@ void ProjectContentComponent::resizeTracks()
       });
 
   for (auto trackComponent : this->trackComponents)
+  {
     ext::addAndMakeVisible(*this, *trackComponent);
+  }
 
   this->resizeTracks();
 }
@@ -91,13 +98,35 @@ void ProjectContentComponent::resizeTracks()
 
 // Component
 
+void ProjectContentComponent::paint(JuceGraphics& g)
+{
+  auto availableArea = this->getLocalBounds().reduced(6);
+  auto trackWidth = this->trackSize.get();
+
+  g.setColour(juce::Colours::whitesmoke);
+
+  for (int i = 0; i < this->trackComponents.size(); ++i)
+  {
+    g.drawRect(
+        availableArea
+            .removeFromLeft(trackWidth)
+            .reduced(5),
+        1);
+  }
+}
+
 void ProjectContentComponent::resized()
 {
   auto availableArea = this->getLocalBounds().reduced(6);
-  auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
+  auto trackWidth = this->trackSize.get();
 
   for (auto component : this->trackComponents)
-    component->setBounds(availableArea.removeFromLeft(trackWidth));
+  {
+    component->setBounds(
+        availableArea
+            .removeFromLeft(trackWidth)
+            .reduced(10));
+  }
 }
 
 
@@ -107,7 +136,7 @@ void ProjectContentComponent::valueTreePropertyChanged(
     juce::ValueTree&        tree,
     const juce::Identifier& id)
 {
-  if (tree == this->getContext().getSettings())
+  if (tree == this->appearanceSettings)
   {
     if (id == id::trackSize)
     {
@@ -164,7 +193,9 @@ void ProjectContentComponent::valueTreeChildOrderChanged(
 void ProjectContentComponent::handleAsyncUpdate()
 {
   if (util::FlaggedAsyncUpdater::compareAndReset(this->updateTracks))
+  {
     this->buildTracks();
+  }
 }
 
 

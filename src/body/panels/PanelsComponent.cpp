@@ -51,13 +51,13 @@ PanelsComponent::PanelsComponent(
       undoManager,
       PanelsComponent::defaultMasterTrackPanelOpen);
 
-  this->controlSurfacePanelSize.referTo(
+  this->controlSurfacePanelOpen.referTo(
       this->getState(),
       PanelsComponent::controlSurfacePanelOpenId,
       undoManager,
       PanelsComponent::defaultControlSurfacePanelOpen);
 
-  this->browserPanelSize.referTo(
+  this->browserPanelOpen.referTo(
       this->getState(),
       PanelsComponent::browserPanelOpenId,
       undoManager,

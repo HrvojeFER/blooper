@@ -26,9 +26,6 @@ ProjectPanelComponent::ProjectPanelComponent(
       std::make_unique<juce::Viewport>(
           "Project Panel");
 
-  this->viewport->setLookAndFeel(
-      std::addressof(this->getLookAndFeel()));
-
   this->viewport->setViewedComponent(
       this->content.get(),
       false);
@@ -103,6 +100,7 @@ void ProjectPanelComponent::resized()
 {
   const auto availableArea = this->getLocalBounds().reduced(6);
 
+  ext::setHeight(*this->content, availableArea.getHeight());
   this->viewport->setBounds(availableArea);
 }
 
