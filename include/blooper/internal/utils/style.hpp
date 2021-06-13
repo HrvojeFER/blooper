@@ -28,11 +28,13 @@ enum _ : JuceColourId
   // Generic
 
   background [[maybe_unused]] = makeId(1000),
-  outline [[maybe_unused]] = makeId(1001),
+  foreground [[maybe_unused]] = makeId(1001),
+  highlight [[maybe_unused]] = makeId(1002),
 
-  cursor [[maybe_unused]] = makeId(1010),
+  outline [[maybe_unused]] = makeId(1010),
+  selection [[maybe_unused]] = makeId(1011),
 
-  selection [[maybe_unused]] = makeId(1020),
+  cursor [[maybe_unused]] = makeId(1020),
 
 
   // Coloured
@@ -97,16 +99,22 @@ enum _ : JuceColourId
     case ColourId::background:
       return "Background";
 
-    case ColourId::outline:
+    case ColourId::foreground:
       return "Foreground";
+
+    case ColourId::highlight:
+      return "Highlight";
+
+
+    case ColourId::outline:
+      return "Outline";
+
+    case ColourId::selection:
+      return "Selection";
 
 
     case ColourId::cursor:
       return "Cursor";
-
-
-    case ColourId::selection:
-      return "Selection";
 
 
       // Colours
@@ -178,11 +186,14 @@ enum _ : JuceColourId
 class AbstractTheme
 {
  public:
+  virtual ~AbstractTheme() = default;
+
+
   [[maybe_unused, nodiscard]] virtual bool
-      hasColour(JuceColourId) = 0;
+      hasColour(JuceColourId) const = 0;
 
   [[maybe_unused, nodiscard]] virtual JuceColour
-      getColour(JuceColourId) = 0;
+      getColour(JuceColourId) const = 0;
 };
 
 BLOOPER_NAMESPACE_END

@@ -137,7 +137,7 @@ BLOOPER_STATIC_ASSERT(
 
 // Component
 
-using JuceDektop [[maybe_unused]] = juce::Dektop;
+using JuceDektop [[maybe_unused]] = juce::Desktop;
 
 [[maybe_unused]] inline constexpr auto isJuceComponent =
     meta::reverse_partial(
