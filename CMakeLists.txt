@@ -114,7 +114,7 @@ env_add_dep(env env_export)
 file(GLOB_RECURSE
      __blooper_binaries
      CONFIGURE_DEPENDS
-     "${PROJECT_SOURCE_DIR}/assets/**.*")
+     "${PROJECT_SOURCE_DIR}/assets/static/**.*")
 
 if (BLOOPER_BUILD_STANDALONE)
     juce_add_binary_data(

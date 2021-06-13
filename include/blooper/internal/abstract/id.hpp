@@ -51,6 +51,9 @@ BLOOPER_ID(projects);
 
 // Appearance
 
+BLOOPER_ID(theme);
+BLOOPER_ID(themePath);
+
 BLOOPER_ID(trackSize);
 
 BLOOPER_ID(masterTrackPanelSize);

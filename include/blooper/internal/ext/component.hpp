@@ -34,6 +34,25 @@ template<typename... TComponents>
   _for.setBounds(move(bounds));
 }
 
+
+template<typename TOnComponent>
+[[maybe_unused]] inline void
+visitComponents(TOnComponent onComponent) noexcept(noexcept(onComponent(
+    std::declval<juce::Component*>())))
+{
+  static_assert(
+      isInvokeable(
+          meta::typeid_(onComponent),
+          meta::type_c<juce::Component*>),
+      "onComponent passed to visitComponents must satisfy Invokable with "
+      "juce::Component*.");
+
+  for (int i = 0; i < JuceDektop::getInstance().getNumComponents(); ++i)
+  {
+    onComponent(JuceDektop::getInstance().getComponent(i));
+  }
+}
+
 BLOOPER_EXT_NAMESPACE_END
 
 #endif // BLOOPER_EXT_COMPONENT_HPP

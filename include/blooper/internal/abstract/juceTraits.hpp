@@ -13,6 +13,7 @@ BLOOPER_NAMESPACE_BEGIN
 using JuceFlag [[maybe_unused]] = juce::Atomic<bool>;
 
 using JuceString [[maybe_unused]] = juce::String;
+using JuceStringRef [[maybe_unused]] = juce::StringRef;
 using JuceStringArray [[maybe_unused]] = juce::StringArray;
 
 template<typename TObject>
@@ -135,6 +136,8 @@ BLOOPER_STATIC_ASSERT(
 
 
 // Component
+
+using JuceDektop [[maybe_unused]] = juce::Dektop;
 
 [[maybe_unused]] inline constexpr auto isJuceComponent =
     meta::reverse_partial(
