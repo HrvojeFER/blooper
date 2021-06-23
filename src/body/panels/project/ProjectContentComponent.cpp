@@ -100,13 +100,23 @@ void ProjectContentComponent::resizeTracks()
 
 void ProjectContentComponent::paint(JuceGraphics& g)
 {
-  auto availableArea = this->getLocalBounds().reduced(6);
-  auto trackWidth = this->trackSize.get();
+  auto  availableArea = this->getLocalBounds().reduced(6);
+  auto  trackWidth = availableArea.getWidth() / this->trackComponents.size();
+  auto& selection = this->getContext().getSelectionManager();
 
-  g.setColour(juce::Colours::whitesmoke);
 
-  for (int i = 0; i < this->trackComponents.size(); ++i)
+  for (auto component : this->trackComponents)
   {
+    auto outlineColourId = ColourId::outline;
+    if (selection.isSelected(component->getTrack()))
+    {
+      outlineColourId = ColourId::selection;
+    }
+
+    g.setColour(
+        this->getLookAndFeel().findColour(
+            outlineColourId));
+
     g.drawRect(
         availableArea
             .removeFromLeft(trackWidth)
@@ -118,7 +128,7 @@ void ProjectContentComponent::paint(JuceGraphics& g)
 void ProjectContentComponent::resized()
 {
   auto availableArea = this->getLocalBounds().reduced(6);
-  auto trackWidth = this->trackSize.get();
+  auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
 
   for (auto component : this->trackComponents)
   {

@@ -1,7 +1,8 @@
 #ifndef BLOOPER_APP_HPP
 #define BLOOPER_APP_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

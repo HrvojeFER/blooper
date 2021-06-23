@@ -164,13 +164,13 @@ template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
     TOnItem         onItem) noexcept(isPluginTreeVisitNoexcept<TOnGroup, TOnItem>)
 {
   static_assert(
-      isInvokeable(
+      isInvokable(
           env::meta::typeid_(onGroup),
           env::meta::type_c<PluginTreeGroup&>),
       "onSubGroup must be invokable with PluginTreeGroup&.");
 
   static_assert(
-      isInvokeable(
+      isInvokable(
           env::meta::typeid_(onItem),
           env::meta::type_c<PluginTreeItem&>),
       "onSubItem must be invokable with PluginTreeItem&.");

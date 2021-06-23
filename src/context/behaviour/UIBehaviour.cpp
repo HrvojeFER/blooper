@@ -1,4 +1,13 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/behaviour/UIBehaviour.hpp>
+
+#include <blooper/internal/utils/EditTrack.hpp>
+
+#include <blooper/context/behaviour/EditManager.hpp>
+
+#include <blooper/context/plugins/PluginEditorWindow.hpp>
+#include <blooper/context/plugins/PluginPickerComponent.hpp>
+#include <blooper/context/settings/SettingsMenuWindow.hpp>
+#include <blooper/context/projects/ProjectsMenuWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -151,10 +160,9 @@ bool UIBehaviour::perform(
 }
 
 
-bool UIBehaviour::paste(const te::Clipboard& clipboard)
+bool UIBehaviour::paste(const te::Clipboard&)
 {
-  // TODO?
-  return te::UIBehaviour::paste(clipboard);
+  return this->getContext().getSelectionManager().pasteSelected();
 }
 
 
@@ -364,7 +372,14 @@ te::Plugin::Ptr UIBehaviour::showMenuAndCreatePlugin(
     te::Plugin::Type type,
     te::Edit&        edit)
 {
-  // TODO: with plugin picker
+  if (auto fullContext = dynamic_cast<AbstractContext*>(
+          std::addressof(this->getContext())))
+  {
+    PluginPickerComponent::Options pickerOptions{};
+
+    return pickPlugin(*fullContext, move(pickerOptions));
+  }
+
   return te::UIBehaviour::showMenuAndCreatePlugin(type, edit);
 }
 
@@ -391,12 +406,16 @@ void UIBehaviour::recreatePluginWindowContentAsync(
 {
   if (auto window = dynamic_cast<PluginEditorWindow*>(
           plugin.windowState->pluginWindow.get()))
-    return util::callAsync(
-        [safeWindow =
-             juce::Component::SafePointer<PluginEditorWindow>(
-                 window)]() mutable {
-          if (safeWindow) safeWindow->recreateContent();
-        });
+  {
+    return static_cast<void>(
+        juce::MessageManager::callAsync(
+            [window =
+                 juce::Component::SafePointer<PluginEditorWindow>(
+                     window)]() mutable {
+              if (!window) return;
+              window->recreateContent();
+            }));
+  }
 
   return te::UIBehaviour::recreatePluginWindowContentAsync(plugin);
 }

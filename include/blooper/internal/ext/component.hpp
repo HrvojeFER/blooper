@@ -1,8 +1,9 @@
 #ifndef BLOOPER_EXT_COMPONENT_HPP
 #define BLOOPER_EXT_COMPONENT_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
+#include <blooper/internal/abstract/meta.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -41,15 +42,15 @@ visitComponents(TOnComponent onComponent) noexcept(noexcept(onComponent(
     std::declval<juce::Component*>())))
 {
   static_assert(
-      isInvokeable(
+      isInvokable(
           meta::typeid_(onComponent),
           meta::type_c<juce::Component*>),
       "onComponent passed to visitComponents must satisfy Invokable with "
       "juce::Component*.");
 
-  for (int i = 0; i < JuceDektop::getInstance().getNumComponents(); ++i)
+  for (int i = 0; i < JuceDesktop::getInstance().getNumComponents(); ++i)
   {
-    onComponent(JuceDektop::getInstance().getComponent(i));
+    onComponent(JuceDesktop::getInstance().getComponent(i));
   }
 }
 

@@ -1,9 +1,8 @@
 #ifndef BLOOPER_FLAGGED_ASYNC_UPDATER_HPP
 #define BLOOPER_FLAGGED_ASYNC_UPDATER_HPP
+#pragma once
 
-#include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
@@ -17,7 +16,7 @@ class [[maybe_unused]] FlaggedAsyncUpdater :
     triggerAsyncUpdate();
   }
 
-  void markAndUpdate(JuceFlag& flag)
+  void markAndUpdate(juce::Atomic<bool>& flag)
   {
     flag = true;
     triggerAsyncUpdate();
@@ -31,7 +30,7 @@ class [[maybe_unused]] FlaggedAsyncUpdater :
     return true;
   }
 
-  static bool compareAndReset(JuceFlag& flag) noexcept
+  static bool compareAndReset(juce::Atomic<bool>& flag) noexcept
   {
     return flag.compareAndSetBool(false, true);
   }

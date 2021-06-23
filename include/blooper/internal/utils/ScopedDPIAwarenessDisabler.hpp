@@ -1,9 +1,9 @@
 #ifndef BLOOPER_SCOPED_DPI_AWARENESS_DISABLER_HPP
 #define BLOOPER_SCOPED_DPI_AWARENESS_DISABLER_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
@@ -58,7 +58,7 @@ struct FakeScopedDPIAwarenessDisabler final :
 [[maybe_unused, nodiscard]] inline std::unique_ptr<ScopedDPIAwarenessDisabler>
 disableDPIInScopeIfNeeded(
     AbstractCoreContext& context,
-    const JucePlugin&    plugin)
+    const te::Plugin&    plugin)
 {
   if (needsDPIAwarenessDisabling(context, plugin))
     return std::make_unique<RealScopedDPIAwarenessDisabler>();

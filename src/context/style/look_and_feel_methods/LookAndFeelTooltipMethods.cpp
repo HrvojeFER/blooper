@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/style/LookAndFeel.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,17 +12,6 @@ void LookAndFeel::drawTooltip(
       graphics, text, width, height);
 }
 
-
-int LookAndFeel::getTooltipSize(
-    const juce::String& string,
-    int&                i,
-    int&                i1)
-{
-  return juce::TooltipWindow::LookAndFeelMethods::getTooltipSize(
-      string,
-      i,
-      i1);
-}
 
 juce::Rectangle<int> LookAndFeel::getTooltipBounds(
     const juce::String&  tipText,

@@ -1,5 +1,6 @@
 #ifndef BLOOPER_CONTEXT_HPP
 #define BLOOPER_CONTEXT_HPP
+#pragma once
 
 #include <blooper/context/behaviour/behaviour.hpp>
 #include <blooper/context/style/style.hpp>

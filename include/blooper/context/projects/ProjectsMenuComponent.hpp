@@ -5,69 +5,72 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+struct ProjectsMenuOptions
+{
+  std::function<void(JuceProjectRef)> onOpen{[](auto) {}};
+  std::function<void()>               onCancel{[] {}};
+};
+
 class ProjectsMenuComponent :
     public CoreComponentBase,
-    private juce::ListBoxModel
+    public juce::ListBoxModel
 {
  public:
   BLOOPER_STATE_ID(ProjectsMenuComponent);
 
-  BLOOPER_ID(isAddingProjectId);
-  BLOOPER_ID(projectPathId);
-  BLOOPER_ID(projectFileId);
-
-
-  struct Options
-  {
-    std::function<void(JuceProjectRef)> onOpen;
-    std::function<void()>               onCancel;
-  } options;
-
   [[maybe_unused]] explicit ProjectsMenuComponent(
       AbstractCoreContext& context,
       State                state,
-      Options              options = {});
+      ProjectsMenuOptions  options = {});
 
+  ProjectsMenuOptions options;
 
-  void resized() override;
+  BLOOPER_ID(isAddingProjectId);
+  juce::CachedValue<bool> isAddingProject;
+
+  BLOOPER_ID(projectPathId);
+  juce::CachedValue<JuceString> projectPath;
+
+  BLOOPER_ID(projectFileId);
+  juce::CachedValue<JuceString> projectFile;
 
 
  private:
-  juce::CachedValue<bool> isAddingProject;
-
-  juce::CachedValue<JuceString>
-      projectPath,
-      projectFile;
-
-
-  using ProjectArray = juce::ReferenceCountedArray<te::Project>;
-  ProjectArray projects;
-
-  friend class juce::ListBox;
-  juce::ListBox list;
-
-
-  juce::TextButton
+  std::unique_ptr<juce::TextButton>
       reloadProjectsButton,
       addProjectButton,
       deleteProjectButton,
       cancelButton,
       openProjectButton;
 
+  std::unique_ptr<juce::PropertyPanel>
+      addProjectPanel;
 
-  juce::PropertyPanel addProjectPanel;
+  std::unique_ptr<juce::ListBox>
+      list;
 
+
+  using ProjectArray = juce::ReferenceCountedArray<te::Project>;
+  ProjectArray projects;
+
+
+  [[maybe_unused, nodiscard]] bool isValidRow(
+      int row) const noexcept;
 
   [[maybe_unused]] void toggleAddingProject();
 
   [[maybe_unused]] void reloadProjects();
 
-  [[maybe_unused, nodiscard]] bool isValidRow(int row) const noexcept;
+
+  // Component
+
+ public:
+  void resized() override;
 
 
   // ListBoxModel
 
- private:
+ public:
   [[maybe_unused]] int getNumRows() override;
 
   [[maybe_unused]] void paintListBoxItem(
@@ -86,7 +89,8 @@ class ProjectsMenuComponent :
       int                     row,
       const juce::MouseEvent& event) override;
 
-  [[maybe_unused]] void deleteKeyPressed(int lastRowSelected) override;
+  [[maybe_unused]] void deleteKeyPressed(
+      int row) override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectsMenuComponent);

@@ -1,28 +1,26 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/ContextClass.hpp>
+
+#include <blooper/internal/abstract/const.hpp>
+
+#include <blooper/context/behaviour/behaviour.hpp>
+#include <blooper/context/style/LookAndFeel.hpp>
+
+#include <blooper/context/projects/ProjectsMenuWindow.hpp>
+#include <blooper/context/projects/ProjectWindow.hpp>
+#include <blooper/context/settings/SettingsMenuWindow.hpp>
+#include <blooper/context/devices/DevicesMenuWindow.hpp>
+#include <blooper/context/plugins/PluginPickerComponent.hpp>
+
+// TODO
+#include <blooper/context/plugins/PluginsMenuWindow.hpp>
+
+#include <blooper/components/help/HelpWindow.hpp>
+#include <blooper/components/help/InfoWindow.hpp>
+#include <blooper/components/dev/DevWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-Context::Options::Options()
-    : quit([] {}),
-
-      onLoad([] {}),
-      afterLoad([] {}),
-      onUnload([] {}),
-      afterUnload([] {}),
-
-      onEngineLoad([] {}),
-      afterEngineLoad([] {}),
-      onEngineUnload([] {}),
-      afterEngineUnload([] {}),
-
-      onProjectLoad([] {}),
-      afterProjectLoad([] {}),
-      onProjectUnload([] {}),
-      afterProjectUnload([] {})
-{
-}
-
-Context::Context(Options options)
+Context::Context(ContextOptions options)
     : options(move(options)),
 
       loaded(false),
@@ -48,7 +46,7 @@ void Context::saveEngineSettings()
   {
     auto engineSettingsXml = this->getEngineSettings().createXml();
     this->engineSettingsFile->setValue(
-        Context::fileKey,
+        contextKey,
         engineSettingsXml.get());
   }
 
@@ -590,42 +588,42 @@ void Context::loadUnsafe()
   this->rootDir =
       ext::ensureExistingDirectory(
           JuceFile::getSpecialLocation(
-              Context::rootDirSpecialLocation)
-              .getChildFile(Context::rootDirName));
+              rootDirSpecialLocation)
+              .getChildFile(rootDirName));
 
   this->projectsDir =
       ext::ensureExistingDirectory(
           this->getRootDir().getChildFile(
-              Context::projectsDirName));
+              projectsDirName));
 
   this->engineSettingsFile =
       ext::ensureValidStateFile(
           this->getRootDir().getChildFile(
-              Context::engineSettingsFileName));
+              engineSettingsFileName));
   this->engineSettings =
       ext::ensureValidState(
           *this->engineSettingsFile,
-          Context::fileKey,
+          contextKey,
           Context::stateId);
 
   this->settingsFile =
       ext::ensureValidStateFile(
           this->getRootDir().getChildFile(
-              Context::settingsFileName));
+              settingsFileName));
   this->settings =
       ext::ensureValidState(
           *this->settingsFile,
-          Context::fileKey,
+          contextKey,
           Context::stateId);
 
   this->stateFile =
       ext::ensureValidStateFile(
           this->getRootDir().getChildFile(
-              Context::stateFileName));
+              stateFileName));
   this->state =
       ext::ensureValidState(
           *this->stateFile,
-          Context::fileKey,
+          contextKey,
           Context::stateId);
 
   this->openProjectFilePath.referTo(
@@ -637,19 +635,19 @@ void Context::loadUnsafe()
 
   this->logDir =
       ext::ensureExistingDirectory(
-          this->getRootDir().getChildFile(Context::logDirName));
+          this->getRootDir().getChildFile(logDirName));
   this->logFile =
       ext::ensureExistingFile(
           this->logDir->getChildFile(
               JuceFile::createLegalFileName(
-                  Context::logFileNamePrefix +
+                  logFileNamePrefix +
                   juce::Time::getCurrentTime()
                       .toString(
                           true,
                           true,
                           true,
                           true) +
-                  Context::logFileNameSuffix)
+                  logFileNameSuffix)
                   .replaceCharacter(
                       ' ',
                       '_')));
@@ -751,7 +749,7 @@ void Context::unloadEngineUnsafe()
   {
     auto stateXml = this->getState().createXml();
     this->stateFile->setValue(
-        Context::fileKey,
+        contextKey,
         stateXml.get());
   }
 
@@ -776,19 +774,19 @@ void Context::saveEngineUnsafe()
   {
     auto engineSettingsXml = this->getEngineSettings().createXml();
     this->engineSettingsFile->setValue(
-        Context::fileKey,
+        contextKey,
         engineSettingsXml.get());
   }
   {
     auto settingsXml = this->getSettings().createXml();
     this->settingsFile->setValue(
-        Context::fileKey,
+        contextKey,
         settingsXml.get());
   }
   {
     auto stateXml = this->getState().createXml();
     this->stateFile->setValue(
-        Context::fileKey,
+        contextKey,
         stateXml.get());
   }
 
@@ -811,7 +809,7 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
               .getProjectFile()
               .getParentDirectory()
               .getChildFile(
-                  Context::settingsFileName));
+                  settingsFileName));
 
   const auto& normalSettingsFile =
       this->projectSettingsFile->getFile();
@@ -837,7 +835,7 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
   this->projectSettings =
       ext::ensureValidState(
           *this->projectSettingsFile,
-          Context::fileKey,
+          contextKey,
           Context::stateId);
 
 
@@ -847,7 +845,7 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
               .getProjectFile()
               .getParentDirectory()
               .getChildFile(
-                  Context::stateFileName));
+                  stateFileName));
 
   const auto& normalStateFile = this->projectStateFile->getFile();
 
@@ -872,7 +870,7 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
   this->projectState =
       ext::ensureValidState(
           *this->projectStateFile,
-          Context::fileKey,
+          contextKey,
           Context::stateId);
 
 
@@ -910,7 +908,7 @@ void Context::unloadProjectUnsafe()
   {
     auto stateXml = this->getProjectState().createXml();
     this->projectStateFile->setValue(
-        Context::fileKey,
+        contextKey,
         stateXml.get());
   }
 
@@ -928,8 +926,6 @@ void Context::unloadProjectUnsafe()
   this->projectSettingsFile.reset();
 
 
-  this->openProjectFilePath = "";
-
   this->project.reset();
 }
 
@@ -938,13 +934,13 @@ void Context::saveProjectUnsafe()
   {
     auto settingsXml = this->getProjectSettings().createXml();
     this->projectSettingsFile->setValue(
-        Context::fileKey,
+        contextKey,
         settingsXml.get());
   }
   {
     auto stateXml = this->getProjectState().createXml();
     this->projectStateFile->setValue(
-        Context::fileKey,
+        contextKey,
         stateXml.get());
   }
 
@@ -1300,7 +1296,7 @@ bool Context::perform(const JuceCommand& command)
                .getUIBehaviour()
                .getCurrentlyFocusedSelectionManager()
                ->getItemsOfType<EditTrack>())
-        util::toggle(track->muted);
+        toggle(track->muted);
       return true;
 
     case CommandId::soloTrack:
@@ -1320,7 +1316,7 @@ bool Context::perform(const JuceCommand& command)
                .getUIBehaviour()
                .getCurrentlyFocusedSelectionManager()
                ->getItemsOfType<EditTrack>())
-        util::toggle(track->armed);
+        toggle(track->armed);
       return true;
 
 

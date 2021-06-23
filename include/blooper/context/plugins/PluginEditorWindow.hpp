@@ -92,11 +92,13 @@ class PluginEditorWindow : public CoreWindowBase
   std::unique_ptr<AbstractPluginContentComponent> component;
 
 
-  [[maybe_unused]] void initialiseResizingLimits();
+  [[maybe_unused]] void initializeResizingBehaviour();
 
-  [[maybe_unused]] void initialiseResizingBehaviour();
+  [[maybe_unused]] void initializeVisibilityBehaviour();
 
-  [[maybe_unused]] void initialiseVisibilityBehaviour();
+  [[maybe_unused]] void finalizeResizingBehaviour();
+
+  [[maybe_unused]] void finalizeVisibilityBehaviour();
 
 
   // Window
@@ -105,8 +107,6 @@ class PluginEditorWindow : public CoreWindowBase
   [[maybe_unused]] void moved() override;
 
   [[maybe_unused]] void closeButtonPressed() override;
-
-  [[maybe_unused]] void userTriedToCloseWindow() override;
 
   [[maybe_unused, nodiscard]] float getDesktopScaleFactor() const override;
 

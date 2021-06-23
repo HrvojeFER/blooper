@@ -31,7 +31,11 @@ class EditTrackComponent :
   ~EditTrackComponent() override;
 
 
-  void resized() override;
+  [[maybe_unused, nodiscard]] inline const EditTrack&
+  getTrack() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline EditTrack&
+  getTrack() noexcept;
 
 
  private:
@@ -39,6 +43,7 @@ class EditTrackComponent :
 
   std::unique_ptr<juce::Label> name;
 
+  class ButtonPlayhead;
   class Button;
   std::unique_ptr<Button> button;
 
@@ -51,6 +56,14 @@ class EditTrackComponent :
   std::unique_ptr<juce::ComboBox> intervalDropdown;
 
   std::unique_ptr<class TrackPluginListComponent> pluginList;
+
+
+  // Component
+
+ public:
+  void resized() override;
+
+  void mouseDown(const juce::MouseEvent& event) override;
 
 
   // ValueTreeListener
@@ -78,6 +91,17 @@ class EditTrackComponent :
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditTrackComponent)
   JUCE_DECLARE_WEAK_REFERENCEABLE(EditTrackComponent)
 };
+
+
+const EditTrack& EditTrackComponent::getTrack() const noexcept
+{
+  return *this->track;
+}
+
+EditTrack& EditTrackComponent::getTrack() noexcept
+{
+  return *this->track;
+}
 
 BLOOPER_NAMESPACE_END
 

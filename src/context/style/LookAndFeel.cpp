@@ -1,4 +1,10 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/style/LookAndFeel.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/ext/component.hpp>
+
+#include <blooper/context/style/DefaultTheme.hpp>
+#include <blooper/context/style/PropertyFileTheme.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -449,7 +455,7 @@ void LookAndFeel::updateColours()
       juce::ComboBox::focusedOutlineColourId,
       this->getThemeColour(
           juce::ComboBox::focusedOutlineColourId,
-          ColourId::selection));
+          ColourId::transparent));
 
 
   // PropertyComponent

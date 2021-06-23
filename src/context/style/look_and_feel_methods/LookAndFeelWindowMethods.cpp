@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/style/LookAndFeel.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -133,15 +133,15 @@ juce::Button* LookAndFeel::createDocumentWindowButton(
 }
 
 void LookAndFeel::positionDocumentWindowButtons(
-    juce::DocumentWindow& window,
-    int                   titleBarX,
-    int                   titleBarY,
-    int                   titleBarW,
-    int                   titleBarH,
-    juce::Button*         minimiseButton,
-    juce::Button*         maximiseButton,
-    juce::Button*         closeButton,
-    bool                  positionTitleBarButtonsOnLeft)
+    juce::DocumentWindow&,
+    int           titleBarX,
+    int           titleBarY,
+    int           titleBarW,
+    int           titleBarH,
+    juce::Button* minimiseButton,
+    juce::Button* maximiseButton,
+    juce::Button* closeButton,
+    bool          positionTitleBarButtonsOnLeft)
 {
   titleBarH = juce::jmin(titleBarH, titleBarH - titleBarY);
 

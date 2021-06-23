@@ -1,7 +1,9 @@
 #ifndef BLOOPER_ASSET_MANAGER_HPP
 #define BLOOPER_ASSET_MANAGER_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/assets/assets.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -38,7 +40,9 @@ class AssetManager :
 
  private:
   using DrawableCollection [[maybe_unused]] =
-      std::unordered_map<assets::ResourceIndex, std::unique_ptr<JuceDrawable>>;
+      std::unordered_map<
+          assets::ResourceIndex,
+          std::unique_ptr<JuceDrawable>>;
 
   DrawableCollection drawables;
 };

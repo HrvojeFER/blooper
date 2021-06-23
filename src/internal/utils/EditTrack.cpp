@@ -1,4 +1,5 @@
-#include <blooper/blooper.hpp>
+#include <blooper/internal/internal.hpp>
+#include <blooper/context/context.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -103,14 +104,14 @@ EditTrack::~EditTrack()
 }
 
 
-[[maybe_unused, nodiscard]] bool EditTrack::isSoloed() const noexcept
+[[maybe_unused, nodiscard]] bool EditTrack::isSoloed() const
 {
   auto& manager = this->getContext().getEditManager();
 
   return manager.soloed == this->id;
 }
 
-[[maybe_unused]] void EditTrack::setSoloed(bool toSolo) noexcept
+[[maybe_unused]] void EditTrack::setSoloed(bool toSolo)
 {
   auto& manager = this->getContext().getEditManager();
 
@@ -120,18 +121,39 @@ EditTrack::~EditTrack()
     manager.soloed = this->getId();
 }
 
-[[maybe_unused]] void EditTrack::toggleSoloed() noexcept
+[[maybe_unused]] void EditTrack::toggleSoloed()
 {
   this->setSoloed(!this->isSoloed());
 }
 
+
+[[maybe_unused]] void EditTrack::clear()
+{
+  this->getAudio().deleteRegion(
+      this->getAudio().getTotalRange(),
+      nullptr);
+}
+
+
+te::Clip* EditTrack::getShortestClip() const noexcept
+{
+  te::Clip* shortestClip = nullptr;
+
+  for (auto clip : this->audio->getClips())
+    if (shortestClip == nullptr ||
+        clip->getMaximumLength() < shortestClip->getMaximumLength())
+      shortestClip = clip;
+
+  return shortestClip;
+}
 
 void EditTrack::synchronize()
 {
   // Clean up previous sync
 
   auto& sync = this->getContext().getSynchronizer();
-  if (isValid(this->syncToken)) sync.cancel(this->syncToken);
+  if (isValid(this->syncToken))
+    sync.cancelAsync(this->syncToken);
 
 
   switch (this->mode)
@@ -140,7 +162,7 @@ void EditTrack::synchronize()
 
     case TrackMode::sync:
       {
-        sync.every(
+        sync.everyAsync(
             this->interval,
             [weak = juce::WeakReference<EditTrack>(this)] {
               if (weak.wasObjectDeleted()) return;
@@ -149,17 +171,11 @@ void EditTrack::synchronize()
       }
       break;
 
-      // Free - Loop over longest clip
+      // Free - Loop over shortest clip
 
     case TrackMode::free:
       {
-        te::Clip* shortestClip = nullptr;
-        for (auto clip : this->audio->getClips())
-          if (shortestClip == nullptr ||
-              clip->getMaximumLength() < shortestClip->getMaximumLength())
-            shortestClip = clip;
-
-        if (shortestClip)
+        if (auto shortestClip = this->getShortestClip())
         {
           this->transport->setLoopRange(
               {0,
@@ -213,19 +229,21 @@ void EditTrack::valueTreePropertyChanged(
       {
         if (this->mode == TrackMode::sync)
         {
-          this->recordToken = sync.on(
-              static_cast<Delay>(this->interval.get()),
-              [weak = juce::WeakReference<EditTrack>(this)] {
-                if (weak.wasObjectDeleted()) return;
-                weak->transport->record(false);
+          this->recordToken =
+              sync.on(
+                  static_cast<Delay>(this->interval.get()),
+                  [weak = juce::WeakReference<EditTrack>(this)] {
+                    if (weak.wasObjectDeleted()) return;
+                    weak->transport->record(false);
 
-                weak->recordToken = weak->getContext().getSynchronizer().on(
-                    static_cast<Delay>(weak->interval.get()),
-                    [weak] {
-                      if (weak.wasObjectDeleted()) return;
-                      weak->transport->play(false);
-                    });
-              });
+                    weak->syncToken =
+                        weak->getContext().getSynchronizer().onAsync(
+                            static_cast<Delay>(weak->interval.get()),
+                            [weak] {
+                              if (weak.wasObjectDeleted()) return;
+                              weak->transport->play(false);
+                            });
+                  });
         }
         else
         {
@@ -253,8 +271,7 @@ void EditTrack::valueTreePropertyChanged(
 
 juce::String EditTrack::getSelectableDescription()
 {
-  // TODO?
-  return juce::String("Edit Track");
+  return juce::String(this->getAudio().getName());
 }
 
 BLOOPER_NAMESPACE_END

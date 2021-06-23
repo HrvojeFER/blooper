@@ -20,7 +20,7 @@ TrackPluginListComponent::TrackPluginListComponent(
 
   this->list =
       std::make_unique<juce::ListBox>(
-          this->track->getAudio().getName() + " Track Plugin List",
+          this->track->getAudio().getName() + " Plugin List",
           model);
 
   ext::addAndMakeVisible(
@@ -101,13 +101,18 @@ void TrackPluginListComponent::paintListBoxItem(
     bool            isSelected)
 {
   if (!this->isValidRow(row)) return;
-  auto plugin = this->track->getAudio().pluginList[row];
 
+  auto plugin = this->track->getAudio().pluginList[row];
+  if (!plugin) return;
 
   auto availableArea = JuceBounds{0, 0, width, height};
 
   if (isSelected)
-    g.setColour(juce::Colours::red);
+  {
+    g.setColour(
+        this->getLookAndFeel().findColour(
+            ColourId::selection));
+  }
 
   g.drawText(
       plugin->getName(),
@@ -145,8 +150,9 @@ void TrackPluginListComponent::listBoxItemDoubleClicked(
     const juce::MouseEvent&)
 {
   if (!this->isValidRow(row)) return;
-  auto plugin = this->track->getAudio().pluginList[row];
 
+  auto plugin = this->track->getAudio().pluginList[row];
+  if (!plugin) return;
 
   if (auto selectionManager =
           this->getContext()
@@ -157,13 +163,7 @@ void TrackPluginListComponent::listBoxItemDoubleClicked(
     selectionManager->selectOnly(plugin);
   }
 
-
-  PluginEditorWindow::Options editorOptions{};
-
-  showPluginEditorWindow(
-      this->getContext(),
-      move(plugin),
-      move(editorOptions));
+  plugin->showWindowExplicitly();
 }
 
 juce::String TrackPluginListComponent::getTooltipForRow(

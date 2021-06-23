@@ -1,8 +1,8 @@
 #ifndef BLOOPER_ASSETS_HPP
 #define BLOOPER_ASSETS_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
 
 #include <blooper_binaries.hpp>
 
@@ -123,21 +123,6 @@ enum class IconAssetId : ResourceIndex
 }
 
 
-// resources for reference:
-
-//const char* namedResourceList[] =
-//    {
-//        "_0_play_png",
-//        "_1_repeat_png",
-//        "_2_pause_png",
-//        "_3_stop_png",
-//        "_4_record_png",
-//        "_5_muted_png",
-//        "_6_low_volume_png",
-//        "_7_mid_volume_png",
-//        "_8_high_volume_png"
-//    };
-
 // JUCE adds a '_' to resource names, so the name format is:
 //    _<index>_<name>_<file_format>
 
@@ -154,7 +139,7 @@ getAsset(TId                       id,
       "Id passed to getAsset needs to be castable to a ResourceIndex.");
 
   static_assert(
-      isInvokeable(
+      isInvokable(
           meta::type_c<TConstructor>,
           meta::type_c<Resource>,
           meta::type_c<ResourceSize>),

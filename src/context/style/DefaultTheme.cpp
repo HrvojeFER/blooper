@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/style/DefaultTheme.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -63,11 +63,11 @@ JuceColour DefaultTheme::getColour(JuceColourId id) const
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
     case ColourId::foreground:
-      return JuceColour{0xff676e95};
+      return JuceColour{0xff2f3347};
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
     case ColourId::highlight:
-      return JuceColour{0xff676e95};
+      return JuceColour{0xff343a56};
 
 
       // NOLINTNEXTLINE(bugprone-branch-clone)

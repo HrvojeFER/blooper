@@ -1,5 +1,6 @@
 #ifndef BLOOPER_ID_HPP
 #define BLOOPER_ID_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
 

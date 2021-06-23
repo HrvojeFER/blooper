@@ -1,4 +1,7 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/behaviour/Synchronizer.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/abstract/const.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,18 +15,23 @@ Synchronizer::Synchronizer(
       this->getContext().getProjectSettings(),
       id::bpm,
       this->getContext().getUndoManagerPtr(),
-      120);
-
-  this->currentTick.referTo(
-      this->getState(),
-      Synchronizer::currentTickId,
-      this->getContext().getUndoManagerPtr(),
-      0);
+      defaultBpm);
 
 
   // There should be one message per track and I doubt
   // anyone will have more than 256 tracks.
   this->messages.reserve(256);
+
+
+  this->currentTick =
+      static_cast<Tick>(
+          static_cast<int>(
+              this->getState().getProperty(
+                  Synchronizer::currentTickId,
+                  0)));
+
+  this->lastHiResTick = juce::Time::getHighResolutionTicks();
+  this->hiResTicksPerTick = this->getHiResTicksPerTick();
 
 
   this->restartTimer();
@@ -32,47 +40,46 @@ Synchronizer::Synchronizer(
 Synchronizer::~Synchronizer()
 {
   this->stopTimer();
+
+  this->getState().setProperty(
+      Synchronizer::currentTickId,
+      this->currentTick,
+      nullptr);
 }
 
 
-void Synchronizer::everyAsync(
+Token Synchronizer::everyAsync(
     Interval               interval,
-    Synchronizer::Callback callback,
-    std::weak_ptr<Token>   tokenOut)
+    Synchronizer::Callback callback)
 {
-  juce::MessageManager::callAsync(
-      [sync = juce::WeakReference<Synchronizer>(this),
-       interval = move(interval),
-       callback = std::move(callback),
-       tokenOut = std::move(tokenOut)]() mutable {
-        if (sync.wasObjectDeleted()) return;
+  auto token = generateToken();
 
-        auto token = sync->every(move(interval), std::move(callback));
-        if (auto sharedToken = tokenOut.lock())
-        {
-          *sharedToken = move(token);
-        }
-      });
+  auto message =
+      Synchronizer::createMessage(
+          token,
+          move(interval),
+          std::move(callback));
+
+  this->addMessageAsync(move(message));
+
+  return move(token);
 }
 
-void Synchronizer::onAsync(
+Token Synchronizer::onAsync(
     Delay                  delay,
-    Synchronizer::Callback callback,
-    std::weak_ptr<Token>   tokenOut)
+    Synchronizer::Callback callback)
 {
-  juce::MessageManager::callAsync(
-      [sync = juce::WeakReference<Synchronizer>(this),
-       delay = move(delay),
-       callback = std::move(callback),
-       tokenOut = std::move(tokenOut)]() mutable {
-        if (sync.wasObjectDeleted()) return;
+  auto token = generateToken();
 
-        auto token = sync->on(move(delay), std::move(callback));
-        if (auto sharedToken = tokenOut.lock())
-        {
-          *sharedToken = move(token);
-        }
-      });
+  auto message =
+      Synchronizer::createMessage(
+          token,
+          move(delay),
+          std::move(callback));
+
+  this->addMessageAsync(move(message));
+
+  return move(token);
 }
 
 void Synchronizer::cancelAsync(Token token)
@@ -91,36 +98,34 @@ Token Synchronizer::every(
     Interval               interval,
     Synchronizer::Callback callback)
 {
-  ScopedLock scopedLock(this->getLock());
-  const auto token = generateToken();
+  auto token = generateToken();
 
-  // emplace_back is not working correctly here for some reason
-  this->messages.emplace_back(
-      Synchronizer::Message{
+  auto message =
+      Synchronizer::createMessage(
           token,
-          Synchronizer::Message::Type::interval,
-          static_cast<Tick>(interval),
-          std::move(callback)});
+          move(interval),
+          std::move(callback));
 
-  return token;
+  this->addMessage(move(message));
+
+  return move(token);
 }
 
 Token Synchronizer::on(
     Delay                  delay,
     Synchronizer::Callback callback)
 {
-  ScopedLock scopedLock(this->getLock());
-  const auto token = generateToken();
+  auto token = generateToken();
 
-  // emplace_back is not working correctly here for some reason
-  this->messages.emplace_back(
-      Synchronizer::Message{
+  auto message =
+      Synchronizer::createMessage(
           token,
-          Synchronizer::Message::Type::delay,
-          static_cast<Tick>(delay),
-          std::move(callback)});
+          move(delay),
+          std::move(callback));
 
-  return token;
+  this->addMessage(move(message));
+
+  return move(token);
 }
 
 void Synchronizer::cancel(Token token)
@@ -145,6 +150,7 @@ void Synchronizer::cancel(Token token)
 void Synchronizer::timerCallback()
 {
   ScopedLock scopedLock(this->getLock());
+
   const auto begin = this->messages.begin();
   const auto end = this->messages.end();
 
@@ -183,6 +189,7 @@ void Synchronizer::valueTreePropertyChanged(
   {
     if (id == id::bpm)
     {
+      this->hiResTicksPerTick = this->getHiResTicksPerTick();
       this->restartTimer();
       this->sendChangeMessage();
     }

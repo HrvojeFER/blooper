@@ -1,7 +1,8 @@
 #ifndef BLOOPER_ENGINE_BEHAVIOUR_HPP
 #define BLOOPER_ENGINE_BEHAVIOUR_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

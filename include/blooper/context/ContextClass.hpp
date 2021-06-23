@@ -1,9 +1,32 @@
 #ifndef BLOOPER_CONTEXT_CLASS_HPP
 #define BLOOPER_CONTEXT_CLASS_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+
+#include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
+
+struct ContextOptions
+{
+  std::function<void()> quit{[] {}};
+
+  std::function<void()> onLoad{[] {}};
+  std::function<void()> afterLoad{[] {}};
+  std::function<void()> onUnload{[] {}};
+  std::function<void()> afterUnload{[] {}};
+
+  std::function<void()> onEngineLoad{[] {}};
+  std::function<void()> afterEngineLoad{[] {}};
+  std::function<void()> onEngineUnload{[] {}};
+  std::function<void()> afterEngineUnload{[] {}};
+
+  std::function<void()> onProjectLoad{[] {}};
+  std::function<void()> afterProjectLoad{[] {}};
+  std::function<void()> onProjectUnload{[] {}};
+  std::function<void()> afterProjectUnload{[] {}};
+};
 
 class Context :
     public virtual AbstractContext
@@ -12,64 +35,7 @@ class Context :
   BLOOPER_STATE_ID(Context);
 
 
-  [[maybe_unused]] inline constexpr static auto fileKey =
-      "context";
-
-
-  [[maybe_unused]] inline constexpr static auto rootDirSpecialLocation =
-      JuceFile::SpecialLocationType::userHomeDirectory;
-
-  [[maybe_unused]] inline constexpr static auto rootDirName =
-      ".blooper";
-
-
-  [[maybe_unused]] inline constexpr static auto engineSettingsFileName =
-      "engineSettings.xml";
-
-  [[maybe_unused]] inline constexpr static auto settingsFileName =
-      "settings.xml";
-
-  [[maybe_unused]] inline constexpr static auto stateFileName =
-      "state.xml";
-
-
-  [[maybe_unused]] inline constexpr static auto logDirName =
-      "log";
-
-  [[maybe_unused]] inline constexpr static auto logFileNamePrefix =
-      "blooper_";
-
-  [[maybe_unused]] inline constexpr static auto logFileNameSuffix =
-      ".log";
-
-
-  [[maybe_unused]] inline constexpr static auto projectsDirName =
-      "projects";
-
-
-  struct Options
-  {
-    Options();
-
-    std::function<void()> quit;
-
-    std::function<void()> onLoad;
-    std::function<void()> afterLoad;
-    std::function<void()> onUnload;
-    std::function<void()> afterUnload;
-
-    std::function<void()> onEngineLoad;
-    std::function<void()> afterEngineLoad;
-    std::function<void()> onEngineUnload;
-    std::function<void()> afterEngineUnload;
-
-    std::function<void()> onProjectLoad;
-    std::function<void()> afterProjectLoad;
-    std::function<void()> onProjectUnload;
-    std::function<void()> afterProjectUnload;
-  } options;
-
-  explicit Context(Options options = Options());
+  explicit Context(ContextOptions options = {});
 
   ~Context() override;
 
@@ -278,6 +244,9 @@ class Context :
   [[maybe_unused]] bool didLoad() const;
   [[maybe_unused]] bool didLoadEngine() const;
   [[maybe_unused]] bool didLoadProject() const;
+
+
+  ContextOptions options;
 
 
  private:

@@ -1,9 +1,9 @@
 #ifndef BLOOPER_CONTEXT_COMMANDS_HPP
 #define BLOOPER_CONTEXT_COMMANDS_HPP
+#pragma once
 
-#include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

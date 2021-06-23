@@ -1,13 +1,16 @@
 #ifndef BLOOPER_SYNC_MANAGER_HPP
 #define BLOOPER_SYNC_MANAGER_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/time.hpp>
+#include <blooper/internal/abstract/stateful.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class Synchronizer :
-    public ContextualBase,
+class Synchronizer final :
     public StatefulBase,
+    public ContextualBase,
 
     public juce::ChangeBroadcaster,
 
@@ -15,8 +18,6 @@ class Synchronizer :
 {
  public:
   BLOOPER_STATE_ID(Synchronizer);
-
-  BLOOPER_ID(currentTickId);
 
 
   using Callback = std::function<void()>;
@@ -32,19 +33,19 @@ class Synchronizer :
   [[maybe_unused, nodiscard]] inline double
   getBpm() const noexcept;
 
+  [[maybe_unused, nodiscard]] inline double
+  getProgress(Interval of) const noexcept;
 
-  [[maybe_unused]] void everyAsync(
-      Interval             _,
-      Callback             _do,
-      std::weak_ptr<Token> tokenOut = {});
+  // doesn't lock the Synchronizer - use only for speedy UI stuff
+  [[maybe_unused, nodiscard]] inline double
+  getProgressUnsafe(Interval of) const noexcept;
 
-  [[maybe_unused]] void onAsync(
-      Delay                _,
-      Callback             _do,
-      std::weak_ptr<Token> tokenOut = {});
 
-  [[maybe_unused]] void cancelAsync(
-      Token messageToken);
+  [[maybe_unused]] Token everyAsync(Interval _, Callback _do);
+
+  [[maybe_unused]] Token onAsync(Delay _, Callback _do);
+
+  [[maybe_unused]] void cancelAsync(Token messageToken);
 
 
   [[maybe_unused]] Token every(Interval _, Callback _do);
@@ -76,7 +77,12 @@ class Synchronizer :
 
 
   JuceCached<double> bpm;
-  JuceCached<Tick>   currentTick;
+
+  BLOOPER_ID(currentTickId);
+  Tick currentTick;
+
+  HiResTick lastHiResTick;
+  HiResTick hiResTicksPerTick;
 
   MessageCollection messages;
   Lock              lock;
@@ -84,6 +90,24 @@ class Synchronizer :
 
   [[nodiscard]] inline const Lock&
   getLock() const noexcept;
+
+
+  [[nodiscard]] inline static Message
+  createMessage(
+      Token    token,
+      Interval interval,
+      Callback callback) noexcept;
+
+  [[nodiscard]] inline static Message
+  createMessage(
+      Token    token,
+      Delay    delay,
+      Callback callback) noexcept;
+
+
+  inline void addMessage(Message message);
+
+  inline void addMessageAsync(Message message);
 
 
   [[nodiscard]] inline static bool
@@ -99,7 +123,10 @@ class Synchronizer :
   inline void cycle() noexcept;
 
 
-  inline void restartTimer() noexcept;
+  inline void restartTimer();
+
+
+  inline HiResTick getHiResTicksPerTick() const noexcept;
 
 
   // ValueTreeListener
@@ -107,13 +134,13 @@ class Synchronizer :
  private:
   void valueTreePropertyChanged(
       juce::ValueTree&        tree,
-      const juce::Identifier& id) override;
+      const juce::Identifier& id) final;
 
 
   // Timer
 
  private:
-  void timerCallback() override;
+  void timerCallback() final;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Synchronizer)
@@ -127,9 +154,82 @@ double Synchronizer::getBpm() const noexcept
 }
 
 
+double Synchronizer::getProgressUnsafe(Interval of) const noexcept
+{
+  const auto currentHiResTick =
+      juce::Time::getHighResolutionTicks() -
+      this->lastHiResTick;
+
+  const auto tickInInterval =
+      this->currentTick %
+      static_cast<Tick>(of);
+
+  const auto hiResTickInInterval =
+      tickInInterval * this->hiResTicksPerTick +
+      currentHiResTick;
+
+  // this is kinda bad because the tick count could be high,
+  // but I believe its not going to affect the quantization of double
+  // values too much and clamping the result helps as well
+  return std::clamp(
+      static_cast<double>(hiResTickInInterval) /
+          static_cast<double>(this->hiResTicksPerTick),
+      0.0,
+      1.0);
+}
+
+double Synchronizer::getProgress(Interval of) const noexcept
+{
+  ScopedLock scopedLock(this->getLock());
+  return this->getProgressUnsafe(move(of));
+}
+
+
 const Synchronizer::Lock& Synchronizer::getLock() const noexcept
 {
   return this->lock;
+}
+
+Synchronizer::Message Synchronizer::createMessage(
+    Token    token,
+    Interval interval,
+    Callback callback) noexcept
+{
+  return Synchronizer::Message{
+      token,
+      Synchronizer::Message::Type::interval,
+      static_cast<Tick>(interval),
+      std::move(callback)};
+}
+
+Synchronizer::Message Synchronizer::createMessage(
+    Token    token,
+    Delay    delay,
+    Callback callback) noexcept
+{
+  return Synchronizer::Message{
+      token,
+      Synchronizer::Message::Type::interval,
+      static_cast<Tick>(delay),
+      std::move(callback)};
+}
+
+
+void Synchronizer::addMessage(Message message)
+{
+  ScopedLock scopedLock(this->getLock());
+  this->messages.emplace_back(move(message));
+}
+
+void Synchronizer::addMessageAsync(Message message)
+{
+  juce::MessageManager::callAsync(
+      [sync = juce::WeakReference<Synchronizer>(this),
+       message = move(message)]() mutable {
+        if (sync.wasObjectDeleted()) return;
+
+        sync->addMessage(move(message));
+      });
 }
 
 
@@ -166,15 +266,23 @@ void Synchronizer::cycle() noexcept
   constexpr Tick mask = 63;
 
   this->currentTick = (this->currentTick + 1) & mask;
+  this->lastHiResTick = juce::Time::getHighResolutionTicks();
 }
 
 
-void Synchronizer::restartTimer() noexcept
+void Synchronizer::restartTimer()
 {
   this->stopTimer();
   this->startTimer(
       static_cast<int>(
           (1000 * 60) / (this->bpm * 4)));
+}
+
+
+HiResTick Synchronizer::getHiResTicksPerTick() const noexcept
+{
+  return juce::Time::secondsToHighResolutionTicks(
+      60 / (this->bpm * 4));
 }
 
 BLOOPER_NAMESPACE_END

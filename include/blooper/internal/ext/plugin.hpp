@@ -1,19 +1,11 @@
 #ifndef BLOOPER_EXT_PLUGIN_HPP
 #define BLOOPER_EXT_PLUGIN_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
+#include <blooper/internal/abstract/const.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
-
-#if JUCE_LINUX
-constexpr bool shouldAddPluginWindowToDesktop = false;
-#else
-constexpr bool shouldAddPluginWindowToDesktop = true;
-#endif
-
-inline constexpr auto pluginIdSuffix = "_plugin";
-
 
 [[maybe_unused]] inline juce::Identifier getId(
     const te::Plugin& plugin) noexcept

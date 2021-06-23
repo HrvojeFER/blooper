@@ -1,5 +1,6 @@
 #ifndef BLOOPER_NAMESPACES_HPP
 #define BLOOPER_NAMESPACES_HPP
+#pragma once
 
 // shortcuts
 

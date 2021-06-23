@@ -1,13 +1,20 @@
 #ifndef BLOOPER_EDIT_MANAGER_HPP
 #define BLOOPER_EDIT_MANAGER_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/abstract/stateful.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
+#include <blooper/internal/utils/EditTrack.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
 class EditManager :
     public ContextualBase,
-    public StatefulBase
+    public StatefulBase,
+
+    private util::FlaggedAsyncUpdater
 {
  public:
   explicit EditManager(AbstractContext& context);
@@ -44,6 +51,16 @@ class EditManager :
   EditCollection edits;
 
 
+  bool inputsUpdate;
+
+  void updateInputs();
+
+
+  bool soloedUpdate;
+
+  void updateSoloed();
+
+
   EditTrackRef add(
       JuceProjectItemRef item,
       JuceUndoManager*   undoManager = nullptr);
@@ -55,6 +72,26 @@ class EditManager :
   void valueTreePropertyChanged(
       juce::ValueTree&        tree,
       const juce::Identifier& id) override;
+
+  void valueTreeChildAdded(
+      juce::ValueTree& tree,
+      juce::ValueTree& value_tree) override;
+
+  void valueTreeChildRemoved(
+      juce::ValueTree& tree,
+      juce::ValueTree& value_tree,
+      int              i) override;
+
+  void valueTreeChildOrderChanged(
+      juce::ValueTree& tree,
+      int              i,
+      int              i1) override;
+
+
+  // FlaggedAsyncUpdater
+
+ private:
+  void handleAsyncUpdate() override;
 
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditManager);
@@ -70,7 +107,7 @@ template<typename TOnEditTrack>
 void EditManager::visit(TOnEditTrack onEditTrack) const
 {
   static_assert(
-      isInvokeable(meta::typeid_(onEditTrack), meta::type_c<EditTrackRef>),
+      isInvokable(meta::typeid_(onEditTrack), meta::type_c<EditTrackRef>),
       "onEditTrack passed to visit must be an Invokable with EditTrack.");
 
   // Tried destructuring, but Clion complains about unused variables...

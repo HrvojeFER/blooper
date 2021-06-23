@@ -206,14 +206,6 @@ if (BLOOPER_BUILD_STANDALONE)
                 "/wd4250"
                 # multiprocess compilation
                 "/MP9")
-
-        env_target_link_with(
-                standalone
-                PRIVATE
-                # speed up linking
-                "/incremental"
-                # speed up for debug file generation
-                "/debug:fastlink")
     endif ()
 
     env_target_set_bin_output(

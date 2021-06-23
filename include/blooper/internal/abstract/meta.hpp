@@ -1,7 +1,8 @@
 #ifndef BLOOPER_META_HPP
 #define BLOOPER_META_HPP
+#pragma once
 
-#include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
 
 BLOOPER_META_NAMESPACE_BEGIN
 
@@ -54,6 +55,14 @@ template<typename T>
 move(T&& v) noexcept
 {
   return static_cast<std::remove_reference_t<T>&&>(v);
+}
+
+// the name is useful for adding meaning
+template<typename T>
+[[maybe_unused]] inline constexpr auto toggle(T& _) noexcept
+    -> decltype(auto)
+{
+  return _ = !_;
 }
 
 BLOOPER_NAMESPACE_END

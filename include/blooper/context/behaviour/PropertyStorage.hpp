@@ -1,7 +1,8 @@
 #ifndef BLOOPER_PROPERTY_STORAGE_HPP
 #define BLOOPER_PROPERTY_STORAGE_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -10,17 +11,6 @@ class PropertyStorage :
     public te::PropertyStorage
 {
  public:
-  inline constexpr static auto cacheDirName = ".cache";
-  inline constexpr static auto prefsDirName = "prefs";
-
-  inline constexpr static auto mediaDirName = "media";
-
-
-  inline constexpr static auto propertiesKey = "properties";
-
-  BLOOPER_ID(propertiesId);
-
-
   explicit PropertyStorage(
       JuceString           name,
       AbstractCoreContext& context);
@@ -35,44 +25,44 @@ class PropertyStorage :
 
 
   void removeProperty(
-      te::SettingID setting_id) override;
+      te::SettingID id) override;
 
   juce::var getProperty(
-      te::SettingID    setting,
+      te::SettingID    id,
       const juce::var& defaultValue) override;
 
   void setProperty(
-      te::SettingID    setting,
+      te::SettingID    id,
       const juce::var& value) override;
 
   std::unique_ptr<juce::XmlElement> getXmlProperty(
-      te::SettingID setting) override;
+      te::SettingID id) override;
 
   void setXmlProperty(
-      te::SettingID           setting,
+      te::SettingID           id,
       const juce::XmlElement& element) override;
 
 
   void removePropertyItem(
-      te::SettingID   setting,
+      te::SettingID   id,
       juce::StringRef item) override;
 
   juce::var getPropertyItem(
-      te::SettingID    setting,
+      te::SettingID    id,
       juce::StringRef  item,
       const juce::var& defaultValue) override;
 
   void setPropertyItem(
-      te::SettingID    setting,
+      te::SettingID    id,
       juce::StringRef  item,
       const juce::var& value) override;
 
   std::unique_ptr<juce::XmlElement> getXmlPropertyItem(
-      te::SettingID   setting,
+      te::SettingID   id,
       juce::StringRef item) override;
 
   void setXmlPropertyItem(
-      te::SettingID           setting,
+      te::SettingID           id,
       juce::StringRef         item,
       const juce::XmlElement& element) override;
 

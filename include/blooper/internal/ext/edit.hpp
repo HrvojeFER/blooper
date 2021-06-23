@@ -1,8 +1,8 @@
 #ifndef BLOOPER_EXT_EDIT_HPP
 #define BLOOPER_EXT_EDIT_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 

@@ -1,4 +1,8 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/behaviour/PropertyStorage.hpp>
+
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/ext/string.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,17 +17,17 @@ PropertyStorage::PropertyStorage(
 
   this->cache =
       std::make_unique<juce::File>(
-          rootDir.getChildFile(PropertyStorage::cacheDirName));
+          rootDir.getChildFile(cacheDirName));
   if (!this->cache->exists()) this->cache->createDirectory();
 
   this->media =
       std::make_unique<juce::File>(
-          rootDir.getChildFile(PropertyStorage::mediaDirName));
+          rootDir.getChildFile(mediaDirName));
   if (!this->media->exists()) this->media->createDirectory();
 
   this->prefs =
       std::make_unique<juce::File>(
-          rootDir.getChildFile(PropertyStorage::prefsDirName));
+          rootDir.getChildFile(prefsDirName));
   if (!this->prefs->exists()) this->prefs->createDirectory();
 }
 
@@ -277,12 +281,12 @@ juce::String PropertyStorage::getUserName()
 
 juce::String PropertyStorage::getApplicationName()
 {
-  return JUCE_APPLICATION_NAME_STRING;
+  return blooper::appName;
 }
 
 juce::String PropertyStorage::getApplicationVersion()
 {
-  return JUCE_APPLICATION_VERSION_STRING;
+  return blooper::appVersion;
 }
 
 BLOOPER_NAMESPACE_END

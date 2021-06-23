@@ -5,66 +5,64 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] ProjectsMenuComponent::ProjectsMenuComponent(
     AbstractCoreContext& context,
     State                state,
-    Options              options)
+    ProjectsMenuOptions  options)
     : CoreComponentBase(
           context,
           move(state)),
-      options(move(options)),
-
-
-      isAddingProject(
-          this->getState(),
-          isAddingProjectId,
-          std::addressof(this->getContext().getUndoManager()),
-          false),
-
-      projectPath(
-          this->getState(),
-          projectPathId,
-          std::addressof(this->getContext().getUndoManager()),
-          ""),
-      projectFile(
-          this->getState(),
-          projectFileId,
-          std::addressof(this->getContext().getUndoManager()),
-          ""),
-
-
-      projects(
-          ([this] {
-            auto& manager =
-                this->getContext()
-                    .getEngine()
-                    .getProjectManager();
-
-            manager.loadList();
-            return manager.getAllProjects(manager.folders);
-          }) ()),
-
-      list("Projects", this),
-
-
-      reloadProjectsButton("Reload"),
-      addProjectButton("Add..."),
-      deleteProjectButton("Delete"),
-
-      cancelButton("Cancel"),
-      openProjectButton("Open..."),
-
-      addProjectPanel("Add project...")
+      options(move(options))
 {
-  list.setMultipleSelectionEnabled(false);
-  list.setRowSelectedOnMouseDown(true);
-  list.setRowHeight(30);
+  auto& manager = this->getContext().getEngine().getProjectManager();
+  manager.loadList();
 
 
-  reloadProjectsButton.onClick = [this] {
+  this->projects = manager.getAllProjects(manager.folders);
+
+
+  this->isAddingProject.referTo(
+      this->getState(),
+      isAddingProjectId,
+      this->getContext().getUndoManagerPtr(),
+      false);
+
+  this->projectPath.referTo(
+      this->getState(),
+      projectPathId,
+      this->getContext().getUndoManagerPtr(),
+      "");
+
+  this->projectFile.referTo(
+      this->getState(),
+      projectFileId,
+      this->getContext().getUndoManagerPtr(),
+      "");
+
+
+  this->list =
+      std::make_unique<juce::ListBox>(
+          "Projects",
+          this);
+
+  this->list->setMultipleSelectionEnabled(false);
+  this->list->setRowSelectedOnMouseDown(true);
+  this->list->setRowHeight(30);
+
+
+  this->reloadProjectsButton =
+      std::make_unique<juce::TextButton>(
+          "Reload");
+
+  this->reloadProjectsButton->onClick = [this] {
     this->getContext().getEngine().getProjectManager().loadList();
 
     this->reloadProjects();
   };
 
-  addProjectButton.onClick = [this] {
+
+  this->addProjectButton =
+      std::make_unique<juce::TextButton>(
+          "Add Project...");
+
+  this->addProjectButton->onClick = [this] {
     if (this->isAddingProject)
     {
       addProject(
@@ -78,8 +76,13 @@ BLOOPER_NAMESPACE_BEGIN
     this->toggleAddingProject();
   };
 
-  deleteProjectButton.onClick = [this] {
-    auto row = list.getSelectedRow();
+
+  this->deleteProjectButton =
+      std::make_unique<juce::TextButton>(
+          "Delete");
+
+  this->deleteProjectButton->onClick = [this] {
+    auto row = this->list->getSelectedRow();
     if (!this->isValidRow(row)) return;
 
     deleteProject(
@@ -89,7 +92,12 @@ BLOOPER_NAMESPACE_BEGIN
     this->reloadProjects();
   };
 
-  cancelButton.onClick = [this] {
+
+  this->cancelButton =
+      std::make_unique<juce::TextButton>(
+          "Cancel");
+
+  this->cancelButton->onClick = [this] {
     if (!this->isAddingProject)
     {
       this->options.onCancel();
@@ -100,15 +108,24 @@ BLOOPER_NAMESPACE_BEGIN
     }
   };
 
-  openProjectButton.onClick = [this] {
-    auto row = list.getSelectedRow();
+
+  this->openProjectButton =
+      std::make_unique<juce::TextButton>(
+          "Open...");
+
+  this->openProjectButton->onClick = [this] {
+    auto row = this->list->getSelectedRow();
     if (!this->isValidRow(row)) return;
 
     this->options.onOpen(projects[row]);
   };
 
 
-  addProjectPanel.addProperties(
+  this->addProjectPanel =
+      std::make_unique<juce::PropertyPanel>(
+          "Add project...");
+
+  this->addProjectPanel->addProperties(
       {new juce::TextPropertyComponent(
            projectPath.getPropertyAsValue(),
            "Folder",
@@ -119,69 +136,50 @@ BLOOPER_NAMESPACE_BEGIN
        new util::FilePathPropertyComponent(
            projectFile.getPropertyAsValue(),
            "File",
-           false,
-           true,
-           "*.tracktion")},
+           {false,
+            true,
+            "*.tracktion"})},
 
       2);
 
 
   ext::addAndMakeVisible(
       *this,
-      list,
+      *this->list,
 
-      reloadProjectsButton,
-      addProjectButton,
-      deleteProjectButton,
+      *this->reloadProjectsButton,
+      *this->addProjectButton,
+      *this->deleteProjectButton,
 
-      cancelButton,
-      openProjectButton,
+      *this->cancelButton,
+      *this->openProjectButton,
 
-      addProjectPanel);
+      *this->addProjectPanel);
 
-  addProjectPanel.setVisible(false);
+  this->addProjectPanel->setVisible(
+      false);
 }
 
 
-void ProjectsMenuComponent::resized()
+[[maybe_unused]] bool ProjectsMenuComponent::isValidRow(
+    int row) const noexcept
 {
-  auto availableArea =
-      util::buildBar(
-          this->getLookAndFeel(),
-          this->getLocalBounds())
-          .addComponentsRight(
-              openProjectButton,
-              cancelButton)
-          .addComponentsLeft(
-              reloadProjectsButton,
-              addProjectButton,
-              deleteProjectButton)
-          .finish();
-
-  if (isAddingProject)
-  {
-    addProjectPanel.setBounds(
-        availableArea.removeFromBottom(
-            availableArea.getHeight() / 10));
-  }
-
-  list.setBounds(availableArea);
+  return row >= 0 && row < this->projects.size();
 }
-
 
 [[maybe_unused]] void ProjectsMenuComponent::toggleAddingProject()
 {
   if (this->isAddingProject)
   {
     this->isAddingProject = false;
-    this->addProjectButton.setButtonText("Add...");
-    this->addProjectPanel.setVisible(false);
+    this->addProjectButton->setButtonText("Add...");
+    this->addProjectPanel->setVisible(false);
   }
   else
   {
     this->isAddingProject = true;
-    this->addProjectButton.setButtonText("Add");
-    this->addProjectPanel.setVisible(true);
+    this->addProjectButton->setButtonText("Add");
+    this->addProjectPanel->setVisible(true);
   }
 
   this->resized();
@@ -191,20 +189,45 @@ void ProjectsMenuComponent::resized()
 {
   auto& manager = this->getContext().getEngine().getProjectManager();
 
-  projects = manager.getAllProjects(manager.folders);
+  this->projects = manager.getAllProjects(manager.folders);
 
-  this->list.updateContent();
+  this->list->updateContent();
 }
 
-[[maybe_unused]] bool ProjectsMenuComponent::isValidRow(int row) const noexcept
+
+// Component
+
+void ProjectsMenuComponent::resized()
 {
-  return row >= 0 && row < this->projects.size();
+  auto availableArea =
+      util::buildBar(
+          this->getLookAndFeel(),
+          this->getLocalBounds())
+          .addComponentsRight(
+              *this->openProjectButton,
+              *this->cancelButton)
+          .addComponentsLeft(
+              *this->reloadProjectsButton,
+              *this->addProjectButton,
+              *this->deleteProjectButton)
+          .finish();
+
+  if (this->isAddingProject)
+  {
+    this->addProjectPanel->setBounds(
+        availableArea.removeFromBottom(
+            availableArea.getHeight() / 10));
+  }
+
+  this->list->setBounds(availableArea);
 }
 
+
+// ListBoxModel
 
 [[maybe_unused]] int ProjectsMenuComponent::getNumRows()
 {
-  return projects.size();
+  return this->projects.size();
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::paintListBoxItem(
@@ -216,7 +239,7 @@ void ProjectsMenuComponent::resized()
 {
   if (!this->isValidRow(row)) return;
 
-  auto project = projects[row];
+  auto project = this->projects[row];
 
 
   auto availableArea = juce::Rectangle<int>(
@@ -230,15 +253,14 @@ void ProjectsMenuComponent::resized()
       juce::ResizableWindow::backgroundColourId));
 
   if (rowIsSelected)
-    g.setColour(juce::Colours::lightgrey);
+    g.setColour(this->findColour(ColourId::whiteBright));
   else
-    g.setColour(juce::Colours::white);
+    g.setColour(this->findColour(ColourId::white));
 
   g.drawText(project->getName(),
              availableArea,
              juce::Justification::left);
 }
-
 
 [[maybe_unused]] void ProjectsMenuComponent::listBoxItemClicked(
     int                     row,
@@ -255,7 +277,7 @@ void ProjectsMenuComponent::resized()
 {
   if (!this->isValidRow(row)) return;
 
-  this->options.onOpen(projects[row]);
+  this->options.onOpen(this->projects[row]);
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::deleteKeyPressed(
@@ -265,7 +287,7 @@ void ProjectsMenuComponent::resized()
 
   deleteProject(
       this->getContext(),
-      projects[row]);
+      this->projects[row]);
 
   this->reloadProjects();
 }

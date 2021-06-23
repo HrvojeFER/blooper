@@ -1,9 +1,11 @@
 #ifndef BLOOPER_EDIT_TRACK_HPP
 #define BLOOPER_EDIT_TRACK_HPP
+#pragma once
 
-#include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+
+#include <blooper/internal/abstract/stateful.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -36,6 +38,7 @@ class [[maybe_unused]] EditTrack :
                        .getID()
                        .getRawID())>;
 
+  // TODO: something more sensible
   inline constexpr static Id invalidId = -1;
 
 
@@ -73,11 +76,18 @@ class [[maybe_unused]] EditTrack :
       armed;
 
 
-  [[maybe_unused, nodiscard]] bool isSoloed() const noexcept;
+  [[maybe_unused, nodiscard]] bool isSoloed() const;
 
-  [[maybe_unused]] void setSoloed(bool) noexcept;
+  [[maybe_unused]] void setSoloed(bool);
 
-  [[maybe_unused]] void toggleSoloed() noexcept;
+  [[maybe_unused]] void toggleSoloed();
+
+
+  [[maybe_unused]] void clear();
+
+
+  [[maybe_unused]] inline double
+  getProgress() const noexcept;
 
 
  private:
@@ -91,6 +101,8 @@ class [[maybe_unused]] EditTrack :
   Token syncToken;
   Token recordToken;
 
+
+  [[nodiscard]] te::Clip* getShortestClip() const noexcept;
 
   void synchronize();
 
@@ -152,6 +164,19 @@ EditTrack::getEdit() noexcept
 [[nodiscard]] EditTrack::Id EditTrack::getId() const noexcept
 {
   return id;
+}
+
+
+[[maybe_unused, nodiscard]] double
+EditTrack::getProgress() const noexcept
+{
+  if (auto shortestClip = this->getShortestClip())
+  {
+    return this->transport->getCurrentPosition() /
+           shortestClip->getMaximumLength();
+  }
+
+  return 0.0;
 }
 
 

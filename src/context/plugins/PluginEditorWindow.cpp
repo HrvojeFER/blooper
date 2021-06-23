@@ -8,13 +8,17 @@ PluginEditorWindow::PluginEditorWindow(
     JucePluginRef        plugin,
     Options              options)
     : CoreWindowBase(
-          plugin->getName(),
+          plugin->getOwnerTrack()->getName() +
+              " " +
+              plugin->getName(),
           context,
           move(state)),
       options(move(options)),
 
       plugin(move(plugin))
 {
+  PluginEditorComponent::Options componentOptions{};
+
   this->component =
       std::make_unique<PluginEditorComponent>(
           this->getContext(),
@@ -22,7 +26,7 @@ PluginEditorWindow::PluginEditorWindow(
               PluginEditorComponent::stateId,
               nullptr),
           this->getPluginRef(),
-          PluginEditorComponent::Options{});
+          move(componentOptions));
 
   this->component->setBounds(this->getBounds());
 
@@ -31,60 +35,64 @@ PluginEditorWindow::PluginEditorWindow(
       true);
 
 
-  this->initialiseResizingLimits();
-  this->initialiseResizingBehaviour();
-  this->initialiseVisibilityBehaviour();
+  this->initializeResizingBehaviour();
+  this->initializeVisibilityBehaviour();
 }
 
 PluginEditorWindow::~PluginEditorWindow()
 {
+  this->finalizeVisibilityBehaviour();
+  this->finalizeResizingBehaviour();
+
   this->getPluginEdit().flushPluginStateIfNeeded(this->getPlugin());
 }
 
 
 [[maybe_unused]] void PluginEditorWindow::recreateContent()
 {
-  JUCE_AUTORELEASEPOOL
-  {
-    this->getComponent().recreate();
-    this->initialiseResizingBehaviour();
-  }
+  this->getComponent().recreate();
+
+  this->finalizeResizingBehaviour();
+  this->initializeResizingBehaviour();
 }
 
-[[maybe_unused]] void PluginEditorWindow::initialiseResizingLimits()
+
+[[maybe_unused]] void PluginEditorWindow::initializeResizingBehaviour()
 {
-  auto bounds = this->getLocalBounds() + this->getLastBounds().getPosition();
-
-  auto halfHeight = bounds.getHeight() / 2;
-  auto halfWidth = bounds.getWidth() / 2;
-
-  this->getConstrainer()
-      ->setMinimumOnscreenAmounts(
-          halfHeight,
-          halfWidth,
-          halfHeight,
-          halfWidth);
-
-  this->setResizeLimits(
-      PluginEditorWindow::minimumWidth,
-      PluginEditorWindow::minimumHeight,
-      PluginEditorWindow::maximumWidth,
-      PluginEditorWindow::maximumHeight);
-
-  this->setBoundsConstrained(bounds);
-}
-
-[[maybe_unused]] void PluginEditorWindow::initialiseResizingBehaviour()
-{
-  this->setResizable(
-      this->getComponent().checkIsResizable(),
-      false);
-
   this->setConstrainer(
       this->getComponent().getConstrainer());
+
+  if (this->getConstrainer())
+  {
+    auto bounds =
+        this->getLocalBounds() +
+        this->getLastBounds().getPosition();
+
+    auto halfHeight = bounds.getHeight() / 2;
+    auto halfWidth = bounds.getWidth() / 2;
+
+    this->getConstrainer()
+        ->setMinimumOnscreenAmounts(
+            halfHeight,
+            halfWidth,
+            halfHeight,
+            halfWidth);
+
+    this->setResizeLimits(
+        PluginEditorWindow::minimumWidth,
+        PluginEditorWindow::minimumHeight,
+        PluginEditorWindow::maximumWidth,
+        PluginEditorWindow::maximumHeight);
+
+    this->setBoundsConstrained(bounds);
+  }
+
+  this->setResizable(
+      this->getComponent().checkIsResizable(),
+      true);
 }
 
-[[maybe_unused]] void PluginEditorWindow::initialiseVisibilityBehaviour()
+[[maybe_unused]] void PluginEditorWindow::initializeVisibilityBehaviour()
 {
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic push
@@ -104,6 +112,36 @@ PluginEditorWindow::~PluginEditorWindow()
 }
 
 
+[[maybe_unused]] void PluginEditorWindow::finalizeResizingBehaviour()
+{
+  this->setResizable(
+      true,
+      true);
+
+  this->setConstrainer(
+      nullptr);
+}
+
+[[maybe_unused]] void PluginEditorWindow::finalizeVisibilityBehaviour()
+{
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "Simplify"
+#endif
+
+  if constexpr (shouldAddPluginWindowToDesktop)
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif
+
+  {
+    this->removeFromDesktop();
+    this->setAlwaysOnTop(false);
+  }
+}
+
+
 // Window
 
 [[maybe_unused]] void PluginEditorWindow::moved()
@@ -112,14 +150,9 @@ PluginEditorWindow::~PluginEditorWindow()
   this->getPluginEdit().pluginChanged(this->getPlugin());
 }
 
-[[maybe_unused]] void PluginEditorWindow::userTriedToCloseWindow()
-{
-  this->getWindowState().closeWindowExplicitly();
-}
-
 [[maybe_unused]] void PluginEditorWindow::closeButtonPressed()
 {
-  this->userTriedToCloseWindow();
+  this->getWindowState().closeWindowExplicitly();
 }
 
 [[maybe_unused, nodiscard]] float
@@ -140,10 +173,9 @@ PluginEditorWindow::getDesktopScaleFactor() const
   PluginEditorWindow* window;
 
   {
-    auto messageLoopBlocker =
-        util::blockMessageLoopInScopeIfNeeded(context, *plugin);
-    auto dpiDisabler =
-        util::disableDPIInScopeIfNeeded(context, *plugin);
+    [[maybe_unused]] const auto [messageLoopBlocker, DPIAwarenessDisabler] =
+        util::declarePluginEditorCreationScope(
+            context, *plugin);
 
     window = new PluginEditorWindow(
         context,

@@ -2,30 +2,267 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class EditTrackComponent::Button : public juce::TextButton
+class EditTrackComponent::ButtonPlayhead final :
+    public juce::Component,
+
+    public juce::Timer
 {
  public:
-  explicit Button(EditTrackComponent* parent)
-      : juce::TextButton("X"),
-        parent(move(parent))
+  explicit ButtonPlayhead(EditTrackComponent* parent)
+      : parent(move(parent)),
+        colourId()
   { }
+
+  ~ButtonPlayhead() final
+  {
+    this->stopTimer();
+  }
+
+
+  JuceColourId colourId;
 
 
  private:
   [[maybe_unused]] EditTrackComponent* parent;
 
 
-  // TODO: Button
+  // Component
 
  private:
-  void clicked() override
+  void paint(JuceGraphics& g) final
   {
-    juce::Button::clicked();
+    g.setColour(
+        this->getLookAndFeel().findColour(
+            colourId));
+
+    g.drawRect(
+        static_cast<int>(
+            this->parent->track->getProgress() *
+            this->getWidth()),
+        0,
+        2,
+        this->getHeight());
   }
 
-  void clicked(const juce::ModifierKeys& modifiers) override
+
+  // Timer
+
+ private:
+  void timerCallback() final
   {
-    juce::Button::clicked(modifiers);
+    this->repaint();
+  }
+};
+
+
+class EditTrackComponent::Button final :
+    public juce::DrawableButton,
+
+    private JuceStateListener,
+    private util::FlaggedAsyncUpdater
+{
+ public:
+  explicit Button(EditTrackComponent* parent)
+      : juce::DrawableButton(
+            "Track",
+            juce::DrawableButton::ButtonStyle::ImageFitted),
+        parent(move(parent)),
+
+        playhead(this->parent),
+
+        playheadUpdate(false),
+        imageUpdate(false)
+  {
+    ext::addAndMakeVisible(
+        *this,
+        this->playhead);
+
+    this->parent->track->getState().addListener(this);
+    this->parent->getContext().getEditManager().addListener(this);
+
+    this->updatePlayhead();
+    this->updateImages();
+  }
+
+  ~Button() override
+  {
+    this->parent->getContext().getEditManager().removeListener(this);
+    this->parent->track->getState().removeListener(this);
+  }
+
+
+ private:
+  [[maybe_unused]] EditTrackComponent* parent;
+
+
+  [[maybe_unused]] ButtonPlayhead playhead;
+
+
+  bool playheadUpdate;
+
+  void updatePlayhead()
+  {
+    auto& parentTrack = this->parent->track;
+    if (parentTrack->playback == TrackPlayback::paused)
+    {
+      this->playhead.stopTimer();
+      this->playhead.setVisible(false);
+    }
+    else if (parentTrack->playback == TrackPlayback::playing)
+    {
+      this->playhead.startTimerHz(20);
+      this->playhead.colourId = ColourId::yellowBright;
+      this->playhead.setVisible(true);
+    }
+    else if (parentTrack->playback == TrackPlayback::recording)
+    {
+      this->playhead.startTimerHz(20);
+      this->playhead.colourId = ColourId::redBright;
+      this->playhead.setVisible(true);
+    }
+  }
+
+
+  bool imageUpdate;
+
+  void updateImages()
+  {
+    auto& assets = this->parent->getContext().getAssetManager();
+    auto& parentTrack = this->parent->track;
+    auto  isClear = parentTrack->getAudio().getClips().size() == 0;
+
+    const JuceDrawable* stateImage = nullptr;
+    const JuceDrawable* nextStateImage = nullptr;
+
+    if (parentTrack->playback == TrackPlayback::paused)
+    {
+      stateImage = assets.getIconView(assets::IconAssetId::play);
+
+      if (isClear)
+      {
+        nextStateImage = assets.getIconView(assets::IconAssetId::record);
+        maybeUnused(nextStateImage);
+      }
+      {
+        nextStateImage = assets.getIconView(assets::IconAssetId::pause);
+      }
+    }
+    else if (parentTrack->playback == TrackPlayback::playing)
+    {
+      stateImage = assets.getIconView(assets::IconAssetId::play);
+      nextStateImage = assets.getIconView(assets::IconAssetId::pause);
+    }
+    else if (parentTrack->playback == TrackPlayback::recording)
+    {
+      stateImage = assets.getIconView(assets::IconAssetId::record);
+      nextStateImage = assets.getIconView(assets::IconAssetId::del);
+    }
+
+    const JuceDrawable* _disabledImage =
+        assets.getIconView(assets::IconAssetId::muteTrack);
+
+    this->setImages(
+        stateImage,
+        nextStateImage,
+        nextStateImage,
+        _disabledImage,
+        stateImage,
+        nextStateImage,
+        nextStateImage,
+        _disabledImage);
+  }
+
+
+  // Button
+
+ private:
+  void clicked() final
+  {
+    auto& parentTrack = this->parent->track;
+    auto  isClear = parentTrack->getAudio().getClips().size() == 0;
+
+    if (parentTrack->playback == TrackPlayback::playing)
+    {
+      parentTrack->playback = TrackPlayback::paused;
+    }
+    else if (parentTrack->playback == TrackPlayback::recording)
+    {
+      parentTrack->playback = TrackPlayback::paused;
+    }
+    else if (parentTrack->playback == TrackPlayback::paused)
+    {
+      if (isClear)
+      {
+        parentTrack->playback = TrackPlayback::recording;
+      }
+      else
+      {
+        parentTrack->playback = TrackPlayback::playing;
+      }
+    }
+  }
+
+  void clicked(const juce::ModifierKeys& modifiers) final
+  {
+    auto& parentTrack = this->parent->track;
+
+    auto withCommand = modifiers.isCommandDown();
+    if (withCommand)
+    {
+      parentTrack->clear();
+      return;
+    }
+
+    this->clicked();
+  }
+
+
+  // ValueTreeListener
+
+ private:
+  void valueTreeChanged() final { }
+
+  void valueTreePropertyChanged(
+      juce::ValueTree&        tree,
+      const juce::Identifier& id) final
+  {
+    auto& parentTrack = this->parent->track;
+    auto& editManager = this->parent->getContext().getEditManager();
+
+    if (tree == parentTrack->getState())
+    {
+      if (id == id::playback)
+      {
+        this->markAndUpdate(this->imageUpdate);
+        this->markAndUpdate(this->playheadUpdate);
+      }
+      else if (id == id::interval)
+      {
+      }
+      else if (id == id::mode)
+      {
+        this->markAndUpdate(this->playheadUpdate);
+      }
+    }
+    else if (tree == editManager.getState())
+    {
+      if (id == id::soloed)
+      {
+        this->markAndUpdate(this->imageUpdate);
+      }
+    }
+  }
+
+
+  // FlaggedAsyncUpdater
+
+ private:
+  void handleAsyncUpdate() final
+  {
+    if (util::FlaggedAsyncUpdater::compareAndReset(imageUpdate))
+    {
+      this->updateImages();
+    }
   }
 };
 
@@ -247,7 +484,7 @@ void EditTrackComponent::resized()
           .removeFromLeft(
               static_cast<int>(
                   topSmallButtonArea.getWidth() / 2))
-          .reduced(2));
+          .reduced(4));
 
   this->muteButton->setBounds(topSmallButtonArea);
 
@@ -256,31 +493,32 @@ void EditTrackComponent::resized()
           .removeFromLeft(
               static_cast<int>(
                   bottomSmallButtonArea.getWidth() / 2))
-          .reduced(2));
+          .reduced(4));
 
 
   // Dropdowns
 
   this->modeDropdown->setBounds(
       availableArea.removeFromTop(
-          static_cast<int>(
-              this->getLookAndFeel()
-                  .getComboBoxFont(*this->modeDropdown)
-                  .getHeight() +
-              4)));
+          50));
 
   this->intervalDropdown->setBounds(
       availableArea.removeFromTop(
-          static_cast<int>(
-              this->getLookAndFeel()
-                  .getComboBoxFont(*this->intervalDropdown)
-                  .getHeight() +
-              4)));
+          50));
 
 
   // Plugin List
 
   this->pluginList->setBounds(availableArea);
+}
+
+void EditTrackComponent::mouseDown(const juce::MouseEvent&)
+{
+  this->getContext()
+      .getSelectionManager()
+      .select(
+          this->track,
+          true);
 }
 
 

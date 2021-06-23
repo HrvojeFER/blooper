@@ -1,18 +1,19 @@
 #ifndef BLOOPER_MESSAGE_LOOP_BLOCKER_HPP
 #define BLOOPER_MESSAGE_LOOP_BLOCKER_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
+
+#include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
 inline bool needsMessageLoopBlocking(
-    AbstractCoreContext&,
-    const te::Plugin&) noexcept
+    AbstractCoreContext& context,
+    const te::Plugin&    plugin) noexcept
 {
-  // TODO: plugin DB
-  return true;
+  return needsDPIAwarenessDisabling(context, plugin);
 }
 
 
@@ -36,7 +37,10 @@ struct RealScopedMessageLoopBlocker final :
     this->enterModalState(false);
   }
 
-  inline ~RealScopedMessageLoopBlocker() noexcept final = default;
+  inline ~RealScopedMessageLoopBlocker() noexcept final
+  {
+    this->exitModalState(0);
+  }
 
 
   [[maybe_unused, nodiscard]] inline bool isReal() const noexcept final
@@ -71,6 +75,24 @@ blockMessageLoopInScopeIfNeeded(
     return std::make_unique<RealScopedMessageLoopBlocker>();
 
   return std::make_unique<FakeScopedMessageLoopBlocker>();
+}
+
+
+[[maybe_unused, nodiscard]] inline std::pair<
+    std::unique_ptr<ScopedMessageLoopBlocker>,
+    std::unique_ptr<ScopedDPIAwarenessDisabler>>
+declarePluginEditorCreationScope(
+    AbstractCoreContext& context,
+    const te::Plugin&    plugin)
+{
+  auto messageLoopBlocker =
+      blockMessageLoopInScopeIfNeeded(context, plugin);
+
+  auto dpiAwarenessDisabler =
+      disableDPIInScopeIfNeeded(context, plugin);
+
+  return {std::move(messageLoopBlocker),
+          std::move(dpiAwarenessDisabler)};
 }
 
 BLOOPER_UTIL_NAMESPACE_END

@@ -41,7 +41,9 @@ PluginEditorComponent::PluginEditorComponent(
               getPluginRef(),
               PluginContentOptions{})),
 
-      constrainer(createConstrainer(*this->content))
+      constrainer(
+          createConstrainer(
+              *this->content))
 {
   ext::addAndMakeVisible(
       *this,

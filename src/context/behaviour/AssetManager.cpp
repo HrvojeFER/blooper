@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/behaviour/AssetManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

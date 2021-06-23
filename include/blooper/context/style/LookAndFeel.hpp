@@ -1,7 +1,12 @@
 #ifndef BLOOPER_LOOK_AND_FEEL_HPP
 #define BLOOPER_LOOK_AND_FEEL_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/abstract/stateful.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
+#include <blooper/internal/utils/style.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -252,11 +257,6 @@ class LookAndFeel final :
       const juce::String&  tipText,
       juce::Point<int>     screenPos,
       juce::Rectangle<int> parentArea) final;
-
-  int getTooltipSize(
-      const juce::String& string,
-      int&                i,
-      int&                i1) final;
 
   void drawTooltip(
       juce::Graphics&     graphics,

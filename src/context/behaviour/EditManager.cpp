@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/behaviour/EditManager.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -9,30 +11,29 @@ EditManager::EditManager(AbstractContext& context)
               .getProjectState()
               .getOrCreateChildWithName(
                   id::edit,
-                  nullptr))
+                  nullptr)),
+
+      inputsUpdate(false),
+      soloedUpdate(false)
 {
   auto& project = this->getContext().getProject();
   auto  undoManager = std::addressof(this->getContext().getUndoManager());
 
-
-  for (int i = 0; i < project.getNumProjectItems(); ++i)
-    if (JuceProjectItemRef item = project.getProjectItemAt(i); item->isEdit())
-      this->add(move(item), nullptr);
 
   this->soloed.referTo(
       this->getState(),
       id::soloed,
       undoManager,
       EditTrack::invalidId);
-  if (this->isAnyTrackSoloed())
-  {
-    this->visit([this](EditTrack* track) {
-      if (track->id == this->soloed)
-        track->audio->setMute(false);
-      else
-        track->audio->setMute(true);
-    });
-  }
+
+
+  for (int i = 0; i < project.getNumProjectItems(); ++i)
+    if (JuceProjectItemRef item = project.getProjectItemAt(i); item->isEdit())
+      this->add(move(item), nullptr);
+
+
+  this->updateInputs();
+  this->updateSoloed();
 }
 
 EditManager::~EditManager() = default;
@@ -61,6 +62,47 @@ void EditManager::remove(EditTrack::Id id)
 EditTrackRef EditManager::get(EditTrack::Id id)
 {
   return this->edits[id];
+}
+
+
+void EditManager::updateInputs()
+{
+  this->visit([](EditTrack* track) {
+    for (auto inputInstance : track->getEdit().getAllInputDevices())
+    {
+      if (inputInstance->getInputDevice().getDeviceType() ==
+          te::InputDevice::waveDevice)
+      {
+        inputInstance->setTargetTrack(
+            track->getAudio(),
+            0,
+            true);
+
+        inputInstance->setRecordingEnabled(
+            track->getAudio(),
+            true);
+      }
+    }
+  });
+}
+
+void EditManager::updateSoloed()
+{
+  if (this->isAnyTrackSoloed())
+  {
+    this->visit([this](EditTrack* track) {
+      if (track->id == this->soloed)
+        track->audio->setMute(false);
+      else
+        track->audio->setMute(true);
+    });
+  }
+  else
+  {
+    this->visit([](EditTrack* track) {
+      track->audio->setMute(track->muted);
+    });
+  }
 }
 
 
@@ -115,22 +157,63 @@ void EditManager::valueTreePropertyChanged(
   {
     if (_id == id::soloed)
     {
-      if (this->isAnyTrackSoloed())
-      {
-        this->visit([this](EditTrack* track) {
-          if (track->id == this->soloed)
-            track->audio->setMute(false);
-          else
-            track->audio->setMute(true);
-        });
-      }
-      else
-      {
-        this->visit([](EditTrack* track) {
-          track->audio->setMute(track->muted);
-        });
-      }
+      this->markAndUpdate(this->soloedUpdate);
     }
+  }
+}
+
+void EditManager::valueTreeChildAdded(
+    juce::ValueTree& tree,
+    juce::ValueTree& child)
+{
+  if (tree == this->getState())
+  {
+    if (child.hasType(id::edit))
+    {
+      this->markAndUpdate(this->inputsUpdate);
+    }
+  }
+}
+
+void EditManager::valueTreeChildRemoved(
+    juce::ValueTree& tree,
+    juce::ValueTree& child,
+    int)
+{
+  if (tree == this->getState())
+  {
+    if (child.hasType(id::edit))
+    {
+      this->markAndUpdate(this->inputsUpdate);
+    }
+  }
+}
+
+void EditManager::valueTreeChildOrderChanged(
+    juce::ValueTree& tree,
+    int,
+    int)
+{
+  if (tree == this->getState())
+  {
+    this->markAndUpdate(this->inputsUpdate);
+  }
+}
+
+
+// FlaggedAsyncUpdater
+
+void EditManager::handleAsyncUpdate()
+{
+  if (util::FlaggedAsyncUpdater::compareAndReset(
+          this->inputsUpdate))
+  {
+    this->updateInputs();
+  }
+  else if (util::FlaggedAsyncUpdater::compareAndReset(
+               this->soloedUpdate))
+  {
+    this->updateSoloed();
   }
 }
 

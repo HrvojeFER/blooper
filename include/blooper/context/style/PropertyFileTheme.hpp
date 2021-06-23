@@ -1,7 +1,9 @@
 #ifndef BLOOPER_PROPERTY_FILE_THEME_HPP
 #define BLOOPER_PROPERTY_FILE_THEME_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/utils/style.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

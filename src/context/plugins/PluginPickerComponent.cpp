@@ -9,19 +9,10 @@ PluginPickerComponent::PluginPickerComponent(
     : ComponentBase(
           context,
           move(state)),
-      options(move(options)),
-
-      pluginTree(),
-
-      popup()
+      options(move(options))
 {
 }
 
-
-#ifdef __JETBRAINS_IDE__ // recursive calls chains
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "misc-no-recursion"
-#endif
 
 class PluginPickerComponent::Popup : public juce::PopupMenu
 {
@@ -50,24 +41,24 @@ PluginPickerComponent::Popup::Popup(PluginTreeBase* pluginTree)
 
 JucePluginRef PluginPickerComponent::runPopup()
 {
-  if (!pluginTree)
-    pluginTree = std::make_unique<PluginTreeGroup>(getContext());
+  if (!this->pluginTree)
+    this->pluginTree =
+        std::make_unique<PluginTreeGroup>(getContext());
 
-  if (!popup)
-    popup = std::make_unique<Popup>(pluginTree.get());
+  if (!this->popup)
+    this->popup =
+        std::make_unique<Popup>(pluginTree.get());
 
   auto idOfUserSelection = popup->show();
   if (!idOfUserSelection) return nullptr;
 
-  auto item = findIn(pluginTree.get(), idOfUserSelection);
+  auto item = PluginPickerComponent::findIn(
+      pluginTree.get(),
+      idOfUserSelection);
   if (!item) return nullptr;
 
   return item->createPlugin();
 }
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif
 
 
 int PluginPickerComponent::getId(const PluginTreeBase& item)

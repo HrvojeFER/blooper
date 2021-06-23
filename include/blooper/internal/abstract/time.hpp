@@ -1,5 +1,8 @@
 #ifndef BLOOPER_TIME_HPP
 #define BLOOPER_TIME_HPP
+#pragma once
+
+#include <blooper/internal/macros/namespaces.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -15,14 +18,16 @@ isValid(Token token) noexcept
 [[maybe_unused, nodiscard]] inline Token
 generateToken() noexcept
 {
-  static juce::Atomic<Token> token = 0;
+  static juce::Atomic<Token> currentValue = 0;
 
-  token += 1;
-  return token.get();
+  currentValue += 1;
+  return currentValue.get();
 }
 
 
 using Tick = unsigned char;
+
+using HiResTick = juce::int64;
 
 enum class Interval : Tick
 {

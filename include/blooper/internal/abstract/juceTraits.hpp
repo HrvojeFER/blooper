@@ -1,10 +1,11 @@
 #ifndef BLOOPER_JUCE_TRAITS_HPP
 #define BLOOPER_JUCE_TRAITS_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
 
-#include "meta.hpp"
-#include "traits.hpp"
+#include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -137,7 +138,7 @@ BLOOPER_STATIC_ASSERT(
 
 // Component
 
-using JuceDektop [[maybe_unused]] = juce::Desktop;
+using JuceDesktop [[maybe_unused]] = juce::Desktop;
 
 [[maybe_unused]] inline constexpr auto isJuceComponent =
     meta::reverse_partial(
@@ -271,6 +272,8 @@ using JucePluginContent [[maybe_unused]] =
 
 using JuceGenericPluginContent [[maybe_unused]] =
     juce::GenericAudioProcessorEditor;
+
+using JuceParameter [[maybe_unused]] = te::AutomatableParameter;
 
 BLOOPER_NAMESPACE_END
 

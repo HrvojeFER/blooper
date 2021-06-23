@@ -1,14 +1,13 @@
 #ifndef BLOOPER_STYLE_UTILS_HPP
 #define BLOOPER_STYLE_UTILS_HPP
+#pragma once
 
-#include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
-#include <blooper/internal/ext/ext.hpp>
+#include <blooper/internal/macros/namespaces.hpp>
+
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/abstract/juceTraits.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
-
-[[maybe_unused]] inline constexpr JuceColourId
-    minimalBlooperColourId{100000000};
 
 namespace ColourId
 {

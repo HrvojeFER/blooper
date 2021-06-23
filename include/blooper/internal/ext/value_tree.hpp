@@ -1,8 +1,9 @@
 #ifndef BLOOPER_EXT_VALUE_TREE_HPP
 #define BLOOPER_EXT_VALUE_TREE_HPP
+#pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/abstract.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -12,7 +13,7 @@ template<typename TOnNode>
     TOnNode              onNode)
 {
   static_assert(
-      isInvokeable(
+      isInvokable(
           meta::typeid_(onNode),
           meta::type_c<juce::ValueTree>),
       "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
@@ -30,7 +31,7 @@ template<typename TOnNode>
     TOnNode              onNode)
 {
   static_assert(
-      isInvokeable(
+      isInvokable(
           meta::typeid_(onNode),
           meta::type_c<juce::ValueTree>),
       "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
