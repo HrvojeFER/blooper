@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/projects/ProjectWindow.hpp>
+
+#include <blooper/context/projects/ProjectComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -22,7 +24,7 @@ ProjectWindow::ProjectWindow(
   auto component = new ProjectComponent(
       getContext(),
       getState().getOrCreateChildWithName(
-          ProjectsMenuComponent::stateId,
+          ProjectComponent::stateId,
           nullptr),
       project,
       move(componentOptions));

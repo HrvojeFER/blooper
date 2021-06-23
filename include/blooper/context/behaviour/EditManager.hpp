@@ -53,7 +53,7 @@ class EditManager :
 
   bool inputsUpdate;
 
-  void updateInputs();
+  void updateInputs() const;
 
 
   bool soloedUpdate;

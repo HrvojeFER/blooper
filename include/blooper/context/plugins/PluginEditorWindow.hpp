@@ -1,28 +1,15 @@
 #ifndef BLOOPER_PLUGIN_EDITOR_WINDOW_HPP
 #define BLOOPER_PLUGIN_EDITOR_WINDOW_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
+#include <blooper/internal/abstract/plugins.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
-
-#if JUCE_LINUX
-constexpr bool shouldAddPluginWindowToDesktop = false;
-#else
-constexpr bool shouldAddPluginWindowToDesktop = true;
-#endif
 
 class PluginEditorWindow : public CoreWindowBase
 {
  public:
   BLOOPER_STATE_ID(PluginEditorWindow);
-
-  // closest to 100 width
-  [[maybe_unused]] inline constexpr static auto minimumWidth = 128;
-  [[maybe_unused]] inline constexpr static auto minimumHeight = 72;
-
-  // 8K
-  [[maybe_unused]] inline constexpr static auto maximumWidth = 7680;
-  [[maybe_unused]] inline constexpr static auto maximumHeight = 4320;
 
 
   struct Options

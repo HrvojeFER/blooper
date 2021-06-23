@@ -16,6 +16,7 @@
 #include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/internal/utils/EditTrack.hpp>
+#include <blooper/internal/utils/PluginTree.hpp>
 
 #include <blooper/internal/utils/selection.hpp>
 

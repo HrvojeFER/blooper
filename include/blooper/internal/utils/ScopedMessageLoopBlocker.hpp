@@ -5,8 +5,6 @@
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
 
-#include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
-
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
 inline bool needsMessageLoopBlocking(
@@ -75,24 +73,6 @@ blockMessageLoopInScopeIfNeeded(
     return std::make_unique<RealScopedMessageLoopBlocker>();
 
   return std::make_unique<FakeScopedMessageLoopBlocker>();
-}
-
-
-[[maybe_unused, nodiscard]] inline std::pair<
-    std::unique_ptr<ScopedMessageLoopBlocker>,
-    std::unique_ptr<ScopedDPIAwarenessDisabler>>
-declarePluginEditorCreationScope(
-    AbstractCoreContext& context,
-    const te::Plugin&    plugin)
-{
-  auto messageLoopBlocker =
-      blockMessageLoopInScopeIfNeeded(context, plugin);
-
-  auto dpiAwarenessDisabler =
-      disableDPIInScopeIfNeeded(context, plugin);
-
-  return {std::move(messageLoopBlocker),
-          std::move(dpiAwarenessDisabler)};
 }
 
 BLOOPER_UTIL_NAMESPACE_END

@@ -1,4 +1,8 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/settings/SettingsDevicesComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
+
+#include <blooper/context/devices/DevicesMenuComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -25,6 +29,8 @@ SettingsDevicesComponent::SettingsDevicesComponent(
       *this,
       *this->menu);
 }
+
+SettingsDevicesComponent::~SettingsDevicesComponent() = default;
 
 
 // Component

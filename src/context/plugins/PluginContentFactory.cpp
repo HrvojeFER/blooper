@@ -1,4 +1,9 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/plugins/PluginContentFactory.hpp>
+
+#include <blooper/internal/ext/plugin.hpp>
+
+// TODO
+#include <blooper/context/plugins/builtin/builtin.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -140,19 +145,16 @@ void ExternalPluginContentComponent::childBoundsChanged(
 
   this->content.reset();
 
-  JUCE_AUTORELEASEPOOL
+  if (auto instance = this->getHeldPlugin().getAudioPluginInstance())
   {
-    if (auto instance = this->getHeldPlugin().getAudioPluginInstance())
-    {
-      this->content.reset(instance->createEditorIfNeeded());
+    this->content.reset(instance->createEditorIfNeeded());
 
-      if (!this->content)
-        this->content =
-            std::make_unique<JuceGenericPluginContent>(
-                *instance);
+    if (!this->content)
+      this->content =
+          std::make_unique<JuceGenericPluginContent>(
+              *instance);
 
-      addAndMakeVisible(*this->content);
-    }
+    addAndMakeVisible(*this->content);
   }
 
   this->resizeToFitContent(true);
@@ -164,10 +166,10 @@ void ExternalPluginContentComponent::resizeToFitContent(bool force)
   if (force || !checkIsResizable())
     setSize(
         juce::jmax(
-            ExternalPluginContentComponent::minWidth,
+            minimumPluginEditorWidth,
             this->content ? this->content->getWidth() : 0),
         juce::jmax(
-            ExternalPluginContentComponent::minHeight,
+            minimumPluginEditorHeight,
             this->content ? this->content->getHeight() : 0));
 }
 

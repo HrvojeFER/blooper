@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/settings/SettingsPluginsComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

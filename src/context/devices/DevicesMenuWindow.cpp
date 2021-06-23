@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/devices/DevicesMenuWindow.hpp>
+
+#include <blooper/context/devices/DevicesMenuComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

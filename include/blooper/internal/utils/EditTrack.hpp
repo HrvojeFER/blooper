@@ -28,6 +28,7 @@ enum class TrackPlayback : int
 class [[maybe_unused]] EditTrack :
     public ContextualBase,
     public StatefulBase,
+
     public juce::ReferenceCountedObject,
     public te::Selectable
 {

@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PLUGIN_CONTENT_FACTORY_HPP
 #define BLOOPER_PLUGIN_CONTENT_FACTORY_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/plugins.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -62,9 +62,6 @@ struct ExternalPluginContentComponent final :
 {
  public:
   BLOOPER_STATE_ID(ExternalPluginContentComponent);
-
-  inline constexpr static auto minHeight = 8;
-  inline constexpr static auto minWidth = 8;
 
 
   struct Options

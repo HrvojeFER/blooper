@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/style/PropertyFileTheme.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -33,10 +33,18 @@ JuceColour PropertyFileTheme::getColour(JuceColourId id) const
   if (!colourXml) return JuceColour{};
 
   return JuceColour{
-      static_cast<juce::uint8>(colourXml->getIntAttribute("red")),
-      static_cast<juce::uint8>(colourXml->getIntAttribute("green")),
-      static_cast<juce::uint8>(colourXml->getIntAttribute("blue")),
-      static_cast<juce::uint8>(colourXml->getIntAttribute("alpha"))};
+      static_cast<juce::uint8>(
+          colourXml->getIntAttribute(
+              "red")),
+      static_cast<juce::uint8>(
+          colourXml->getIntAttribute(
+              "green")),
+      static_cast<juce::uint8>(
+          colourXml->getIntAttribute(
+              "blue")),
+      static_cast<juce::uint8>(
+          colourXml->getIntAttribute(
+              "alpha"))};
 }
 
 BLOOPER_NAMESPACE_END

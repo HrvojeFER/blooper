@@ -6,6 +6,9 @@
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>
 
+#include <blooper/internal/utils/ScopedMessageLoopBlocker.hpp>
+#include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
+
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline void copyConstrainer(
@@ -43,6 +46,24 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
       2);
 
   return availableArea.removeFromBottom(lineSpace);
+}
+
+
+[[maybe_unused, nodiscard]] inline std::pair<
+    std::unique_ptr<ScopedMessageLoopBlocker>,
+    std::unique_ptr<ScopedDPIAwarenessDisabler>>
+declarePluginEditorCreationScope(
+    AbstractCoreContext& context,
+    const te::Plugin&    plugin)
+{
+  auto messageLoopBlocker =
+      blockMessageLoopInScopeIfNeeded(context, plugin);
+
+  auto dpiAwarenessDisabler =
+      disableDPIInScopeIfNeeded(context, plugin);
+
+  return {std::move(messageLoopBlocker),
+          std::move(dpiAwarenessDisabler)};
 }
 
 BLOOPER_UTIL_NAMESPACE_END

@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/internal/utils/PluginTree.hpp>
+
+#include <blooper/internal/abstract/const.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -230,7 +232,7 @@ PluginTreeItem::PluginTreeItem(
       xmlType(move(xmlType)),
       isPlugin(isPlugin)
 {
-  BLOOPER_ASSERT(this->xmlType.isNotEmpty());
+  // BLOOPER_ASSERT(this->xmlType.isNotEmpty()); TODO: fix
 
   description.pluginFormatName =
       (uniqueId.endsWith(builtinUniqueIdSuffix) ||

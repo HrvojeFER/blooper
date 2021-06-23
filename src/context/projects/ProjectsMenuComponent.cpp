@@ -1,4 +1,11 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/projects/ProjectsMenuComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/string.hpp>
+#include <blooper/internal/utils/CoreContextFunctions.hpp>
+#include <blooper/internal/utils/FilePathPropertyComponent.hpp>
+#include <blooper/internal/utils/BarComponents.hpp>
+#include <blooper/internal/utils/style.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

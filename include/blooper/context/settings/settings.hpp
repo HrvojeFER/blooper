@@ -7,9 +7,7 @@
 #include <blooper/context/settings/SettingsDevicesComponent.hpp>
 #include <blooper/context/settings/SettingsPluginsComponent.hpp>
 #include <blooper/context/settings/SettingsProjectsComponent.hpp>
-
 #include <blooper/context/settings/SettingsMenuComponent.hpp>
-
 #include <blooper/context/settings/SettingsMenuWindow.hpp>
 
 #endif // BLOOPER_SETTINGS_HPP

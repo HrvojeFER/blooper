@@ -1,7 +1,9 @@
 #ifndef BLOOPER_PLUGIN_PICKER_POPUP_HPP
 #define BLOOPER_PLUGIN_PICKER_POPUP_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
+
+#include <blooper/internal/utils/PluginTree.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -25,17 +27,17 @@ class PluginPickerComponent : public ComponentBase
 
 
  private:
-  std::unique_ptr<class PluginTreeBase> pluginTree;
+  std::unique_ptr<PluginTreeBase> pluginTree;
 
 
   class Popup;
   std::unique_ptr<Popup> popup;
 
-  static int getId(const class PluginTreeBase& item);
+  static int getId(const PluginTreeBase& item);
 
-  static class PluginTreeItem* findIn(
-      class PluginTreeBase* root,
-      int                   hash);
+  static PluginTreeItem* findIn(
+      PluginTreeBase* root,
+      int             hash);
 };
 
 

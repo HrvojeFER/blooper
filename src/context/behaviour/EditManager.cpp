@@ -65,7 +65,7 @@ EditTrackRef EditManager::get(EditTrack::Id id)
 }
 
 
-void EditManager::updateInputs()
+void EditManager::updateInputs() const
 {
   this->visit([](EditTrack* track) {
     for (auto inputInstance : track->getEdit().getAllInputDevices())

@@ -1,4 +1,9 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/plugins/PluginEditorWindow.hpp>
+
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/utils/gui.hpp>
+
+#include <blooper/context/plugins/PluginEditorComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -79,10 +84,10 @@ PluginEditorWindow::~PluginEditorWindow()
             halfWidth);
 
     this->setResizeLimits(
-        PluginEditorWindow::minimumWidth,
-        PluginEditorWindow::minimumHeight,
-        PluginEditorWindow::maximumWidth,
-        PluginEditorWindow::maximumHeight);
+        minimumPluginEditorWidth,
+        minimumPluginEditorHeight,
+        maximumPluginEditorWidth,
+        maximumPluginEditorHeight);
 
     this->setBoundsConstrained(bounds);
   }
@@ -173,9 +178,8 @@ PluginEditorWindow::getDesktopScaleFactor() const
   PluginEditorWindow* window;
 
   {
-    [[maybe_unused]] const auto [messageLoopBlocker, DPIAwarenessDisabler] =
-        util::declarePluginEditorCreationScope(
-            context, *plugin);
+    [[maybe_unused]] const auto creationScope =
+        util::declarePluginEditorCreationScope(context, *plugin);
 
     window = new PluginEditorWindow(
         context,

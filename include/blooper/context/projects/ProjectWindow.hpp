@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PROJECT_WINDOW_HPP
 #define BLOOPER_PROJECT_WINDOW_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -38,7 +38,7 @@ class ProjectWindow : public WindowBase
 
 [[maybe_unused]] ProjectWindow* showProject(
     AbstractContext&       context,
-    JuceProjectRef         project = {},
+    JuceProjectRef         project,
     ProjectWindow::Options options = {});
 
 BLOOPER_NAMESPACE_END

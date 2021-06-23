@@ -1,7 +1,7 @@
 #ifndef BLOOPER_SETTINGS_DEVICES_COMPONENT_HPP
 #define BLOOPER_SETTINGS_DEVICES_COMPONENT_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -19,6 +19,8 @@ class SettingsDevicesComponent : public CoreComponentBase
       AbstractCoreContext& context,
       State                state,
       Options              options = {});
+
+  ~SettingsDevicesComponent() override;
 
 
  private:

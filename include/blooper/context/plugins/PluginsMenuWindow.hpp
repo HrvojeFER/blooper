@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PLUGINS_MENU_WINDOW_HPP
 #define BLOOPER_PLUGINS_MENU_WINDOW_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

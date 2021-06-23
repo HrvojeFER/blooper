@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PROJECTS_MENU_COMPONENT_HPP
 #define BLOOPER_PROJECTS_MENU_COMPONENT_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

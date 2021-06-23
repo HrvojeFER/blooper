@@ -1,4 +1,13 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/settings/SettingsMenuComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
+
+#include <blooper/context/settings/SettingsAppearanceComponent.hpp>
+#include <blooper/context/settings/SettingsBehaviourComponent.hpp>
+#include <blooper/context/settings/SettingsDevicesComponent.hpp>
+#include <blooper/context/settings/SettingsKeymapsComponent.hpp>
+#include <blooper/context/settings/SettingsPluginsComponent.hpp>
+#include <blooper/context/settings/SettingsProjectsComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -125,17 +134,18 @@ SettingsMenuComponent::SettingsMenuComponent(
       this->plugins.get(),
       false);
 
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->tabs);
+
+
   if (this->openedTabIndex >= 0)
   {
     this->tabs->setCurrentTabIndex(
         this->openedTabIndex,
         false);
   }
-
-
-  ext::addAndMakeVisible(
-      *this,
-      *this->tabs);
 }
 
 SettingsMenuComponent::~SettingsMenuComponent()

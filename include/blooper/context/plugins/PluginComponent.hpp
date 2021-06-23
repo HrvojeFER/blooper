@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PLUGIN_COMPONENT_HPP
 #define BLOOPER_PLUGIN_COMPONENT_HPP
 
-#include <blooper/internal/abstract/abstract.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

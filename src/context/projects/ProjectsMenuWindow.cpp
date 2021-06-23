@@ -1,4 +1,8 @@
-#include <blooper/blooper.hpp>
+#include <blooper/context/projects/ProjectsMenuWindow.hpp>
+
+#include <blooper/context/projects/ProjectsMenuComponent.hpp>
+
+#include <blooper/internal/ext/window.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,7 +17,7 @@ ProjectsMenuWindow::ProjectsMenuWindow(
 
       options(move(options))
 {
-  ProjectsMenuComponent::Options componentOptions{};
+  ProjectsMenuOptions componentOptions{};
 
   componentOptions.onOpen = [this](auto ref) {
     this->options.onOpen(move(ref));

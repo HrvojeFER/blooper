@@ -1,7 +1,7 @@
 #ifndef BLOOPER_PROJECT_COMPONENT_HPP
 #define BLOOPER_PROJECT_COMPONENT_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -9,8 +9,6 @@ class ProjectComponent : public ComponentBase
 {
  public:
   BLOOPER_STATE_ID(ProjectComponent);
-
-  BLOOPER_ID(panelOpennessStateId);
 
 
   class Options
@@ -27,6 +25,7 @@ class ProjectComponent : public ComponentBase
 
 
  private:
+  BLOOPER_ID(panelOpennessStateId);
   JuceCached<JuceString> panelOpennessState;
 
   JuceProjectRef project;

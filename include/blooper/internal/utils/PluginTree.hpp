@@ -1,55 +1,9 @@
 #ifndef BLOOPER_PLUGIN_TREE_HPP
 #define BLOOPER_PLUGIN_TREE_HPP
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "cert-err58-cpp"
-#endif
-
-static inline constexpr auto builtinPluginFormatName = "Internal";
-
-static inline constexpr auto builtinUniqueIdSuffix = "_internal";
-static inline constexpr auto effectPluginUniqueIdSuffix = "_effect";
-static inline constexpr auto synthPluginUniqueIdSuffix = "_synth";
-static inline constexpr auto pluginUniqueIdSuffix = "_plugin";
-static inline constexpr auto rackUniqueIdSuffix = "_rack";
-
-static inline const auto builtinsFolderName = TRANS("Builtins");
-static inline const auto racksFolderName = TRANS("Racks");
-
-static inline constexpr auto builtinEffects =
-    env::meta::make_tuple(
-        env::meta::type_c<te::VolumeAndPanPlugin>,
-        env::meta::type_c<te::EqualiserPlugin>,
-        env::meta::type_c<te::ReverbPlugin>,
-        env::meta::type_c<te::DelayPlugin>,
-        env::meta::type_c<te::ChorusPlugin>,
-        env::meta::type_c<te::PhaserPlugin>,
-        env::meta::type_c<te::CompressorPlugin>,
-        env::meta::type_c<te::PitchShiftPlugin>,
-        env::meta::type_c<te::LowPassPlugin>,
-        env::meta::type_c<te::MidiModifierPlugin>,
-        env::meta::type_c<te::MidiPatchBayPlugin>,
-        env::meta::type_c<te::PatchBayPlugin>,
-        env::meta::type_c<te::AuxSendPlugin>,
-        env::meta::type_c<te::AuxReturnPlugin>,
-        env::meta::type_c<te::TextPlugin>,
-        env::meta::type_c<te::FreezePointPlugin>,
-        env::meta::type_c<te::InsertPlugin>);
-
-static inline constexpr auto builtinSynths =
-    env::meta::make_tuple(
-        env::meta::type_c<te::SamplerPlugin>,
-        env::meta::type_c<te::FourOscPlugin>);
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif
-
 
 class PluginTreeBase : public ContextualBase
 {
@@ -155,6 +109,11 @@ template<typename TOnGroup, typename TOnItem>
              std::declval<TOnItem>()(
                  std::declval<class PluginTreeItem&>()));
 
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "misc-no-recursion"
+#endif // __JETBRAINS_IDE__
+
 template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
          typename TOnGroup,
          typename TOnItem>
@@ -197,6 +156,10 @@ template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
   if (auto item = dynamic_cast<PluginTreeItem*>(base))
     onItem(*item);
 }
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif // __JETBRAINS_IDE__
 
 BLOOPER_NAMESPACE_END
 
