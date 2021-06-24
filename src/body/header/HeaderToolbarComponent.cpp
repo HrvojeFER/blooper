@@ -1,6 +1,13 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/header/HeaderToolbarComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/ContextCommands.hpp>
+
+#include <blooper/context/behaviour/AssetManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
+
+// ItemFactory
 
 class HeaderToolbarComponent::ItemFactory :
     public juce::ToolbarItemFactory
@@ -334,6 +341,9 @@ class HeaderToolbarComponent::ItemFactory :
   [[maybe_unused]] HeaderToolbarComponent* parent;
 };
 
+
+// Toolbar
+
 HeaderToolbarComponent::HeaderToolbarComponent(
     AbstractContext& context,
     State            state,
@@ -382,6 +392,8 @@ HeaderToolbarComponent::~HeaderToolbarComponent()
           nullptr);
 }
 
+
+// Component
 
 void HeaderToolbarComponent::resized()
 {

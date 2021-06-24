@@ -1,4 +1,8 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/BodyMenuBar.hpp>
+
+#include <blooper/internal/utils/ContextCommands.hpp>
+
+#include <blooper/context/behaviour/AssetManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

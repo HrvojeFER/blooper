@@ -1,4 +1,17 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/PanelsComponent.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/ContextCommands.hpp>
+
+#include <blooper/body/panels/automation/AutomationPanelComponent.hpp>
+#include <blooper/body/panels/browser/BrowserPanelComponent.hpp>
+#include <blooper/body/panels/control_surface/ControlSurfacePanelComponent.hpp>
+#include <blooper/body/panels/master/MasterPanelComponent.hpp>
+#include <blooper/body/panels/project/ProjectPanelComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -28,40 +41,40 @@ PanelsComponent::PanelsComponent(
       this->appearanceSettings,
       id::masterTrackPanelSize,
       undoManager,
-      PanelsComponent::defaultMasterTrackPanelSize);
+      defaultMasterTrackPanelSize);
 
   ext::referTo(
       this->controlSurfacePanelSize,
       this->appearanceSettings,
       id::controlSurfacePanelSize,
       undoManager,
-      PanelsComponent::defaultControlSurfacePanelSize);
+      defaultControlSurfacePanelSize);
 
   ext::referTo(
       this->browserPanelSize,
       this->appearanceSettings,
       id::browserPanelSize,
       undoManager,
-      PanelsComponent::defaultBrowserPanelSize);
+      defaultBrowserPanelSize);
 
 
   this->masterTrackPanelOpen.referTo(
       this->getState(),
       PanelsComponent::masterTrackPanelOpenId,
       undoManager,
-      PanelsComponent::defaultMasterTrackPanelOpen);
+      defaultMasterTrackPanelOpen);
 
   this->controlSurfacePanelOpen.referTo(
       this->getState(),
       PanelsComponent::controlSurfacePanelOpenId,
       undoManager,
-      PanelsComponent::defaultControlSurfacePanelOpen);
+      defaultControlSurfacePanelOpen);
 
   this->browserPanelOpen.referTo(
       this->getState(),
       PanelsComponent::browserPanelOpenId,
       undoManager,
-      PanelsComponent::defaultBrowserPanelOpen);
+      defaultBrowserPanelOpen);
 
 
   ProjectPanelComponent::Options projectPanelOptions{};
@@ -225,15 +238,15 @@ bool PanelsComponent::perform(const JuceCommand& command)
   switch (command.commandID)
   {
     case CommandId::toggleMasterTrackPanel:
-      util::toggle(this->masterTrackPanelOpen);
+      toggle(this->masterTrackPanelOpen);
       return true;
 
     case CommandId::toggleControlSurfacePanel:
-      util::toggle(this->controlSurfacePanelOpen);
+      toggle(this->controlSurfacePanelOpen);
       return true;
 
     case CommandId::toggleBrowserPanel:
-      util::toggle(this->browserPanelOpen);
+      toggle(this->browserPanelOpen);
       return true;
 
     default:

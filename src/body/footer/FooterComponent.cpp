@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/footer/FooterComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ FooterComponent::FooterComponent(
 {
 }
 
+FooterComponent::~FooterComponent() = default;
+
+
+// Component
 
 void FooterComponent::resized()
 {

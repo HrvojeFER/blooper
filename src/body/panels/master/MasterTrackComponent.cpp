@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/master/MasterTrackComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ MasterTrackComponent::MasterTrackComponent(
 {
 }
 
+MasterTrackComponent::~MasterTrackComponent() = default;
+
+
+// Component
 
 void MasterTrackComponent::resized()
 {

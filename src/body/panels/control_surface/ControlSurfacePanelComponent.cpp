@@ -1,4 +1,7 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/control_surface/ControlSurfacePanelComponent.hpp>
+
+#include <blooper/body/panels/control_surface/ControlSurfaceKnobComponent.hpp>
+#include <blooper/body/panels/control_surface/ControlSurfaceSliderComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,6 +15,8 @@ ControlSurfacePanelComponent::ControlSurfacePanelComponent(
       options(move(options))
 {
 }
+
+ControlSurfacePanelComponent::~ControlSurfacePanelComponent() = default;
 
 
 // Component

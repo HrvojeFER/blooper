@@ -1,4 +1,7 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/BodyWindow.hpp>
+
+#include <blooper/body/BodyComponent.hpp>
+#include <blooper/body/BodyMenuBar.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

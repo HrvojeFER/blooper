@@ -1,4 +1,9 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/header/HeaderComponent.hpp>
+
+#include <blooper/body/header/HeaderMenuBarComponent.hpp>
+#include <blooper/body/header/HeaderToolbarComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -39,6 +44,10 @@ HeaderComponent::HeaderComponent(
       *this->toolbar);
 }
 
+HeaderComponent::~HeaderComponent() = default;
+
+
+// Component
 
 void HeaderComponent::resized()
 {

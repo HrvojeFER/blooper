@@ -1,4 +1,6 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/master/MasterPanelComponent.hpp>
+
+#include <blooper/body/panels/master/MasterTrackComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,6 +14,8 @@ MasterPanelComponent::MasterPanelComponent(
       options(move(options))
 {
 }
+
+MasterPanelComponent::~MasterPanelComponent() = default;
 
 
 // Component

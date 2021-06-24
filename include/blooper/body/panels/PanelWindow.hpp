@@ -24,6 +24,8 @@ class PanelWindow : public WindowBase
       JuceComponent&   content,
       Options          options = {});
 
+  ~PanelWindow() override;
+
 
  private:
   JuceComponent& content;

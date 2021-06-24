@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/control_surface/ControlSurfaceKnobComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ ControlSurfaceKnobComponent::ControlSurfaceKnobComponent(
 {
 }
 
+ControlSurfaceKnobComponent::~ControlSurfaceKnobComponent() = default;
+
+
+// Component
 
 void ControlSurfaceKnobComponent::resized()
 {

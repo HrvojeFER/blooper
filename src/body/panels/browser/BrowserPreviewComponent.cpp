@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/browser/BrowserPreviewComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ BrowserPreviewComponent::BrowserPreviewComponent(
 {
 }
 
+BrowserPreviewComponent::~BrowserPreviewComponent() = default;
+
+
+// Component
 
 void BrowserPreviewComponent::resized()
 {

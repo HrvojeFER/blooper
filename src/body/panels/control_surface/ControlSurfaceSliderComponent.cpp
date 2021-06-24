@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/control_surface/ControlSurfaceSliderComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ ControlSurfaceSliderComponent::ControlSurfaceSliderComponent(
 {
 }
 
+ControlSurfaceSliderComponent::~ControlSurfaceSliderComponent() = default;
+
+
+// Component
 
 void ControlSurfaceSliderComponent::resized()
 {

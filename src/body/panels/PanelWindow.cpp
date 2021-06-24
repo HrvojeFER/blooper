@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/PanelWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -19,6 +19,11 @@ PanelWindow::PanelWindow(
   this->setContentNonOwned(
       &content,
       true);
+}
+
+PanelWindow::~PanelWindow()
+{
+  delete this;
 }
 
 

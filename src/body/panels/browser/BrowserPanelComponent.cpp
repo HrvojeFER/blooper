@@ -1,4 +1,8 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/browser/BrowserPanelComponent.hpp>
+
+#include <blooper/body/panels/browser/BrowserPreviewComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -15,7 +19,7 @@ BrowserPanelComponent::BrowserPanelComponent(
       std::make_unique<juce::FileBrowserComponent>(
           juce::FileBrowserComponent::FileChooserFlags::openMode |
               juce::FileBrowserComponent::FileChooserFlags::canSelectFiles,
-          JuceString("E:\\audio\\Samples"),
+          JuceString{},
           nullptr,
           nullptr);
 
@@ -38,6 +42,8 @@ BrowserPanelComponent::BrowserPanelComponent(
       *this->browser,
       *this->preview);
 }
+
+BrowserPanelComponent::~BrowserPanelComponent() = default;
 
 
 // Component

@@ -1,4 +1,10 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/BodyComponent.hpp>
+
+#include <blooper/body/header/HeaderComponent.hpp>
+#include <blooper/body/footer/FooterComponent.hpp>
+#include <blooper/body/panels/PanelsComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -51,6 +57,10 @@ BodyComponent::BodyComponent(
       *footer);
 }
 
+BodyComponent::~BodyComponent() = default;
+
+
+// Component
 
 void BodyComponent::resized()
 {

@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/automation/AutomationPanelComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ AutomationPanelComponent::AutomationPanelComponent(
 {
 }
 
+AutomationPanelComponent::~AutomationPanelComponent() = default;
+
+
+// Component
 
 void AutomationPanelComponent::resized()
 {
