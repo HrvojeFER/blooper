@@ -8,8 +8,6 @@
 #include <blooper/internal/utils/ScopedMessageLoopBlocker.hpp>
 #include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
 
-#include <blooper/internal/utils/FilePathPropertyComponent.hpp>
-
 #include <blooper/internal/utils/CoreContextFunctions.hpp>
 #include <blooper/internal/utils/ContextFunctions.hpp>
 
@@ -17,8 +15,6 @@
 
 #include <blooper/internal/utils/EditTrack.hpp>
 #include <blooper/internal/utils/PluginTree.hpp>
-
-#include <blooper/internal/utils/selection.hpp>
 
 #include <blooper/internal/utils/style.hpp>
 

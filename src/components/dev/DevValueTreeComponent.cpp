@@ -16,6 +16,8 @@ DevValueTreeComponent::DevValueTreeComponent(
 DevValueTreeComponent::~DevValueTreeComponent() = default;
 
 
+// Component
+
 void DevValueTreeComponent::resized()
 {
 }

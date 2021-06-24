@@ -4,6 +4,7 @@
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

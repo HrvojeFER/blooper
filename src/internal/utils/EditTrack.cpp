@@ -1,5 +1,8 @@
-#include <blooper/internal/internal.hpp>
-#include <blooper/context/context.hpp>
+#include <blooper/internal/utils/EditTrack.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+
+#include <blooper/context/behaviour/EditManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

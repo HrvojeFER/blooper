@@ -1,6 +1,8 @@
 #include <blooper/context/ContextClass.hpp>
 
 #include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
+#include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/context/behaviour/behaviour.hpp>
 #include <blooper/context/style/LookAndFeel.hpp>

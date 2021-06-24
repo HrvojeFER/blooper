@@ -13,8 +13,10 @@ DevEditComponent::DevEditComponent(
 {
 }
 
-DevEditComponent::~DevEditComponent() override;
+DevEditComponent::~DevEditComponent() = default;
 
+
+// Component
 
 void DevEditComponent::resized()
 {

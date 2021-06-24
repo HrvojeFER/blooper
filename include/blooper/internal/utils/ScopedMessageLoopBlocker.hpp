@@ -5,6 +5,8 @@
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
 
+#include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
+
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
 inline bool needsMessageLoopBlocking(

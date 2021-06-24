@@ -16,6 +16,8 @@ DevDevicesComponent::DevDevicesComponent(
 DevDevicesComponent::~DevDevicesComponent() = default;
 
 
+// Component
+
 void DevDevicesComponent::resized()
 {
 }

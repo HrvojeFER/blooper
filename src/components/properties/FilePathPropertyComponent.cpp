@@ -1,6 +1,9 @@
-#include <blooper/internal/utils/FilePathPropertyComponent.hpp>
+#include <blooper/components/properties/FilePathPropertyComponent.hpp>
 
-BLOOPER_UTIL_NAMESPACE_BEGIN
+#include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/ext/component.hpp>
+
+BLOOPER_NAMESPACE_BEGIN
 
 // ============================================================================
 // Without Enablement
@@ -34,27 +37,29 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
     if (auto text = this->textProperty->getText(); text.isNotEmpty())
       currentFile = this->options.root.getChildFile(text);
 
-    const auto chooserTitle =
-        this->options.isDir ?
-            "Select directory" :
-            "Select file";
+    if (this->options.isDir)
+    {
+      juce::FileChooser chooser{
+          "Select directory",
+          move(currentFile)};
 
-    juce::FileChooser chooser =
-        this->options.isDir ?
+      if (chooser.browseForDirectory())
+      {
+        this->setTo(chooser.getResult());
+      }
+    }
+    else
+    {
+      juce::FileChooser chooser{
+          "Select file",
+          move(currentFile),
+          this->options.wildcards};
 
-            juce::FileChooser{
-                move(chooserTitle),
-                move(currentFile)} :
-
-            juce::FileChooser{
-                move(chooserTitle),
-                move(currentFile),
-                this->options.wildcards};
-
-    if (this->options.isDir ?
-            chooser.browseForDirectory() :
-            chooser.browseForFileToOpen())
-      this->setTo(chooser.getResult());
+      if (chooser.browseForFileToOpen())
+      {
+        this->setTo(chooser.getResult());
+      }
+    }
   };
 
 
@@ -247,4 +252,4 @@ void FilePathPropertyComponentWithEnablement::valueChanged(juce::Value& value)
   this->updateEnablement();
 }
 
-BLOOPER_UTIL_NAMESPACE_END
+BLOOPER_NAMESPACE_END

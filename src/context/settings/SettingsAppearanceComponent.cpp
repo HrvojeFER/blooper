@@ -1,6 +1,8 @@
 #include <blooper/context/settings/SettingsAppearanceComponent.hpp>
 
+#include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

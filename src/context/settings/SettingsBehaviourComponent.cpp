@@ -1,6 +1,10 @@
 #include <blooper/context/settings/SettingsBehaviourComponent.hpp>
 
+#include <blooper/components/properties/FilePathPropertyComponent.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -49,12 +53,13 @@ SettingsBehaviourComponent::SettingsBehaviourComponent(
 
   this->panel->addSection(
       "Browser",
-      {new util::FilePathPropertyComponent(
+      {new FilePathPropertyComponent(
           this->rootBrowserFolder.getPropertyAsValue(),
           "Root folder",
-          true,
-          "*",
-          defaultRootBrowserFolder)},
+          {true,
+           true,
+           "*",
+           defaultRootBrowserFolder})},
       true,
       -1,
       2);

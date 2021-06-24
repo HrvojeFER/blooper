@@ -1,4 +1,9 @@
-#include <blooper/internal/utils/selection.hpp>
+#include <blooper/components/selection.hpp>
+
+#include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/utils/EditTrack.hpp>
+
+#include <blooper/context/behaviour/EditManager.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
@@ -150,16 +155,16 @@ void ParameterSelectableClass::selectOtherObjects(
 
 // Declarations
 
-#define _DECLARE_SELECTABLE_CLASS(_class, _object)  \
-  te::SelectableClass::ClassInstance<               \
-      _class,                                       \
-      _object> /* NOLINTNEXTLINE(cert-err58-cpp) */ \
+#define BLOOPER_DECLARE_SELECTABLE_CLASS(_class, _object) \
+  te::SelectableClass::ClassInstance<                     \
+      _class,                                             \
+      _object> /* NOLINTNEXTLINE(cert-err58-cpp) */       \
       _class##Instance
 
-_DECLARE_SELECTABLE_CLASS(EditTrackSelectableClass, EditTrack);
-_DECLARE_SELECTABLE_CLASS(PluginSelectableClass, JucePlugin);
-_DECLARE_SELECTABLE_CLASS(ParameterSelectableClass, JuceParameter);
+BLOOPER_DECLARE_SELECTABLE_CLASS(EditTrackSelectableClass, EditTrack);
+BLOOPER_DECLARE_SELECTABLE_CLASS(PluginSelectableClass, JucePlugin);
+BLOOPER_DECLARE_SELECTABLE_CLASS(ParameterSelectableClass, JuceParameter);
 
-#undef _DECLARE_SELECTABLE_CLASS
+#undef BLOOPER_DECLARE_SELECTABLE_CLASS
 
 BLOOPER_UTIL_NAMESPACE_END

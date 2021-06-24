@@ -16,6 +16,8 @@ DevProjectComponent::DevProjectComponent(
 DevProjectComponent::~DevProjectComponent() = default;
 
 
+// Component
+
 void DevProjectComponent::resized()
 {
 }

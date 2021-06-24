@@ -16,6 +16,8 @@ DevTransportComponent::DevTransportComponent(
 DevTransportComponent::~DevTransportComponent() = default;
 
 
+// Component
+
 void DevTransportComponent::resized()
 {
 }

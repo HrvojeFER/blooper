@@ -16,6 +16,8 @@ DevEngineComponent::DevEngineComponent(
 DevEngineComponent::~DevEngineComponent() = default;
 
 
+// Component
+
 void DevEngineComponent::resized()
 {
 }

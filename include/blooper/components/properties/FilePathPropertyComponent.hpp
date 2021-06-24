@@ -4,7 +4,7 @@
 
 #include <blooper/internal/macros/namespaces.hpp>
 
-BLOOPER_UTIL_NAMESPACE_BEGIN
+BLOOPER_NAMESPACE_BEGIN
 
 struct FilePathPropertyOptions
 {
@@ -115,6 +115,6 @@ class [[maybe_unused]] FilePathPropertyComponentWithEnablement :
   void valueChanged(juce::Value& v) override;
 };
 
-BLOOPER_UTIL_NAMESPACE_END
+BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_FILE_PATH_PROPERTY_COMPONENT_HPP
