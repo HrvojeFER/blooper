@@ -1,4 +1,4 @@
-#include <blooper/components/selection.hpp>
+#include <blooper/internal/utils/selection.hpp>
 
 #include <blooper/internal/abstract/juceTraits.hpp>
 #include <blooper/internal/utils/EditTrack.hpp>

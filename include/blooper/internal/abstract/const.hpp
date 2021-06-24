@@ -24,10 +24,10 @@ inline constexpr auto defaultBpm{120};
 
 // context
 
-inline constexpr auto contextKey = "context";
+inline constexpr auto contextKey{"context"};
 
-inline constexpr auto rootDirSpecialLocation =
-    JuceFile::SpecialLocationType::userHomeDirectory;
+inline constexpr auto rootDirSpecialLocation{
+    juce::File::SpecialLocationType::userHomeDirectory};
 
 inline constexpr auto rootDirName{".blooper"};
 
@@ -58,6 +58,8 @@ inline constexpr auto propertiesKey{"properties"};
 inline constexpr auto appName{JUCE_APPLICATION_NAME_STRING};
 inline constexpr auto appVersion{JUCE_APPLICATION_VERSION_STRING};
 
+inline constexpr auto quitRetryIntervalMilliseconds{100};
+
 
 // plugins
 
@@ -84,10 +86,10 @@ inline constexpr auto pluginUniqueIdSuffix{"_plugin"};
 inline constexpr auto pluginIdSuffix{"_plugin"};
 inline constexpr auto rackUniqueIdSuffix{"_rack"};
 
-inline const auto builtinsFolderName = TRANS("Builtins");
-inline const auto racksFolderName = TRANS("Racks");
+inline const auto builtinsFolderName{TRANS("Builtins")};
+inline const auto racksFolderName{TRANS("Racks")};
 
-inline constexpr auto builtinEffects =
+inline constexpr auto builtinEffects{
     env::meta::make_tuple(
         env::meta::type_c<te::VolumeAndPanPlugin>,
         env::meta::type_c<te::EqualiserPlugin>,
@@ -105,12 +107,12 @@ inline constexpr auto builtinEffects =
         env::meta::type_c<te::AuxReturnPlugin>,
         env::meta::type_c<te::TextPlugin>,
         env::meta::type_c<te::FreezePointPlugin>,
-        env::meta::type_c<te::InsertPlugin>);
+        env::meta::type_c<te::InsertPlugin>)};
 
-inline constexpr auto builtinSynths =
+inline constexpr auto builtinSynths{
     env::meta::make_tuple(
         env::meta::type_c<te::SamplerPlugin>,
-        env::meta::type_c<te::FourOscPlugin>);
+        env::meta::type_c<te::FourOscPlugin>)};
 
 
 // gui
@@ -130,7 +132,7 @@ inline constexpr auto defaultBrowserPanelOpen{false};
 
 // colour
 
-inline constexpr JuceColourId minimalBlooperColourId{100000000};
+inline constexpr auto minimalBlooperColourId{100000000};
 
 
 #ifdef __JETBRAINS_IDE__

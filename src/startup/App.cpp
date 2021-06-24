@@ -1,6 +1,10 @@
 #include <blooper/startup/App.hpp>
 
+#include <blooper/internal/ext/window.hpp>
+#include <blooper/internal/utils/callbacks.hpp>
+
 #include <blooper/context/ContextClass.hpp>
+
 #include <blooper/body/BodyWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
@@ -31,14 +35,14 @@ bool App::moreThanOneInstanceAllowed()
 
 void App::initialise(const juce::String&)
 {
-  util::requestRuntimePermissions(
+  requestRuntimePermissions(
       [app = juce::WeakReference<App>(this)](bool granted) {
         if (app.wasObjectDeleted()) return;
         if (!granted) return app->systemRequestedQuit();
       });
 
 
-  Context::Options options{};
+  ContextOptions options{};
 
   options.afterLoad =
       ([app = juce::WeakReference<App>(this)] {

@@ -21,4 +21,6 @@
 #include <blooper/internal/utils/BarComponents.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
+#include <blooper/internal/utils/selection.hpp>
+
 #endif // BLOOPER_UTILS_HPP

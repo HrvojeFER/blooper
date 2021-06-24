@@ -4,14 +4,14 @@
 
 #include <blooper/internal/macros/namespaces.hpp>
 
+#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/const.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 class App : public juce::JUCEApplication
 {
  public:
-  inline constexpr static auto quitRetryIntervalMilliseconds = 100;
-
-
   App();
 
   ~App() override;
@@ -62,7 +62,7 @@ void App::closeAllModalComponentsAsync(TOnClose onClose)
   if (juce::ModalComponentManager::getInstance()->cancelAllModalComponents())
   {
     juce::Timer::callAfterDelay(
-        App::quitRetryIntervalMilliseconds,
+        quitRetryIntervalMilliseconds,
         [app = juce::WeakReference<App>(this),
          onClose = move(onClose)]() {
           if (app.wasObjectDeleted()) return;

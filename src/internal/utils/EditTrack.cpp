@@ -3,6 +3,7 @@
 #include <blooper/internal/abstract/id.hpp>
 
 #include <blooper/context/behaviour/EditManager.hpp>
+#include <blooper/context/behaviour/Synchronizer.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
