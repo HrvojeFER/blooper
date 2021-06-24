@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/HowToComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ HowToComponent::HowToComponent(
 {
 }
 
+HowToComponent::~HowToComponent() = default;
+
+
+// Component
 
 void HowToComponent::resized()
 {

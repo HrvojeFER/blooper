@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/InfoWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -14,6 +14,8 @@ InfoWindow::InfoWindow(
 {
 }
 
+InfoWindow::~InfoWindow() = default;
+
 
 // Window
 
@@ -22,6 +24,8 @@ InfoWindow::InfoWindow(
   delete this;
 }
 
+
+// Show
 
 [[maybe_unused]] InfoWindow* showInfo(
     AbstractContext&    context,
@@ -34,11 +38,6 @@ InfoWindow::InfoWindow(
               InfoWindow::stateId,
               nullptr),
           move(options));
-
-  window->enterModalState(
-      true,
-      nullptr,
-      true);
 
   return window;
 }

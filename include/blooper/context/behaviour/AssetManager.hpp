@@ -1,5 +1,6 @@
 #ifndef BLOOPER_ASSET_MANAGER_HPP
 #define BLOOPER_ASSET_MANAGER_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/contextual.hpp>

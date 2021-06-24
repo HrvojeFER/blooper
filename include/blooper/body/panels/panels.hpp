@@ -1,5 +1,6 @@
 #ifndef BLOOPER_PANELS_HPP
 #define BLOOPER_PANELS_HPP
+#pragma once
 
 #include <blooper/body/panels/browser/browser.hpp>
 #include <blooper/body/panels/project/project.hpp>

@@ -1,5 +1,6 @@
 #ifndef BLOOPER_EDIT_MANAGER_HPP
 #define BLOOPER_EDIT_MANAGER_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>

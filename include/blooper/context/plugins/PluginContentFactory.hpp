@@ -1,5 +1,6 @@
 #ifndef BLOOPER_PLUGIN_CONTENT_FACTORY_HPP
 #define BLOOPER_PLUGIN_CONTENT_FACTORY_HPP
+#pragma once
 
 #include <blooper/internal/abstract/plugins.hpp>
 

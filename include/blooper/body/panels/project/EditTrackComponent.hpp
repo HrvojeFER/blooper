@@ -1,7 +1,8 @@
 #ifndef BLOOPER_EDIT_TRACK_COMPONENT_HPP
 #define BLOOPER_EDIT_TRACK_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,9 +14,6 @@ class EditTrackComponent :
 {
  public:
   BLOOPER_STATE_ID(EditTrackComponent);
-
-  BLOOPER_ID(trackModeId);
-  BLOOPER_ID(trackIntervalId);
 
 
   struct Options
@@ -88,6 +86,9 @@ class EditTrackComponent :
   void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditTrackComponent)
   JUCE_DECLARE_WEAK_REFERENCEABLE(EditTrackComponent)
 };

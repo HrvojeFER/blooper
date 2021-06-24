@@ -1,5 +1,6 @@
 #ifndef BLOOPER_SETTINGS_MENU_WINDOW_HPP
 #define BLOOPER_SETTINGS_MENU_WINDOW_HPP
+#pragma once
 
 #include <blooper/internal/abstract/windows.hpp>
 

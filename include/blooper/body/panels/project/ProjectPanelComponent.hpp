@@ -1,7 +1,8 @@
 #ifndef BLOOPER_PROJECT_PANEL_COMPONENT_HPP
 #define BLOOPER_PROJECT_PANEL_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -9,9 +10,6 @@ class ProjectPanelComponent : public ComponentBase
 {
  public:
   BLOOPER_STATE_ID(ProjectPanelComponent);
-
-  BLOOPER_ID(editScrollRangeStartId);
-  BLOOPER_ID(editScrollRangeEndId);
 
 
   struct Options
@@ -26,15 +24,12 @@ class ProjectPanelComponent : public ComponentBase
   ~ProjectPanelComponent() override;
 
 
-  void paint(JuceGraphics&) override;
-
-  void resized() override;
-
-
  private:
-  JuceCached<double>
-      editScrollRangeStart,
-      editScrollRangeEnd;
+  BLOOPER_ID(editScrollRangeStartId);
+  JuceCached<double> editScrollRangeStart;
+
+  BLOOPER_ID(editScrollRangeEndId);
+  JuceCached<double> editScrollRangeEnd;
 
 
   std::unique_ptr<class ProjectContentComponent> content;
@@ -42,6 +37,17 @@ class ProjectPanelComponent : public ComponentBase
   std::unique_ptr<juce::Viewport> viewport;
 
 
+  // Component
+
+ public:
+  void paint(JuceGraphics&) override;
+
+  void resized() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectPanelComponent)
 };
 

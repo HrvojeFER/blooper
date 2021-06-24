@@ -1,7 +1,8 @@
 #ifndef BLOOPER_DEV_WINDOW_HPP
 #define BLOOPER_DEV_WINDOW_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,6 +21,8 @@ class DevWindow : public WindowBase
       State            state,
       Options          options = {});
 
+  ~DevWindow() override;
+
 
   // Window
 
@@ -27,8 +30,14 @@ class DevWindow : public WindowBase
   [[maybe_unused]] void closeButtonPressed() override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevWindow);
 };
+
+
+// Show
 
 [[maybe_unused]] DevWindow* showDev(
     AbstractContext&   context,

@@ -1,5 +1,6 @@
 #ifndef BLOOPER_CONTEXT_PLUGINS_HPP
 #define BLOOPER_CONTEXT_PLUGINS_HPP
+#pragma once
 
 #include <blooper/context/plugins/PluginTree.hpp>
 #include <blooper/context/plugins/PluginsMenuComponent.hpp>

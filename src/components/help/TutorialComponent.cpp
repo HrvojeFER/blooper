@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/TutorialComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ TutorialComponent::TutorialComponent(
 {
 }
 
+TutorialComponent::~TutorialComponent() = default;
+
+
+// Component
 
 void TutorialComponent::resized()
 {

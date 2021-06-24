@@ -1,5 +1,6 @@
 #ifndef BLOOPER_UI_BEHAVIOUR_HPP
 #define BLOOPER_UI_BEHAVIOUR_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/contextual.hpp>

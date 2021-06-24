@@ -1,5 +1,6 @@
 #ifndef BLOOPER_CONTEXT_CLASS_HPP
 #define BLOOPER_CONTEXT_CLASS_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 

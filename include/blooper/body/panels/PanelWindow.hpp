@@ -1,7 +1,8 @@
 #ifndef BLOOPER_PANEL_WINDOW_HPP
 #define BLOOPER_PANEL_WINDOW_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -24,13 +25,19 @@ class PanelWindow : public WindowBase
       Options          options = {});
 
 
-  void closeButtonPressed() override;
-
-
  private:
   JuceComponent& content;
 
 
+  // Window
+
+ public:
+  void closeButtonPressed() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PanelWindow)
 };
 

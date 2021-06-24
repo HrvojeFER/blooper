@@ -1,5 +1,5 @@
-#ifndef BLOOPER_WINDOWS_HPP
-#define BLOOPER_WINDOWS_HPP
+#ifndef BLOOPER_ABSTRACT_WINDOWS_HPP
+#define BLOOPER_ABSTRACT_WINDOWS_HPP
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
@@ -437,4 +437,4 @@ extern template class AnyWindowBase<WindowTraits>;
 
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_WINDOWS_HPP
+#endif // BLOOPER_ABSTRACT_WINDOWS_HPP

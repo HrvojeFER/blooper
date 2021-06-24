@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/HelpComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,6 +12,8 @@ HelpComponent::HelpComponent(
       options(move(options))
 {
 }
+
+HelpComponent::~HelpComponent() = default;
 
 
 void HelpComponent::resized()

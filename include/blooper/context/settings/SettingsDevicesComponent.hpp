@@ -1,5 +1,6 @@
 #ifndef BLOOPER_SETTINGS_DEVICES_COMPONENT_HPP
 #define BLOOPER_SETTINGS_DEVICES_COMPONENT_HPP
+#pragma once
 
 #include <blooper/internal/abstract/components.hpp>
 

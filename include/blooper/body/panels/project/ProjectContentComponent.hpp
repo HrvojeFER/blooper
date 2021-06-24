@@ -1,7 +1,8 @@
 #ifndef BLOOPER_PROJECT_CONTENT_COMPONENT_HPP
 #define BLOOPER_PROJECT_CONTENT_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -14,8 +15,6 @@ class ProjectContentComponent :
  public:
   BLOOPER_STATE_ID(ProjectContentComponent);
 
-  [[maybe_unused]] inline constexpr static auto defaultTrackSize = 100;
-
 
   struct Options
   {
@@ -27,11 +26,6 @@ class ProjectContentComponent :
       Options          options = {});
 
   ~ProjectContentComponent() override;
-
-
-  void paint(JuceGraphics& g) override;
-
-  void resized() override;
 
 
  private:
@@ -50,6 +44,14 @@ class ProjectContentComponent :
   void resizeTracks();
 
   void buildTracks();
+
+
+  // Component
+
+ public:
+  void paint(JuceGraphics& g) override;
+
+  void resized() override;
 
 
   // ValueTreeListener
@@ -95,6 +97,9 @@ class ProjectContentComponent :
   bool perform(const InvocationInfo& info) override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectContentComponent)
 };
 

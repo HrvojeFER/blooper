@@ -1,7 +1,8 @@
 #ifndef BLOOPER_PANELS_COMPONENT_HPP
 #define BLOOPER_PANELS_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,30 +13,6 @@ class PanelsComponent :
 {
  public:
   BLOOPER_STATE_ID(PanelsComponent);
-
-  BLOOPER_ID(masterTrackPanelOpenId);
-  BLOOPER_ID(controlSurfacePanelOpenId);
-  BLOOPER_ID(browserPanelOpenId);
-
-
-  [[maybe_unused]] inline constexpr static auto defaultMasterTrackPanelSize =
-      100;
-
-  [[maybe_unused]] inline constexpr static auto defaultControlSurfacePanelSize =
-      100;
-
-  [[maybe_unused]] inline constexpr static auto defaultBrowserPanelSize =
-      100;
-
-
-  [[maybe_unused]] inline constexpr static auto defaultMasterTrackPanelOpen =
-      true;
-
-  [[maybe_unused]] inline constexpr static auto defaultControlSurfacePanelOpen =
-      false;
-
-  [[maybe_unused]] inline constexpr static auto defaultBrowserPanelOpen =
-      false;
 
 
   struct Options
@@ -51,14 +28,21 @@ class PanelsComponent :
 
 
  private:
+  JuceState appearanceSettings;
+
   JuceCached<int> masterTrackPanelSize;
   JuceCached<int> controlSurfacePanelSize;
   JuceCached<int> browserPanelSize;
 
-  JuceState appearanceSettings;
+  BLOOPER_ID(masterTrackPanelOpenId);
   JuceCached<bool> masterTrackPanelOpen;
+
+  BLOOPER_ID(controlSurfacePanelOpenId);
   JuceCached<bool> controlSurfacePanelOpen;
+
+  BLOOPER_ID(browserPanelOpenId);
   JuceCached<bool> browserPanelOpen;
+
 
   std::unique_ptr<class ProjectPanelComponent> projectPanel;
 
@@ -93,6 +77,9 @@ class PanelsComponent :
   bool perform(const JuceCommand& command) override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PanelsComponent)
 };
 

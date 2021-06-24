@@ -1,5 +1,6 @@
 #ifndef BLOOPER_PLUGINS_MENU_COMPONENT_HPP
 #define BLOOPER_PLUGINS_MENU_COMPONENT_HPP
+#pragma once
 
 #include <blooper/internal/abstract/components.hpp>
 

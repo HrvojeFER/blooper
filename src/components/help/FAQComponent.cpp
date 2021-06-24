@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/FAQComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ FAQComponent::FAQComponent(
 {
 }
 
+FAQComponent::~FAQComponent() = default;
+
+
+// Component
 
 void FAQComponent::resized()
 {

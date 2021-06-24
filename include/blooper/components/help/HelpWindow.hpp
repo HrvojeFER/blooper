@@ -1,7 +1,8 @@
 #ifndef BLOOPER_HELP_WINDOW_HPP
 #define BLOOPER_HELP_WINDOW_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,6 +21,8 @@ class HelpWindow : public WindowBase
       State            state,
       Options          options = {});
 
+  ~HelpWindow() override;
+
 
   // Window
 
@@ -27,8 +30,14 @@ class HelpWindow : public WindowBase
   [[maybe_unused]] void closeButtonPressed() override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HelpWindow);
 };
+
+
+// Show
 
 [[maybe_unused]] HelpWindow* showHelp(
     AbstractContext&    context,

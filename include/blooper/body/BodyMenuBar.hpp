@@ -1,7 +1,9 @@
 #ifndef BLOOPER_BODY_WINDOW_MENU_BAR_COMPONENT_HPP
 #define BLOOPER_BODY_WINDOW_MENU_BAR_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/stateful.hpp>
+#include <blooper/internal/abstract/contextual.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -9,7 +11,7 @@ class BodyMenuBar :
     public ContextualBase,
     public StatefulBase,
 
-    private juce::MenuBarModel
+    public juce::MenuBarModel
 {
  public:
   BLOOPER_STATE_ID(BodyMenuBar);
@@ -27,10 +29,7 @@ class BodyMenuBar :
 
   // MenuBarModel
 
- private:
-  friend class juce::MenuBarComponent;
-  friend class BodyWindow;
-
+ public:
   [[maybe_unused]] juce::StringArray getMenuBarNames() override;
 
   [[maybe_unused]] juce::PopupMenu getMenuForIndex(
@@ -42,6 +41,9 @@ class BodyMenuBar :
       int topLevelMenuIndex) override;
 
 
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyMenuBar);
 };
 

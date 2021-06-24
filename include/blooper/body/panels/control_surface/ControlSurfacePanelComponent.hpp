@@ -1,7 +1,8 @@
 #ifndef BLOOPER_RACK_PANEL_COMPONENT_HPP
 #define BLOOPER_RACK_PANEL_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,10 +21,7 @@ class ControlSurfacePanelComponent : public ComponentBase
       State            state,
       Options          options = {});
 
-
-  void paint(JuceGraphics&) override;
-
-  void resized() override;
+  ~ControlSurfacePanelComponent() override;
 
 
  private:
@@ -31,6 +29,17 @@ class ControlSurfacePanelComponent : public ComponentBase
   juce::OwnedArray<class ControlSurfaceSliderComponent> sliders;
 
 
+  // Component
+
+ public:
+  void paint(JuceGraphics&) override;
+
+  void resized() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ControlSurfacePanelComponent)
 };
 

@@ -1,5 +1,6 @@
 #ifndef BLOOPER_PLUGIN_PICKER_POPUP_HPP
 #define BLOOPER_PLUGIN_PICKER_POPUP_HPP
+#pragma once
 
 #include <blooper/internal/abstract/components.hpp>
 

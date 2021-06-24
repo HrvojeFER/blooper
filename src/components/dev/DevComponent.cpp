@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/dev/DevComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,6 +12,8 @@ DevComponent::DevComponent(
       options(move(options))
 {
 }
+
+DevComponent::~DevComponent() = default;
 
 
 void DevComponent::resized()

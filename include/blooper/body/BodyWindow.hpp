@@ -1,7 +1,8 @@
 #ifndef BLOOPER_BODY_WINDOW_HPP
 #define BLOOPER_BODY_WINDOW_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/windows.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -37,7 +38,10 @@ class BodyWindow : public WindowBase
   [[maybe_unused]] void closeButtonPressed() override;
 
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow)
+  // Declarations
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BodyWindow);
 };
 
 BLOOPER_NAMESPACE_END

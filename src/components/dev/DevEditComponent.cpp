@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/dev/DevEditComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -7,11 +7,13 @@ DevEditComponent::DevEditComponent(
     State            state,
     Options          options)
     : ComponentBase(
-    context,
-    move(state)),
+          context,
+          move(state)),
       options(move(options))
 {
 }
+
+DevEditComponent::~DevEditComponent() override;
 
 
 void DevEditComponent::resized()

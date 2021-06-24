@@ -1,5 +1,6 @@
 #ifndef BLOOPER_DEFAULT_THEME_HPP
 #define BLOOPER_DEFAULT_THEME_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>

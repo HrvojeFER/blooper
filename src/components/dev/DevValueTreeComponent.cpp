@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/dev/DevValueTreeComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,6 +12,8 @@ DevValueTreeComponent::DevValueTreeComponent(
       options(move(options))
 {
 }
+
+DevValueTreeComponent::~DevValueTreeComponent() = default;
 
 
 void DevValueTreeComponent::resized()

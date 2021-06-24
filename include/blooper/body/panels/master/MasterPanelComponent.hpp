@@ -1,7 +1,8 @@
 #ifndef BLOOPER_MASTER_PANEL_COMPONENT_HPP
 #define BLOOPER_MASTER_PANEL_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,16 +21,24 @@ class MasterPanelComponent : public ComponentBase
       State            state,
       Options          options = {});
 
-
-  void paint(JuceGraphics&) override;
-
-  void resized() override;
+  ~MasterPanelComponent() override;
 
 
  private:
   std::unique_ptr<class MasterTrackComponent> track;
 
 
+  // Component
+
+ public:
+  void paint(JuceGraphics&) override;
+
+  void resized() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MasterPanelComponent)
 };
 

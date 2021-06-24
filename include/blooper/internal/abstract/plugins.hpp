@@ -1,5 +1,5 @@
-#ifndef BLOOPER_PLUGINS_HPP
-#define BLOOPER_PLUGINS_HPP
+#ifndef BLOOPER_ABSTRACT_PLUGINS_HPP
+#define BLOOPER_ABSTRACT_PLUGINS_HPP
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
@@ -687,4 +687,4 @@ extern template class AnyPluginContentComponentBase<
 
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_PLUGINS_HPP
+#endif // BLOOPER_ABSTRACT_PLUGINS_HPP

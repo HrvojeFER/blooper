@@ -1,5 +1,6 @@
 #ifndef BLOOPER_SETTINGS_HPP
 #define BLOOPER_SETTINGS_HPP
+#pragma once
 
 #include <blooper/context/settings/SettingsAppearanceComponent.hpp>
 #include <blooper/context/settings/SettingsBehaviourComponent.hpp>

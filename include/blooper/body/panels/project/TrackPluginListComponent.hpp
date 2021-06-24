@@ -1,7 +1,8 @@
 #ifndef BLOOPER_TRACK_PLUGIN_LIST_COMPONENT_HPP
 #define BLOOPER_TRACK_PLUGIN_LIST_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -26,10 +27,7 @@ class TrackPluginListComponent :
       EditTrackRef     track,
       Options          options = {});
 
-  ~TrackPluginListComponent();
-
-
-  void resized() override;
+  ~TrackPluginListComponent() override;
 
 
  private:
@@ -41,6 +39,12 @@ class TrackPluginListComponent :
 
 
   [[maybe_unused, nodiscard]] bool isValidRow(int row);
+
+
+  // Component
+
+ public:
+  void resized() override;
 
 
   // ValueTreeListener

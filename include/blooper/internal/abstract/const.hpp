@@ -117,6 +117,16 @@ inline constexpr auto builtinSynths =
 
 inline constexpr auto lineSpace{6};
 
+inline constexpr auto defaultTrackSize{100};
+
+inline constexpr auto defaultMasterTrackPanelSize{100};
+inline constexpr auto defaultControlSurfacePanelSize{100};
+inline constexpr auto defaultBrowserPanelSize{100};
+
+inline constexpr auto defaultMasterTrackPanelOpen{true};
+inline constexpr auto defaultControlSurfacePanelOpen{false};
+inline constexpr auto defaultBrowserPanelOpen{false};
+
 
 // colour
 

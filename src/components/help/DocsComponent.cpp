@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/DocsComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ DocsComponent::DocsComponent(
 {
 }
 
+DocsComponent::~DocsComponent() = default;
+
+
+// Component
 
 void DocsComponent::resized()
 {

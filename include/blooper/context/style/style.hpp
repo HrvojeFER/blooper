@@ -1,5 +1,6 @@
 #ifndef BLOOPER_STYLE_HPP
 #define BLOOPER_STYLE_HPP
+#pragma once
 
 #include <blooper/context/style/DefaultTheme.hpp>
 #include <blooper/context/style/PropertyFileTheme.hpp>

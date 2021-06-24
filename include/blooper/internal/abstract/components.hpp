@@ -1,5 +1,5 @@
-#ifndef BLOOPER_COMPONENTS_HPP
-#define BLOOPER_COMPONENTS_HPP
+#ifndef BLOOPER_ABSTRACT_COMPONENTS_HPP
+#define BLOOPER_ABSTRACT_COMPONENTS_HPP
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
@@ -312,4 +312,4 @@ extern template class AnyComponentBase<ComponentTraits>;
 
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_COMPONENTS_HPP
+#endif // BLOOPER_ABSTRACT_COMPONENTS_HPP

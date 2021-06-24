@@ -1,7 +1,8 @@
 #ifndef BLOOPER_HELP_COMPONENT_HPP
 #define BLOOPER_HELP_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,9 +21,16 @@ class HelpComponent : public ComponentBase
       State            state,
       Options          options = {});
 
+  ~HelpComponent() override;
 
+
+  // Component
+
+ public:
   [[maybe_unused]] void resized() override;
 
+
+  // Declarations
 
  private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HelpComponent)

@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/dev/DevWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -14,6 +14,8 @@ DevWindow::DevWindow(
 {
 }
 
+DevWindow::~DevWindow() = default;
+
 
 // Window
 
@@ -22,6 +24,8 @@ DevWindow::DevWindow(
   delete this;
 }
 
+
+// Show
 
 [[maybe_unused]] DevWindow* showDev(
     AbstractContext&   context,
@@ -34,11 +38,6 @@ DevWindow::DevWindow(
               DevWindow::stateId,
               nullptr),
           move(options));
-
-  window->enterModalState(
-      true,
-      nullptr,
-      true);
 
   return window;
 }

@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/HelpWindow.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -14,6 +14,8 @@ HelpWindow::HelpWindow(
 {
 }
 
+HelpWindow::~HelpWindow() = default;
+
 
 // Window
 
@@ -22,6 +24,8 @@ HelpWindow::HelpWindow(
   delete this;
 }
 
+
+// Show
 
 [[maybe_unused]] HelpWindow* showHelp(
     AbstractContext&    context,
@@ -34,11 +38,6 @@ HelpWindow::HelpWindow(
               HelpWindow::stateId,
               nullptr),
           move(options));
-
-  window->enterModalState(
-      true,
-      nullptr,
-      true);
 
   return window;
 }

@@ -1,7 +1,8 @@
 #ifndef BLOOPER_TOOLBAR_COMPONENT_HPP
 #define BLOOPER_TOOLBAR_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -22,10 +23,7 @@ class HeaderToolbarComponent : public ComponentBase
       State            state,
       Options          options = {});
 
-  ~HeaderToolbarComponent();
-
-
-  void resized() override;
+  ~HeaderToolbarComponent() override;
 
 
  private:
@@ -35,6 +33,15 @@ class HeaderToolbarComponent : public ComponentBase
   std::unique_ptr<ItemFactory> factory;
 
 
+  // Component
+
+ public:
+  void resized() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderToolbarComponent)
 };
 

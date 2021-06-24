@@ -1,7 +1,8 @@
 #ifndef BLOOPER_DEV_DEVICES_COMPONENT_HPP
 #define BLOOPER_DEV_DEVICES_COMPONENT_HPP
+#pragma once
 
-#include <blooper/internal/internal.hpp>
+#include <blooper/internal/abstract/components.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,9 +21,16 @@ class DevDevicesComponent : public ComponentBase
       State            state,
       Options          options = {});
 
+  ~DevDevicesComponent() override;
 
+
+  // Component
+
+ public:
   [[maybe_unused]] void resized() override;
 
+
+  // Declarations
 
  private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevDevicesComponent)

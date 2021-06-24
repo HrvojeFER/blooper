@@ -1,5 +1,6 @@
 #ifndef BLOOPER_LOOK_AND_FEEL_HPP
 #define BLOOPER_LOOK_AND_FEEL_HPP
+#pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>

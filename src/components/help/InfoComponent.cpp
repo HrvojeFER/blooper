@@ -1,4 +1,4 @@
-#include <blooper/blooper.hpp>
+#include <blooper/components/help/InfoComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,6 +13,10 @@ InfoComponent::InfoComponent(
 {
 }
 
+InfoComponent::~InfoComponent() = default;
+
+
+// Component
 
 void InfoComponent::resized()
 {
