@@ -6,6 +6,7 @@
 
 #include <blooper/internal/abstract/stateful.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/abstract/time.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

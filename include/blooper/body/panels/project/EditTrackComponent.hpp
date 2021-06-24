@@ -4,6 +4,8 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
+#include <blooper/internal/utils/EditTrack.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 class EditTrackComponent :

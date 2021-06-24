@@ -4,6 +4,8 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
+#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 class ProjectContentComponent :

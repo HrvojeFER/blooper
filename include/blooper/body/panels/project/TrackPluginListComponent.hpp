@@ -4,6 +4,9 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
+#include <blooper/internal/utils/EditTrack.hpp>
+#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 class TrackPluginListComponent :

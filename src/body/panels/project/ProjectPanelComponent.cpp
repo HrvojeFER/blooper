@@ -1,4 +1,9 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/project/ProjectPanelComponent.hpp>
+
+#include <blooper/body/panels/project/ProjectContentComponent.hpp>
+
+#include <blooper/internal/ext/value_tree.hpp>
+#include <blooper/internal/ext/component.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

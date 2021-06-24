@@ -1,4 +1,10 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/project/TrackPluginListComponent.hpp>
+
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/ContextCommands.hpp>
+#include <blooper/internal/utils/style.hpp>
+
+#include <blooper/context/behaviour/AssetManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 

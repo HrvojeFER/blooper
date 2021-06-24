@@ -1,4 +1,13 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/project/EditTrackComponent.hpp>
+
+#include <blooper/body/panels/project/TrackPluginListComponent.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/style.hpp>
+
+#include <blooper/context/behaviour/AssetManager.hpp>
+#include <blooper/context/behaviour/EditManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -307,7 +316,7 @@ EditTrackComponent::EditTrackComponent(
       assets.getIconView(assets::IconAssetId::muteTrack));
 
   this->muteButton->onClick = [this] {
-    util::toggle(this->track->muted);
+    toggle(this->track->muted);
   };
 
   this->soloButton =
@@ -331,7 +340,7 @@ EditTrackComponent::EditTrackComponent(
       assets.getIconView(assets::IconAssetId::armTrack));
 
   this->armButton->onClick = [this] {
-    util::toggle(this->track->armed);
+    toggle(this->track->armed);
   };
 
 

@@ -1,4 +1,16 @@
-#include <blooper/blooper.hpp>
+#include <blooper/body/panels/project/ProjectContentComponent.hpp>
+
+#include <blooper/body/panels/project/EditTrackComponent.hpp>
+
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/ext/value_tree.hpp>
+#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/ContextCommands.hpp>
+
+#include <blooper/context/behaviour/AssetManager.hpp>
+#include <blooper/context/behaviour/EditManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -28,7 +40,7 @@ ProjectContentComponent::ProjectContentComponent(
       this->appearanceSettings,
       id::trackSize,
       undoManager,
-      ProjectContentComponent::defaultTrackSize);
+      defaultTrackSize);
 
 
   this->buildTracks();
