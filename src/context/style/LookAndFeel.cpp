@@ -428,12 +428,6 @@ void LookAndFeel::updateColours()
           ColourId::foreground));
 
   this->setColour(
-      juce::ComboBox::outlineColourId,
-      this->getThemeColour(
-          juce::ComboBox::outlineColourId,
-          ColourId::outline));
-
-  this->setColour(
       juce::ComboBox::textColourId,
       this->getThemeColour(
           juce::ComboBox::textColourId,
@@ -452,10 +446,16 @@ void LookAndFeel::updateColours()
           ColourId::cyan));
 
   this->setColour(
+      juce::ComboBox::outlineColourId,
+      this->getThemeColour(
+          juce::ComboBox::outlineColourId,
+          ColourId::outline));
+
+  this->setColour(
       juce::ComboBox::focusedOutlineColourId,
       this->getThemeColour(
           juce::ComboBox::focusedOutlineColourId,
-          ColourId::transparent));
+          ColourId::selection));
 
 
   // PropertyComponent

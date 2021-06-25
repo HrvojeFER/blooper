@@ -1,16 +1,17 @@
 #include <blooper/body/panels/project/ProjectContentComponent.hpp>
 
-#include <blooper/body/panels/project/EditTrackComponent.hpp>
-
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/value_tree.hpp>
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 #include <blooper/context/behaviour/EditManager.hpp>
+
+#include <blooper/components/tracks/TrackComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -23,7 +24,7 @@ ProjectContentComponent::ProjectContentComponent(
           move(state)),
       options(move(options)),
 
-      updateTracks(false)
+      trackUpdate(false)
 {
   auto undoManager = this->getContext().getUndoManagerPtr();
 
@@ -43,7 +44,7 @@ ProjectContentComponent::ProjectContentComponent(
       defaultTrackSize);
 
 
-  this->buildTracks();
+  this->updateTracks();
 
   this->getContext().getSettings().addListener(this);
   this->getContext().getEditManager().addListener(this);
@@ -71,11 +72,11 @@ void ProjectContentComponent::resizeTracks()
           this->trackComponents.size());
 }
 
-[[maybe_unused]] void ProjectContentComponent::buildTracks()
+[[maybe_unused]] void ProjectContentComponent::updateTracks()
 {
   for (int i = 0; i < this->getChildren().size(); ++i)
   {
-    if (dynamic_cast<EditTrackComponent*>(this->getChildComponent(i)))
+    if (dynamic_cast<TrackComponent*>(this->getChildComponent(i)))
     {
       this->removeChildComponent(i);
     }
@@ -85,13 +86,13 @@ void ProjectContentComponent::resizeTracks()
 
   this->getContext().getEditManager().visit(
       [this](EditTrackRef track) {
-        EditTrackComponent::Options componentOptions{};
+        TrackComponent::Options componentOptions{};
 
         auto trackComponent =
-            new EditTrackComponent(
+            new TrackComponent(
                 this->getContext(),
                 this->getState().getOrCreateChildWithName(
-                    EditTrackComponent::stateId,
+                    TrackComponent::stateId,
                     nullptr),
                 move(track),
                 move(componentOptions));
@@ -109,33 +110,6 @@ void ProjectContentComponent::resizeTracks()
 
 
 // Component
-
-void ProjectContentComponent::paint(JuceGraphics& g)
-{
-  auto  availableArea = this->getLocalBounds().reduced(6);
-  auto  trackWidth = availableArea.getWidth() / this->trackComponents.size();
-  auto& selection = this->getContext().getSelectionManager();
-
-
-  for (auto component : this->trackComponents)
-  {
-    auto outlineColourId = ColourId::outline;
-    if (selection.isSelected(component->getTrack()))
-    {
-      outlineColourId = ColourId::selection;
-    }
-
-    g.setColour(
-        this->getLookAndFeel().findColour(
-            outlineColourId));
-
-    g.drawRect(
-        availableArea
-            .removeFromLeft(trackWidth)
-            .reduced(5),
-        1);
-  }
-}
 
 void ProjectContentComponent::resized()
 {
@@ -175,7 +149,7 @@ void ProjectContentComponent::valueTreeChildAdded(
   {
     if (child.hasType(id::edit))
     {
-      this->markAndUpdate(this->updateTracks);
+      this->markAndUpdate(this->trackUpdate);
     }
   }
 }
@@ -189,7 +163,7 @@ void ProjectContentComponent::valueTreeChildRemoved(
   {
     if (child.hasType(id::edit))
     {
-      this->markAndUpdate(this->updateTracks);
+      this->markAndUpdate(this->trackUpdate);
     }
   }
 }
@@ -204,7 +178,7 @@ void ProjectContentComponent::valueTreeChildOrderChanged(
     if (tree.getChild(childAIndex).hasType(id::edit) &&
         tree.getChild(childBIndex).hasType(id::edit))
     {
-      this->markAndUpdate(this->updateTracks);
+      this->markAndUpdate(this->trackUpdate);
     }
   }
 }
@@ -214,9 +188,9 @@ void ProjectContentComponent::valueTreeChildOrderChanged(
 
 void ProjectContentComponent::handleAsyncUpdate()
 {
-  if (util::FlaggedAsyncUpdater::compareAndReset(this->updateTracks))
+  if (util::FlaggedAsyncUpdater::compareAndReset(this->trackUpdate))
   {
-    this->buildTracks();
+    this->updateTracks();
   }
 }
 

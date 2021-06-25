@@ -55,25 +55,6 @@ EditTrack::EditTrack(
       undoManager);
 
 
-  this->mode.referTo(
-      this->getState(),
-      id::mode,
-      undoManager,
-      TrackMode::sync);
-
-  this->interval.referTo(
-      this->getState(),
-      id::interval,
-      undoManager,
-      Interval::fourBeats);
-
-  this->playback.referTo(
-      this->getState(),
-      id::playback,
-      undoManager,
-      TrackPlayback::paused);
-
-
   this->muted.referTo(
       this->getState(),
       id::muted,
@@ -91,6 +72,40 @@ EditTrack::EditTrack(
       device->setRecordingEnabled(*this->audio, this->armed);
 
 
+  this->mode.referTo(
+      this->getState(),
+      id::mode,
+      undoManager,
+      TrackMode::sync);
+
+  this->interval.referTo(
+      this->getState(),
+      id::interval,
+      undoManager,
+      Interval::fourBeats);
+
+  this->playback.referTo(
+      this->getState(),
+      id::playback,
+      undoManager,
+      TrackPlayback::paused);
+  if (this->playback == TrackPlayback::paused)
+  {
+    this->transport->stop(
+        true,
+        false);
+  }
+  else if (this->playback == TrackPlayback::playing)
+  {
+    this->transport->play(
+        false);
+  }
+  else if (this->playback == TrackPlayback::recording)
+  {
+    this->playback = TrackPlayback::paused;
+  }
+
+
   this->syncToken = invalidToken;
   this->recordToken = invalidToken;
   this->synchronize();
@@ -98,6 +113,14 @@ EditTrack::EditTrack(
 
 EditTrack::~EditTrack()
 {
+  auto& sync = this->getContext().getSynchronizer();
+  sync.cancel(this->syncToken);
+  sync.cancel(this->recordToken);
+
+  this->transport->stop(
+      true,
+      true);
+
   te::EditFileOperations(*this->edit)
       .save(
           false,
@@ -131,6 +154,11 @@ EditTrack::~EditTrack()
 }
 
 
+[[maybe_unused]] bool EditTrack::isClear()
+{
+  return this->getAudio().getClips().size() == 0;
+}
+
 [[maybe_unused]] void EditTrack::clear()
 {
   this->getAudio().deleteRegion(
@@ -156,8 +184,7 @@ void EditTrack::synchronize()
   // Clean up previous sync
 
   auto& sync = this->getContext().getSynchronizer();
-  if (isValid(this->syncToken))
-    sync.cancelAsync(this->syncToken);
+  sync.cancelAsync(this->syncToken);
 
 
   switch (this->mode)
@@ -166,7 +193,7 @@ void EditTrack::synchronize()
 
     case TrackMode::sync:
       {
-        sync.everyAsync(
+        this->syncToken = sync.everyAsync(
             this->interval,
             [weak = juce::WeakReference<EditTrack>(this)] {
               if (weak.wasObjectDeleted()) return;
@@ -234,18 +261,26 @@ void EditTrack::valueTreePropertyChanged(
         if (this->mode == TrackMode::sync)
         {
           this->recordToken =
-              sync.on(
+              sync.onAsync(
                   static_cast<Delay>(this->interval.get()),
                   [weak = juce::WeakReference<EditTrack>(this)] {
-                    if (weak.wasObjectDeleted()) return;
-                    weak->transport->record(false);
+                    if (weak.wasObjectDeleted() ||
+                        weak->playback != TrackPlayback::recording)
+                      return;
 
-                    weak->syncToken =
+                    weak->transport->record(
+                        false);
+
+                    weak->recordToken =
                         weak->getContext().getSynchronizer().onAsync(
                             static_cast<Delay>(weak->interval.get()),
                             [weak] {
-                              if (weak.wasObjectDeleted()) return;
-                              weak->transport->play(false);
+                              if (weak.wasObjectDeleted() ||
+                                  weak->playback != TrackPlayback::recording)
+                                return;
+
+                              weak->transport->play(
+                                  false);
                             });
                   });
         }

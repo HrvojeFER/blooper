@@ -4,12 +4,11 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
-#include <blooper/internal/utils/EditTrack.hpp>
 #include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-class TrackPluginListComponent :
+class TrackPluginsComponent :
     public ComponentBase,
 
     private juce::ListBoxModel,
@@ -17,31 +16,35 @@ class TrackPluginListComponent :
     private juce::ApplicationCommandTarget
 {
  public:
-  BLOOPER_STATE_ID(TrackPluginListComponent);
+  BLOOPER_STATE_ID(TrackPluginsComponent);
 
 
   struct Options
   {
   } options;
 
-  explicit TrackPluginListComponent(
-      AbstractContext& context,
-      State            state,
-      EditTrackRef     track,
-      Options          options = {});
+  explicit TrackPluginsComponent(
+      AbstractContext&         context,
+      State                    state,
+      JuceRef<class EditTrack> track,
+      Options                  options = {});
 
-  ~TrackPluginListComponent() override;
+  ~TrackPluginsComponent() override;
 
 
  private:
-  JuceFlag updatePluginsFlag;
+  JuceRef<class EditTrack> track;
 
-  EditTrackRef track;
 
   std::unique_ptr<juce::ListBox> list;
 
 
-  [[maybe_unused, nodiscard]] bool isValidRow(int row);
+  JuceFlag pluginUpdate;
+
+  void updatePlugins();
+
+
+  [[nodiscard]] bool isValidRow(int row);
 
 
   // Component
@@ -111,7 +114,7 @@ class TrackPluginListComponent :
   bool perform(const InvocationInfo& info) override;
 
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TrackPluginListComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TrackPluginsComponent)
 };
 
 BLOOPER_NAMESPACE_END

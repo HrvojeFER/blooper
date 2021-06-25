@@ -4,48 +4,45 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
-#include <blooper/internal/utils/EditTrack.hpp>
-
 BLOOPER_NAMESPACE_BEGIN
 
-class EditTrackComponent :
+class TrackComponent :
     public ComponentBase,
 
     private juce::Label::Listener,
     private juce::ComboBox::Listener
 {
  public:
-  BLOOPER_STATE_ID(EditTrackComponent);
+  BLOOPER_STATE_ID(TrackComponent);
 
 
   struct Options
   {
   } options;
 
-  explicit EditTrackComponent(
-      AbstractContext& context,
-      State            state,
-      EditTrackRef     track,
-      Options          options = {});
+  explicit TrackComponent(
+      AbstractContext&         context,
+      State                    state,
+      JuceRef<class EditTrack> track,
+      Options                  options = {});
 
-  ~EditTrackComponent() override;
+  ~TrackComponent() override;
 
 
-  [[maybe_unused, nodiscard]] inline const EditTrack&
+  [[maybe_unused, nodiscard]] inline const class EditTrack&
   getTrack() const noexcept;
 
-  [[maybe_unused, nodiscard]] inline EditTrack&
+  [[maybe_unused, nodiscard]] inline class EditTrack&
   getTrack() noexcept;
 
 
  private:
-  EditTrackRef track;
+  JuceRef<class EditTrack> track;
 
   std::unique_ptr<juce::Label> name;
 
-  class ButtonPlayhead;
-  class Button;
-  std::unique_ptr<Button> button;
+  std::unique_ptr<class TrackPlayheadComponent> playhead;
+  std::unique_ptr<class TrackButtonComponent>   button;
 
   std::unique_ptr<juce::DrawableButton>
       muteButton,
@@ -55,12 +52,16 @@ class EditTrackComponent :
   std::unique_ptr<juce::ComboBox> modeDropdown;
   std::unique_ptr<juce::ComboBox> intervalDropdown;
 
-  std::unique_ptr<class TrackPluginListComponent> pluginList;
+  std::unique_ptr<class TrackPluginsComponent> pluginList;
+
+  std::unique_ptr<class TrackClipsComponent> clips;
 
 
   // Component
 
  public:
+  void paint(JuceGraphics& g) override;
+
   void resized() override;
 
   void mouseDown(const juce::MouseEvent& event) override;
@@ -69,8 +70,7 @@ class EditTrackComponent :
   // ValueTreeListener
 
  private:
-  void
-  valueTreePropertyChanged(
+  void valueTreePropertyChanged(
       juce::ValueTree&        tree,
       const juce::Identifier& id) override;
 
@@ -91,17 +91,17 @@ class EditTrackComponent :
   // Declarations
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditTrackComponent)
-  JUCE_DECLARE_WEAK_REFERENCEABLE(EditTrackComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TrackComponent)
+  JUCE_DECLARE_WEAK_REFERENCEABLE(TrackComponent)
 };
 
 
-const EditTrack& EditTrackComponent::getTrack() const noexcept
+const EditTrack& TrackComponent::getTrack() const noexcept
 {
   return *this->track;
 }
 
-EditTrack& EditTrackComponent::getTrack() noexcept
+EditTrack& TrackComponent::getTrack() noexcept
 {
   return *this->track;
 }

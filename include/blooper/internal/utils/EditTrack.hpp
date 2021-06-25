@@ -21,9 +21,13 @@ enum class TrackMode : int
 
 enum class TrackPlayback : int
 {
-  playing [[maybe_unused]] = 1,
-  paused [[maybe_unused]] = 2,
-  recording [[maybe_unused]] = 3
+  paused [[maybe_unused]] = 1,
+
+  scheduledRecording [[maybe_unused]] = 2,
+  recording [[maybe_unused]] = 3,
+
+  scheduledPlaying [[maybe_unused]] = 4,
+  playing [[maybe_unused]] = 5,
 };
 
 class [[maybe_unused]] EditTrack :
@@ -84,6 +88,8 @@ class [[maybe_unused]] EditTrack :
 
   [[maybe_unused]] void toggleSoloed();
 
+
+  [[maybe_unused, nodiscard]] bool isClear();
 
   [[maybe_unused]] void clear();
 

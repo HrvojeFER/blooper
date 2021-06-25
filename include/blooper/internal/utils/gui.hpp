@@ -8,8 +8,109 @@
 
 #include <blooper/internal/utils/ScopedMessageLoopBlocker.hpp>
 #include <blooper/internal/utils/ScopedDPIAwarenessDisabler.hpp>
+#include <blooper/internal/utils/style.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
+
+[[maybe_unused]] inline JuceBounds drawBottomLine(
+    JuceGraphics&  g,
+    JuceComponent& component,
+    JuceBounds     availableArea)
+{
+  g.setColour(
+      component.findColour(
+          ColourId::outline));
+
+  const auto availableWidth = availableArea.getWidth();
+  const auto availableHeight = availableArea.getHeight();
+
+  g.fillRect(
+      availableWidth - outlineThickness * 2,
+      availableHeight - outlineThickness * 2,
+      availableWidth - outlineThickness * 2,
+      outlineThickness);
+
+  return availableArea.removeFromBottom(outlineThickness * 3);
+}
+
+[[maybe_unused]] inline JuceBounds drawBottomLine(
+    JuceGraphics&  g,
+    JuceComponent& component,
+    JuceBounds     availableArea,
+    bool           isSelected)
+{
+  if (isSelected)
+  {
+    g.setColour(
+        component.findColour(
+            ColourId::selection));
+  }
+  else
+  {
+    g.setColour(
+        component.findColour(
+            ColourId::outline));
+  }
+
+  const auto availableWidth = availableArea.getWidth();
+  const auto availableHeight = availableArea.getHeight();
+
+  g.fillRect(
+      availableWidth - outlineThickness * 2,
+      availableHeight - outlineThickness * 2,
+      availableWidth - outlineThickness * 2,
+      outlineThickness);
+
+  return availableArea.removeFromBottom(outlineThickness * 3);
+}
+
+[[maybe_unused]] inline JuceBounds drawOutline(
+    JuceGraphics&  g,
+    JuceComponent& component,
+    bool           isSelected)
+{
+  if (isSelected)
+  {
+    g.setColour(
+        component.findColour(
+            ColourId::selection));
+  }
+  else
+  {
+    g.setColour(
+        component.findColour(
+            ColourId::outline));
+  }
+
+  g.drawRect(
+      component.getLocalBounds().reduced(outlineThickness),
+      outlineThickness);
+
+  return component.getLocalBounds().reduced(outlineThickness * 3);
+}
+
+[[maybe_unused]] inline JuceBounds drawOutline(
+    JuceGraphics&  g,
+    JuceComponent& component)
+{
+  g.setColour(
+      component.findColour(
+          ColourId::outline));
+
+  g.drawRect(
+      component.getLocalBounds().reduced(outlineThickness),
+      outlineThickness);
+
+  return component.getLocalBounds().reduced(outlineThickness * 3);
+}
+
+[[maybe_unused]] inline JuceBounds pad(
+    const JuceBounds& area,
+    int               byFactorOf = 1)
+{
+  return area.reduced(padding * byFactorOf);
+}
+
 
 [[maybe_unused]] inline void copyConstrainer(
     const JuceConstrainer& from,
@@ -29,23 +130,6 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
 
   to.setFixedAspectRatio(
       from.getFixedAspectRatio());
-}
-
-
-[[maybe_unused]] inline JuceBounds drawBottomLine(
-    JuceGraphics& g,
-    JuceBounds    availableArea)
-{
-  const auto availableWidth = availableArea.getWidth();
-  const auto availableHeight = availableArea.getHeight();
-
-  g.fillRect(
-      availableWidth - 4,
-      availableHeight - 4,
-      availableWidth - 4,
-      2);
-
-  return availableArea.removeFromBottom(lineSpace);
 }
 
 

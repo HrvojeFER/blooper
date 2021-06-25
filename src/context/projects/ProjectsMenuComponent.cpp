@@ -3,8 +3,9 @@
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/ext/string.hpp>
 #include <blooper/internal/utils/CoreContextFunctions.hpp>
-#include <blooper/internal/utils/BarComponents.hpp>
 #include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
+#include <blooper/internal/utils/BarComponents.hpp>
 
 #include <blooper/components/properties/FilePathPropertyComponent.hpp>
 
@@ -243,31 +244,89 @@ void ProjectsMenuComponent::resized()
     juce::Graphics& g,
     int             width,
     int             height,
-    bool            rowIsSelected)
+    bool            isSelected)
 {
   if (!this->isValidRow(row)) return;
 
   auto project = this->projects[row];
+  if (!project) return;
 
 
-  auto availableArea = juce::Rectangle<int>(
-      0,
-      0,
-      width,
-      height);
+  // Separator
+
+  auto availableArea =
+      util::drawBottomLine(
+          g,
+          *this,
+          JuceBounds{
+              0,
+              0,
+              width,
+              height},
+          this->getContext()
+              .getSelectionManager()
+              .isSelected(project));
 
 
-  g.fillAll(this->getLookAndFeel().findColour(
-      juce::ResizableWindow::backgroundColourId));
+  // Path - TODO: cache paths somehow
 
-  if (rowIsSelected)
-    g.setColour(this->findColour(ColourId::whiteBright));
+  g.setColour(
+      this->findColour(
+          ColourId::white));
+
+  g.drawText(
+      getProjectPath(
+          this->getContext(),
+          *project)
+          .joinIntoString(pathSeparator),
+      availableArea.removeFromLeft(50),
+      juce::Justification::left);
+
+
+  // Arrow - TODO: encapsulate?
+
+  g.setColour(
+      this->findColour(
+          ColourId::purple));
+
+  const auto arrowLineStart =
+      availableArea
+          .getRelativePoint(
+              0.0,
+              0.5)
+          .toFloat();
+
+  const auto arrowLineEnd =
+      arrowLineStart.withX(
+          arrowLineStart.getX() + 10);
+
+  g.drawArrow(
+      {move(arrowLineStart),
+       move(arrowLineEnd)},
+      outlineThickness,
+      10,
+      10);
+
+
+  // Name
+
+  if (isSelected)
+  {
+    g.setColour(
+        this->findColour(
+            ColourId::selection));
+  }
   else
-    g.setColour(this->findColour(ColourId::white));
+  {
+    g.setColour(
+        this->findColour(
+            ColourId::white));
+  }
 
-  g.drawText(project->getName(),
-             availableArea,
-             juce::Justification::left);
+  g.drawText(
+      project->getName(),
+      availableArea,
+      juce::Justification::left);
 }
 
 [[maybe_unused]] void ProjectsMenuComponent::listBoxItemClicked(

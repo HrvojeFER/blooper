@@ -1,14 +1,16 @@
-#include <blooper/body/panels/project/TrackPluginListComponent.hpp>
+#include <blooper/components/tracks/TrackPluginsComponent.hpp>
 
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
+#include <blooper/internal/utils/EditTrack.hpp>
+#include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/style.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-TrackPluginListComponent::TrackPluginListComponent(
+TrackPluginsComponent::TrackPluginsComponent(
     AbstractContext& context,
     State            state,
     EditTrackRef     track,
@@ -18,16 +20,15 @@ TrackPluginListComponent::TrackPluginListComponent(
           move(state)),
       options(move(options)),
 
-      updatePluginsFlag(false),
+      track(move(track)),
 
-      track(move(track))
+      pluginUpdate(false)
 {
-  juce::ListBoxModel* model = this;
-
   this->list =
       std::make_unique<juce::ListBox>(
           this->track->getAudio().getName() + " Plugin List",
-          model);
+          dynamic_cast<juce::ListBoxModel*>(this));
+
 
   ext::addAndMakeVisible(
       *this,
@@ -38,22 +39,28 @@ TrackPluginListComponent::TrackPluginListComponent(
   this->getContext().registerCommandTarget(this);
 }
 
-TrackPluginListComponent::~TrackPluginListComponent()
+TrackPluginsComponent::~TrackPluginsComponent()
 {
   this->getContext().unregisterCommandTarget(this);
   this->track->getAudio().state.removeListener(this);
 }
 
 
-[[maybe_unused]] bool TrackPluginListComponent::isValidRow(int row)
+[[maybe_unused]] bool TrackPluginsComponent::isValidRow(int row)
 {
   return row >= 0 && row < this->track->getAudio().pluginList.size();
 }
 
 
+void TrackPluginsComponent::updatePlugins()
+{
+  this->list->updateContent();
+}
+
+
 // Component
 
-void TrackPluginListComponent::resized()
+void TrackPluginsComponent::resized()
 {
   auto availableArea = this->getLocalBounds();
 
@@ -63,43 +70,60 @@ void TrackPluginListComponent::resized()
 
 // ValueTreeListener
 
-void TrackPluginListComponent::valueTreeChildAdded(
+void TrackPluginsComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
     juce::ValueTree& child)
 {
   if (tree.hasType(te::IDs::TRACK))
+  {
     if (child.hasType(te::IDs::PLUGIN))
-      this->markAndUpdate(this->updatePluginsFlag);
+    {
+      this->markAndUpdate(this->pluginUpdate);
+    }
+  }
 }
 
-void TrackPluginListComponent::valueTreeChildRemoved(
+void TrackPluginsComponent::valueTreeChildRemoved(
     juce::ValueTree& tree,
     juce::ValueTree& child,
     int)
 {
   if (tree.hasType(te::IDs::TRACK))
+  {
     if (child.hasType(te::IDs::PLUGIN))
-      this->markAndUpdate(this->updatePluginsFlag);
+    {
+      this->markAndUpdate(this->pluginUpdate);
+    }
+  }
 }
 
-void TrackPluginListComponent::valueTreeChildOrderChanged(
+void TrackPluginsComponent::valueTreeChildOrderChanged(
     juce::ValueTree& tree,
-    int,
-    int)
+    int              childAIndex,
+    int              childBIndex)
 {
   if (tree.hasType(te::IDs::TRACK))
-    this->markAndUpdate(this->updatePluginsFlag);
+  {
+    if (tree.getChild(childAIndex).hasType(te::IDs::PLUGIN))
+    {
+      this->markAndUpdate(this->pluginUpdate);
+    }
+    if (tree.getChild(childBIndex).hasType(te::IDs::PLUGIN))
+    {
+      this->markAndUpdate(this->pluginUpdate);
+    }
+  }
 }
 
 
 // ListBoxModel
 
-int TrackPluginListComponent::getNumRows()
+int TrackPluginsComponent::getNumRows()
 {
   return this->track->getAudio().pluginList.size();
 }
 
-void TrackPluginListComponent::paintListBoxItem(
+void TrackPluginsComponent::paintListBoxItem(
     int             row,
     juce::Graphics& g,
     int             width,
@@ -111,13 +135,30 @@ void TrackPluginListComponent::paintListBoxItem(
   auto plugin = this->track->getAudio().pluginList[row];
   if (!plugin) return;
 
-  auto availableArea = JuceBounds{0, 0, width, height};
+  auto availableArea =
+      util::drawBottomLine(
+          g,
+          *this,
+          JuceBounds{
+              0,
+              0,
+              width,
+              height},
+          this->getContext()
+              .getSelectionManager()
+              .isSelected(plugin));
 
   if (isSelected)
   {
     g.setColour(
         this->getLookAndFeel().findColour(
             ColourId::selection));
+  }
+  else
+  {
+    g.setColour(
+        this->getLookAndFeel().findColour(
+            ColourId::white));
   }
 
   g.drawText(
@@ -127,7 +168,7 @@ void TrackPluginListComponent::paintListBoxItem(
       true);
 }
 
-void TrackPluginListComponent::listBoxItemClicked(
+void TrackPluginsComponent::listBoxItemClicked(
     int row,
     const juce::MouseEvent&)
 {
@@ -151,7 +192,7 @@ void TrackPluginListComponent::listBoxItemClicked(
   }
 }
 
-void TrackPluginListComponent::listBoxItemDoubleClicked(
+void TrackPluginsComponent::listBoxItemDoubleClicked(
     int row,
     const juce::MouseEvent&)
 {
@@ -172,8 +213,7 @@ void TrackPluginListComponent::listBoxItemDoubleClicked(
   plugin->showWindowExplicitly();
 }
 
-juce::String TrackPluginListComponent::getTooltipForRow(
-    int row)
+juce::String TrackPluginsComponent::getTooltipForRow(int row)
 {
   if (!this->isValidRow(row)) return {};
   auto plugin = this->track->getAudio().pluginList[row];
@@ -184,21 +224,23 @@ juce::String TrackPluginListComponent::getTooltipForRow(
 
 // FlaggedAsyncUpdater
 
-void TrackPluginListComponent::handleAsyncUpdate()
+void TrackPluginsComponent::handleAsyncUpdate()
 {
-  if (FlaggedAsyncUpdater::compareAndReset(this->updatePluginsFlag))
-    this->list->updateContent();
+  if (FlaggedAsyncUpdater::compareAndReset(this->pluginUpdate))
+  {
+    this->updatePlugins();
+  }
 }
 
 
 // ApplicationCommandTarget
 
-juce::ApplicationCommandTarget* TrackPluginListComponent::getNextCommandTarget()
+juce::ApplicationCommandTarget* TrackPluginsComponent::getNextCommandTarget()
 {
   return nullptr;
 }
 
-void TrackPluginListComponent::getAllCommands(
+void TrackPluginsComponent::getAllCommands(
     juce::Array<juce::CommandID>& commands)
 {
   fillCommands(
@@ -206,7 +248,7 @@ void TrackPluginListComponent::getAllCommands(
       CommandId::selectAll);
 }
 
-void TrackPluginListComponent::getCommandInfo(
+void TrackPluginsComponent::getCommandInfo(
     juce::CommandID               commandID,
     juce::ApplicationCommandInfo& result)
 {
@@ -215,7 +257,7 @@ void TrackPluginListComponent::getCommandInfo(
       commandID);
 }
 
-bool TrackPluginListComponent::perform(
+bool TrackPluginsComponent::perform(
     const juce::ApplicationCommandTarget::InvocationInfo& info)
 {
   if (info.commandID != CommandId::selectAll) return false;

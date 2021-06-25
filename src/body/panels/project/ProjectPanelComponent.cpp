@@ -1,9 +1,11 @@
 #include <blooper/body/panels/project/ProjectPanelComponent.hpp>
 
-#include <blooper/body/panels/project/ProjectContentComponent.hpp>
-
+#include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/value_tree.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/gui.hpp>
+
+#include <blooper/body/panels/project/ProjectContentComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -51,20 +53,20 @@ ProjectPanelComponent::ProjectPanelComponent(
 
 
   ext::referTo(
-      this->editScrollRangeStart,
+      this->projectScrollStart,
       this->getState(),
-      ProjectPanelComponent::editScrollRangeStartId,
+      ProjectPanelComponent::projectScrollStartId,
       nullptr,
       0);
 
   ext::referTo(
-      this->editScrollRangeEnd,
+      this->projectScrollEnd,
       this->getState(),
-      ProjectPanelComponent::editScrollRangeEndId,
+      ProjectPanelComponent::projectScrollEndId,
       nullptr,
       0);
 
-  if (this->editScrollRangeStart == 0 && this->editScrollRangeEnd == 0)
+  if (this->projectScrollStart == 0 && this->projectScrollEnd == 0)
   {
     this->viewport->getHorizontalScrollBar()
         .scrollToBottom(
@@ -73,8 +75,8 @@ ProjectPanelComponent::ProjectPanelComponent(
   else
   {
     this->viewport->getHorizontalScrollBar().setCurrentRange(
-        {this->editScrollRangeStart.get(),
-         this->editScrollRangeEnd.get()},
+        {this->projectScrollStart.get(),
+         this->projectScrollEnd.get()},
         juce::sendNotificationAsync);
   }
 }
@@ -85,8 +87,8 @@ ProjectPanelComponent::~ProjectPanelComponent()
       this->viewport->getHorizontalScrollBar()
           .getCurrentRange();
 
-  this->editScrollRangeStart = currentScrollRange.getStart();
-  this->editScrollRangeEnd = currentScrollRange.getEnd();
+  this->projectScrollStart = currentScrollRange.getStart();
+  this->projectScrollEnd = currentScrollRange.getEnd();
 }
 
 
@@ -94,16 +96,17 @@ ProjectPanelComponent::~ProjectPanelComponent()
 
 void ProjectPanelComponent::paint(JuceGraphics& g)
 {
-  g.setColour(juce::Colours::whitesmoke);
-
-  g.drawRect(
-      this->getLocalBounds().reduced(2),
-      2);
+  util::drawOutline(
+      g,
+      *this);
 }
 
 void ProjectPanelComponent::resized()
 {
-  const auto availableArea = this->getLocalBounds().reduced(6);
+  auto availableArea =
+      util::pad(
+          this->getLocalBounds(),
+          outlinePaddingFactor);
 
   ext::setHeight(*this->content, availableArea.getHeight());
   this->viewport->setBounds(availableArea);

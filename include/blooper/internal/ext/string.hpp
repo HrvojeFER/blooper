@@ -3,11 +3,9 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/const.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
-
-[[maybe_unused]] constexpr inline auto pathSeparator = '/';
-
 
 [[maybe_unused]] inline auto split(
     const juce::String& string,

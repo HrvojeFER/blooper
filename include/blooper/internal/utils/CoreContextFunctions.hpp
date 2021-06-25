@@ -8,6 +8,26 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+[[maybe_unused]] inline auto getProjectPath(
+    AbstractCoreContext& context,
+    const JuceProject&   project)
+{
+  auto& manager = context.getEngine().getProjectManager();
+
+  JuceStringArray result;
+
+  ext::visitAncestors(
+      manager.getFolderItemFor(project),
+      [&result](const auto& node) mutable {
+        if (node.hasType(te::IDs::FOLDER))
+        {
+          result += node.getProperty(te::IDs::name);
+        }
+      });
+
+  return move(result);
+}
+
 [[maybe_unused]] inline auto addProjectFolder(
     AbstractCoreContext&   context,
     const JuceStringArray& path)
@@ -76,12 +96,14 @@ BLOOPER_NAMESPACE_BEGIN
   if (auto projectNode =
           ext::find(
               manager.folders,
-              [project](juce::ValueTree node) {
+              [project = move(project)](const auto& node) {
                 return node[te::IDs::file].toString() ==
                        project->getProjectFile().getFullPathName();
               });
       projectNode.isValid())
+  {
     manager.deleteProjectFolder(projectNode);
+  }
 }
 
 BLOOPER_NAMESPACE_END

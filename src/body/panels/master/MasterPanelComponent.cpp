@@ -1,5 +1,8 @@
 #include <blooper/body/panels/master/MasterPanelComponent.hpp>
 
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/utils/gui.hpp>
+
 #include <blooper/body/panels/master/MasterTrackComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
@@ -22,16 +25,17 @@ MasterPanelComponent::~MasterPanelComponent() = default;
 
 void MasterPanelComponent::paint(JuceGraphics& g)
 {
-  g.setColour(juce::Colours::whitesmoke);
-
-  g.drawRect(
-      this->getLocalBounds().reduced(2),
-      2);
+  util::drawOutline(
+      g,
+      *this);
 }
 
 void MasterPanelComponent::resized()
 {
-  auto availableArea = this->getLocalBounds().reduced(6);
+  auto availableArea =
+      util::pad(
+          this->getLocalBounds(),
+          outlinePaddingFactor);
 
   maybeUnused(availableArea);
 }

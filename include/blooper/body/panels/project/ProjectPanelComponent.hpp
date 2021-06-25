@@ -25,11 +25,11 @@ class ProjectPanelComponent : public ComponentBase
 
 
  private:
-  BLOOPER_ID(editScrollRangeStartId);
-  JuceCached<double> editScrollRangeStart;
+  BLOOPER_ID(projectScrollStartId);
+  JuceCached<double> projectScrollStart;
 
-  BLOOPER_ID(editScrollRangeEndId);
-  JuceCached<double> editScrollRangeEnd;
+  BLOOPER_ID(projectScrollEndId);
+  JuceCached<double> projectScrollEnd;
 
 
   std::unique_ptr<class ProjectContentComponent> content;

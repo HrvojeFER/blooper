@@ -1,8 +1,10 @@
 #include <blooper/body/panels/browser/BrowserPanelComponent.hpp>
 
-#include <blooper/body/panels/browser/BrowserPreviewComponent.hpp>
-
+#include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/utils/gui.hpp>
+
+#include <blooper/body/panels/browser/BrowserPreviewComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -50,16 +52,17 @@ BrowserPanelComponent::~BrowserPanelComponent() = default;
 
 void BrowserPanelComponent::paint(JuceGraphics& g)
 {
-  g.setColour(juce::Colours::whitesmoke);
-
-  g.drawRect(
-      this->getLocalBounds().reduced(2),
-      2);
+  util::drawOutline(
+      g,
+      *this);
 }
 
 void BrowserPanelComponent::resized()
 {
-  auto availableArea = this->getLocalBounds().reduced(6);
+  auto availableArea =
+      util::pad(
+          this->getLocalBounds(),
+          outlinePaddingFactor);
 
   this->browser->setBounds(availableArea);
 }

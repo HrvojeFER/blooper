@@ -117,7 +117,13 @@ inline constexpr auto builtinSynths{
 
 // gui
 
-inline constexpr auto lineSpace{6};
+inline constexpr auto pathSeparator = "/";
+
+inline constexpr auto defaultGuiTimerHz{20};
+
+inline constexpr auto outlineThickness{2};
+inline constexpr auto padding{2};
+inline constexpr auto outlinePaddingFactor{3};
 
 inline constexpr auto defaultTrackSize{100};
 

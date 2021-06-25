@@ -1,5 +1,8 @@
 #include <blooper/body/panels/control_surface/ControlSurfacePanelComponent.hpp>
 
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/utils/gui.hpp>
+
 #include <blooper/body/panels/control_surface/ControlSurfaceKnobComponent.hpp>
 #include <blooper/body/panels/control_surface/ControlSurfaceSliderComponent.hpp>
 
@@ -23,16 +26,17 @@ ControlSurfacePanelComponent::~ControlSurfacePanelComponent() = default;
 
 void ControlSurfacePanelComponent::paint(JuceGraphics& g)
 {
-  g.setColour(juce::Colours::whitesmoke);
-
-  g.drawRect(
-      this->getLocalBounds().reduced(2),
-      2);
+  util::drawOutline(
+      g,
+      *this);
 }
 
 void ControlSurfacePanelComponent::resized()
 {
-  auto availableArea = this->getLocalBounds().reduced(6);
+  auto availableArea =
+      util::pad(
+          this->getLocalBounds(),
+          outlinePaddingFactor);
 
   maybeUnused(availableArea);
 }

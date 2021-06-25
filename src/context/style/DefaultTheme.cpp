@@ -72,11 +72,11 @@ JuceColour DefaultTheme::getColour(JuceColourId id) const
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
     case ColourId::outline:
-      return JuceColour{0xffa6accd};
+      return JuceColour{0xff8b91b5};
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
     case ColourId::selection:
-      return JuceColour{0xff82aaff};
+      return JuceColour{0xffffcb6b};
 
 
       // NOLINTNEXTLINE(bugprone-branch-clone)

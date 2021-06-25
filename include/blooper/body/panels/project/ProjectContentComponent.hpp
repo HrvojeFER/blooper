@@ -36,23 +36,21 @@ class ProjectContentComponent :
   JuceCached<int> trackSize;
 
 
-  JuceFlag updateTracks;
+  JuceFlag trackUpdate;
 
-  juce::OwnedArray<class EditTrackComponent> trackComponents;
+  juce::OwnedArray<class TrackComponent> trackComponents;
 
 
   bool isValidTrackIndex(int index);
 
   void resizeTracks();
 
-  void buildTracks();
+  void updateTracks();
 
 
   // Component
 
  public:
-  void paint(JuceGraphics& g) override;
-
   void resized() override;
 
 
