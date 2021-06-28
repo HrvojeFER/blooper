@@ -771,7 +771,7 @@ void Context::unloadEngineUnsafe()
 
 void Context::saveEngineUnsafe()
 {
-  this->engine->getProjectManager().saveList();
+  this->engine->getDeviceManager().saveSettings();
 
   {
     auto engineSettingsXml = this->getEngineSettings().createXml();

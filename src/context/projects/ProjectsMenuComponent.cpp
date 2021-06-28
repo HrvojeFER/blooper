@@ -7,8 +7,6 @@
 #include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/BarComponents.hpp>
 
-#include <blooper/components/properties/FilePathPropertyComponent.hpp>
-
 BLOOPER_NAMESPACE_BEGIN
 
 [[maybe_unused]] ProjectsMenuComponent::ProjectsMenuComponent(
@@ -39,11 +37,11 @@ BLOOPER_NAMESPACE_BEGIN
       this->getContext().getUndoManagerPtr(),
       "");
 
-  this->projectFile.referTo(
+  this->projectName.referTo(
       this->getState(),
       projectFileId,
       this->getContext().getUndoManagerPtr(),
-      "");
+      "New project");
 
 
   this->list =
@@ -76,8 +74,8 @@ BLOOPER_NAMESPACE_BEGIN
     {
       addProject(
           this->getContext(),
-          ext::splitPath(projectPath),
-          JuceFile{projectFile});
+          ext::splitPath(*projectPath),
+          projectName);
 
       this->reloadProjects();
     }
@@ -137,17 +135,18 @@ BLOOPER_NAMESPACE_BEGIN
   this->addProjectPanel->addProperties(
       {new juce::TextPropertyComponent(
            projectPath.getPropertyAsValue(),
-           "Folder",
+           "Path",
            200,
            false,
            true),
 
-       new FilePathPropertyComponent(
-           projectFile.getPropertyAsValue(),
-           "File",
-           {false,
-            true,
-            "*.tracktion"})},
+       new juce::TextPropertyComponent(
+           projectName.getPropertyAsValue(),
+           "Name",
+           200,
+           false,
+           true)},
+
 
       2);
 
@@ -306,6 +305,8 @@ void ProjectsMenuComponent::resized()
       outlineThickness,
       10,
       10);
+
+  availableArea.removeFromLeft(30);
 
 
   // Name

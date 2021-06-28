@@ -45,6 +45,12 @@ class TrackButtonComponent final :
   void updateImages();
 
 
+  // Component
+
+ public:
+  void resized() override;
+
+
   // ValueTreeListener
 
  private:

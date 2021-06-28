@@ -1,6 +1,7 @@
 #include <blooper/components/tracks/TrackButtonComponent.hpp>
 
 #include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/ext/component.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 #include <blooper/context/behaviour/EditManager.hpp>
@@ -33,8 +34,11 @@ class TrackButtonComponent::Pimpl final :
   {
     auto& parentTrack = *this->parent->track;
 
-    if (parentTrack.playback == TrackPlayback::playing ||
-        parentTrack.playback == TrackPlayback::recording)
+    if (parentTrack.playback == TrackPlayback::playing)
+    {
+      parentTrack.playback = TrackPlayback::paused;
+    }
+    else if (parentTrack.playback == TrackPlayback::recording)
     {
       parentTrack.playback = TrackPlayback::paused;
     }
@@ -58,8 +62,9 @@ class TrackButtonComponent::Pimpl final :
     if (withCommand)
     {
       this->parent->track->clear();
+      this->parent->markAndUpdate(this->parent->imageUpdate);
     }
-    else
+    else if (!modifiers.isAnyModifierKeyDown())
     {
       this->clicked();
     }
@@ -86,6 +91,12 @@ TrackButtonComponent::TrackButtonComponent(
           this);
 
   this->updateImages();
+
+
+  ext::addAndMakeVisible(
+      *this,
+      *this->pimpl);
+
 
   this->track->getState().addListener(this);
   this->getContext().getEditManager().addListener(this);
@@ -118,19 +129,21 @@ void TrackButtonComponent::updateImages()
       nextStateImage = assets.getIconView(assets::IconAssetId::play);
     }
   }
+
   else if (this->track->playback == TrackPlayback::scheduledRecording)
   {
-    stateImage = assets.getIconView(assets::IconAssetId::record);
-    nextStateImage = assets.getIconView(assets::IconAssetId::del);
+    stateImage = assets.getIconView(assets::IconAssetId::scheduledRecord);
+    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
   }
   else if (this->track->playback == TrackPlayback::recording)
   {
     stateImage = assets.getIconView(assets::IconAssetId::record);
-    nextStateImage = assets.getIconView(assets::IconAssetId::del);
+    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
   }
+
   else if (this->track->playback == TrackPlayback::scheduledPlaying)
   {
-    stateImage = assets.getIconView(assets::IconAssetId::play);
+    stateImage = assets.getIconView(assets::IconAssetId::scheduledPlay);
     nextStateImage = assets.getIconView(assets::IconAssetId::pause);
   }
   else if (this->track->playback == TrackPlayback::playing)
@@ -148,6 +161,16 @@ void TrackButtonComponent::updateImages()
       nextStateImage,
       nextStateImage,
       nullptr);
+}
+
+
+// Component
+
+void TrackButtonComponent::resized()
+{
+  auto availableArea = this->getLocalBounds();
+
+  this->pimpl->setBounds(availableArea);
 }
 
 

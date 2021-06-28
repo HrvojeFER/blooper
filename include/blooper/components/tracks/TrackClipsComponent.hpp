@@ -8,12 +8,16 @@ BLOOPER_NAMESPACE_BEGIN
 
 struct TrackClipsOptions
 {
-} options;
+};
 
-class TrackClipsComponent : public ComponentBase
+class TrackClipsComponent :
+    public ComponentBase,
+
+    private juce::ListBoxModel,
+    private juce::ApplicationCommandTarget
 {
  public:
-  BLOOPER_STATE_ID(DevComponent);
+  BLOOPER_STATE_ID(TrackClipsComponent);
 
 
   explicit TrackClipsComponent(
@@ -30,11 +34,54 @@ class TrackClipsComponent : public ComponentBase
  private:
   JuceRef<class EditTrack> track;
 
+  std::unique_ptr<juce::ListBox> list;
+
+
+  [[maybe_unused, nodiscard]] bool isValidRow(int row) const noexcept;
+
 
   // Component
 
  public:
   [[maybe_unused]] void resized() override;
+
+
+  // ListBoxModel
+
+ public:
+  int getNumRows() override;
+
+  void paintListBoxItem(
+      int             rowNumber,
+      juce::Graphics& g,
+      int             width,
+      int             height,
+      bool            isSelected) override;
+
+  void listBoxItemClicked(
+      int                     row,
+      const juce::MouseEvent& event) override;
+
+  void listBoxItemDoubleClicked(
+      int                     row,
+      const juce::MouseEvent& event) override;
+
+  juce::String getTooltipForRow(int row) override;
+
+
+  // ApplicationCommandTarget
+
+ private:
+  ApplicationCommandTarget* getNextCommandTarget() override;
+
+  void getAllCommands(
+      juce::Array<juce::CommandID>& commands) override;
+
+  void getCommandInfo(
+      juce::CommandID               commandID,
+      juce::ApplicationCommandInfo& result) override;
+
+  bool perform(const InvocationInfo& info) override;
 
 
   // Declarations

@@ -12,7 +12,6 @@ class TrackPluginsComponent :
     public ComponentBase,
 
     private juce::ListBoxModel,
-    private util::FlaggedAsyncUpdater,
     private juce::ApplicationCommandTarget
 {
  public:
@@ -37,11 +36,6 @@ class TrackPluginsComponent :
 
 
   std::unique_ptr<juce::ListBox> list;
-
-
-  JuceFlag pluginUpdate;
-
-  void updatePlugins();
 
 
   [[nodiscard]] bool isValidRow(int row);
@@ -92,12 +86,6 @@ class TrackPluginsComponent :
       const juce::MouseEvent& event) override;
 
   juce::String getTooltipForRow(int row) override;
-
-
-  // FlaggedAsyncUpdater
-
- private:
-  void handleAsyncUpdate() override;
 
 
   // ApplicationCommandTarget

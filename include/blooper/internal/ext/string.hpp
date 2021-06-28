@@ -8,12 +8,12 @@
 BLOOPER_EXT_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline auto split(
-    const juce::String& string,
-    juce::juce_wchar    by)
+    juce::StringRef  string,
+    juce::juce_wchar by)
 {
   juce::StringArray result;
 
-  auto end = string.getCharPointer();
+  auto end = string.text;
   auto begin = end;
 
   while (!end.isEmpty())
@@ -33,9 +33,9 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   return result;
 }
 
-[[maybe_unused]] inline auto splitPath(const juce::String& path)
+[[maybe_unused]] inline auto splitPath(juce::StringRef _)
 {
-  return split(path, pathSeparator);
+  return split(move(_), '/');
 }
 
 [[maybe_unused]] inline auto toId(juce::StringRef ref)

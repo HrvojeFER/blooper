@@ -44,7 +44,8 @@ class SettingsAppearanceComponent : public CoreComponentBase
       browserPanelSize;
 
   JuceCached<double>
-      trackSize;
+      trackSize,
+      trackClipsSize;
 
 
   std::unique_ptr<juce::PropertyPanel> panel;

@@ -30,7 +30,7 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
       availableWidth - outlineThickness * 2,
       outlineThickness);
 
-  return availableArea.removeFromBottom(outlineThickness * 3);
+  return availableArea.withTrimmedBottom(outlineThickness * 3);
 }
 
 [[maybe_unused]] inline JuceBounds drawBottomLine(
@@ -56,12 +56,12 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
   const auto availableHeight = availableArea.getHeight();
 
   g.fillRect(
-      availableWidth - outlineThickness * 2,
-      availableHeight - outlineThickness * 2,
+      outlineThickness,
+      availableHeight - outlineThickness,
       availableWidth - outlineThickness * 2,
       outlineThickness);
 
-  return availableArea.removeFromBottom(outlineThickness * 3);
+  return availableArea.withTrimmedBottom(outlineThickness * 3);
 }
 
 [[maybe_unused]] inline JuceBounds drawOutline(

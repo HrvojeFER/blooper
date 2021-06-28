@@ -48,6 +48,15 @@ void LookAndFeel::updateTheme()
 
 void LookAndFeel::updateColours()
 {
+  // Special
+
+  this->setColour(
+      ColourId::transparent,
+      this->getThemeColour(
+          ColourId::transparent,
+          ColourId::transparent));
+
+
   // Generic
 
   this->setColour(

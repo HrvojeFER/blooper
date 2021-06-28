@@ -48,15 +48,20 @@ EditTrackRef EditManager::add()
 
 void EditManager::remove(EditTrack::Id id)
 {
-  auto undoManager = std::addressof(this->getContext().getUndoManager());
+  auto& project = this->getContext().getProject();
+
+  project.removeProjectItem(
+      te::ProjectItemID{id, project.getProjectID()},
+      false);
+
+  this->getState()
+      .removeChild(
+          this->getState().getChildWithProperty(
+              te::IDs::uid,
+              id),
+          this->getContext().getUndoManagerPtr());
 
   this->edits.erase(id);
-
-  this->getState().removeChild(
-      this->getState().getChildWithProperty(
-          te::IDs::uid,
-          id),
-      undoManager);
 }
 
 EditTrackRef EditManager::get(EditTrack::Id id)
@@ -67,7 +72,7 @@ EditTrackRef EditManager::get(EditTrack::Id id)
 
 void EditManager::updateInputs() const
 {
-  this->visit([](EditTrack* track) {
+  this->visit([index = 0](EditTrack* track) mutable {
     for (auto inputInstance : track->getEdit().getAllInputDevices())
     {
       if (inputInstance->getInputDevice().getDeviceType() ==
@@ -80,7 +85,7 @@ void EditManager::updateInputs() const
 
         inputInstance->setRecordingEnabled(
             track->getAudio(),
-            true);
+            track->armed);
       }
     }
   });

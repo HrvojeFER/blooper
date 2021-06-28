@@ -15,10 +15,11 @@ EditTrack::EditTrack(
       StatefulBase(move(state)),
       item(move(item))
 {
-  // BLOOPER_ASSERT(this->item->isEdit()); - wtf
+  // the analyzer thinks this is never true for some reason...
+  // BLOOPER_ASSERT(this->item->isEdit());
 
   auto& engine = this->getContext().getEngine();
-  auto  undoManager = std::addressof(this->getContext().getUndoManager());
+  auto  undoManager = this->getContext().getUndoManagerPtr();
 
 
   this->edit =
@@ -27,7 +28,9 @@ EditTrack::EditTrack(
               engine,
               this->item->getSourceFile())
               .release()};
-  BLOOPER_ASSERT(edit);
+  BLOOPER_ASSERT(this->edit);
+  // this is the easiest way to do this
+  this->edit->setProjectItemID(this->item->getID());
 
   this->transport = std::addressof(edit->getTransport());
   BLOOPER_ASSERT(transport);
@@ -52,7 +55,7 @@ EditTrack::EditTrack(
   this->id.referTo(
       this->getState(),
       te::IDs::uid,
-      undoManager);
+      nullptr);
 
 
   this->muted.referTo(
@@ -60,16 +63,12 @@ EditTrack::EditTrack(
       id::muted,
       undoManager,
       false);
-  this->audio->setMute(this->muted);
 
   this->armed.referTo(
       this->getState(),
       id::armed,
       undoManager,
-      true);
-  for (auto device : this->edit->getAllInputDevices())
-    if (device->isOnTargetTrack(*this->audio))
-      device->setRecordingEnabled(*this->audio, this->armed);
+      false);
 
 
   this->mode.referTo(
@@ -89,37 +88,21 @@ EditTrack::EditTrack(
       id::playback,
       undoManager,
       TrackPlayback::paused);
-  if (this->playback == TrackPlayback::paused)
-  {
-    this->transport->stop(
-        true,
-        false);
-  }
-  else if (this->playback == TrackPlayback::playing)
-  {
-    this->transport->play(
-        false);
-  }
-  else if (this->playback == TrackPlayback::recording)
-  {
-    this->playback = TrackPlayback::paused;
-  }
+  this->playback = TrackPlayback::paused;
 
 
   this->syncToken = invalidToken;
-  this->recordToken = invalidToken;
+  this->playbackToken = invalidToken;
   this->synchronize();
 }
 
 EditTrack::~EditTrack()
 {
+  this->playback = TrackPlayback::paused;
+
   auto& sync = this->getContext().getSynchronizer();
   sync.cancel(this->syncToken);
-  sync.cancel(this->recordToken);
-
-  this->transport->stop(
-      true,
-      true);
+  sync.cancel(this->playbackToken);
 
   te::EditFileOperations(*this->edit)
       .save(
@@ -164,6 +147,27 @@ EditTrack::~EditTrack()
   this->getAudio().deleteRegion(
       this->getAudio().getTotalRange(),
       nullptr);
+
+  this->playback = TrackPlayback::paused;
+}
+
+
+[[maybe_unused, nodiscard]] double
+EditTrack::getProgress() const noexcept
+{
+  if (this->mode == TrackMode::sync)
+  {
+    return this->getContext()
+        .getSynchronizer()
+        .getProgress(this->interval);
+  }
+  else if (auto shortestClip = this->getShortestClip())
+  {
+    return this->transport->getCurrentPosition() /
+           shortestClip->getMaximumLength();
+  }
+
+  return 0.0;
 }
 
 
@@ -185,37 +189,43 @@ void EditTrack::synchronize()
 
   auto& sync = this->getContext().getSynchronizer();
   sync.cancelAsync(this->syncToken);
+  this->syncToken = invalidToken;
 
 
   switch (this->mode)
   {
-      // Sync - Sync with other edits
-
     case TrackMode::sync:
       {
-        this->syncToken = sync.everyAsync(
-            this->interval,
-            [weak = juce::WeakReference<EditTrack>(this)] {
-              if (weak.wasObjectDeleted()) return;
-              weak->transport->setCurrentPosition(0);
-            });
+        this->transport->looping = true;
+        this->transport->setLoopRange(
+            {0,
+             sync.getMilliseconds(this->interval)});
       }
       break;
 
-      // Free - Loop over shortest clip
-
     case TrackMode::free:
       {
+        this->transport->looping = true;
         if (auto shortestClip = this->getShortestClip())
         {
           this->transport->setLoopRange(
               {0,
                shortestClip->getMaximumLength()});
         }
+        else
+        {
+          this->transport->setLoopRange(
+              {0,
+               sync.getMilliseconds(this->interval)});
+        }
       }
       break;
 
-      // One Shot - no sync needed
+    case TrackMode::oneShot:
+      {
+        this->transport->looping = false;
+      }
+      break;
 
     default:
       break;
@@ -241,14 +251,13 @@ void EditTrack::valueTreePropertyChanged(
     else if (_id == id::interval)
     {
       if (this->mode == TrackMode::sync)
+      {
         this->synchronize();
+      }
     }
+
     else if (_id == id::playback)
     {
-      if (this->playback == TrackPlayback::playing)
-      {
-        this->transport->play(false);
-      }
       if (this->playback == TrackPlayback::paused)
       {
         this->transport->stop(
@@ -256,51 +265,75 @@ void EditTrack::valueTreePropertyChanged(
             false,
             true);
       }
-      if (this->playback == TrackPlayback::recording)
+
+      else if (this->playback == TrackPlayback::scheduledPlaying)
       {
         if (this->mode == TrackMode::sync)
         {
-          this->recordToken =
+          this->playbackToken =
               sync.onAsync(
                   static_cast<Delay>(this->interval.get()),
                   [weak = juce::WeakReference<EditTrack>(this)] {
-                    if (weak.wasObjectDeleted() ||
-                        weak->playback != TrackPlayback::recording)
+                    if (weak.wasObjectDeleted())
                       return;
 
-                    weak->transport->record(
-                        false);
+                    weak->playbackToken = invalidToken;
+                    if (weak->playback != TrackPlayback::scheduledPlaying)
+                      return;
 
-                    weak->recordToken =
-                        weak->getContext().getSynchronizer().onAsync(
-                            static_cast<Delay>(weak->interval.get()),
-                            [weak] {
-                              if (weak.wasObjectDeleted() ||
-                                  weak->playback != TrackPlayback::recording)
-                                return;
-
-                              weak->transport->play(
-                                  false);
-                            });
+                    weak->playback = TrackPlayback::playing;
                   });
         }
         else
         {
-          this->transport->record(false);
+          this->playback = TrackPlayback::playing;
         }
       }
+      else if (this->playback == TrackPlayback::playing)
+      {
+        this->transport->play(false);
+      }
 
-      else if (_id == id::muted)
+      else if (this->playback == TrackPlayback::scheduledRecording)
       {
-        if (!manager.isAnyTrackSoloed())
-          this->audio->setMute(!this->muted);
+        if (this->mode == TrackMode::sync)
+        {
+          this->playbackToken =
+              sync.onAsync(
+                  static_cast<Delay>(this->interval.get()),
+                  [weak = juce::WeakReference<EditTrack>(this)] {
+                    if (weak.wasObjectDeleted())
+                      return;
+
+                    weak->playbackToken = invalidToken;
+
+                    if (weak->playback != TrackPlayback::scheduledRecording)
+                      return;
+
+                    weak->playback = TrackPlayback::recording;
+                  });
+        }
+        else
+        {
+          this->playback = TrackPlayback::recording;
+        }
       }
-      else if (_id == id::armed)
+      else if (this->playback == TrackPlayback::recording)
       {
-        for (auto device : this->edit->getAllInputDevices())
-          if (device->isOnTargetTrack(*this->audio))
-            device->setRecordingEnabled(*this->audio, this->armed.get());
+        this->transport->record(false);
       }
+    }
+
+    else if (_id == id::muted)
+    {
+      if (!manager.isAnyTrackSoloed())
+        this->audio->setMute(this->muted);
+    }
+    else if (_id == id::armed)
+    {
+      for (auto device : this->edit->getAllInputDevices())
+        if (device->isOnTargetTrack(*this->audio))
+          device->setRecordingEnabled(*this->audio, this->armed);
     }
   }
 }

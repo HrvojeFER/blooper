@@ -10,7 +10,9 @@ class TrackComponent :
     public ComponentBase,
 
     private juce::Label::Listener,
-    private juce::ComboBox::Listener
+    private juce::ComboBox::Listener,
+
+    private juce::ChangeListener
 {
  public:
   BLOOPER_STATE_ID(TrackComponent);
@@ -54,6 +56,8 @@ class TrackComponent :
 
   std::unique_ptr<class TrackPluginsComponent> pluginList;
 
+  JuceState                                  appearanceSettings;
+  JuceCached<double>                         clipsSize;
   std::unique_ptr<class TrackClipsComponent> clips;
 
 
@@ -86,6 +90,12 @@ class TrackComponent :
 
  private:
   void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+
+
+  // ChangeListener
+
+ private:
+  void changeListenerCallback(juce::ChangeBroadcaster* broadcaster) override;
 
 
   // Declarations

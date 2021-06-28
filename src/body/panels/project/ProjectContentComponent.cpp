@@ -113,15 +113,16 @@ void ProjectContentComponent::resizeTracks()
 
 void ProjectContentComponent::resized()
 {
-  auto availableArea = this->getLocalBounds().reduced(6);
+  auto availableArea = util::pad(this->getLocalBounds(), 2);
   auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
 
   for (auto component : this->trackComponents)
   {
     component->setBounds(
-        availableArea
-            .removeFromLeft(trackWidth)
-            .reduced(10));
+        util::pad(
+            availableArea
+                .removeFromLeft(trackWidth),
+            2));
   }
 }
 
@@ -145,7 +146,7 @@ void ProjectContentComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
     juce::ValueTree& child)
 {
-  if (tree == this->getContext().getProjectState())
+  if (tree == this->getContext().getEditManager().getState())
   {
     if (child.hasType(id::edit))
     {

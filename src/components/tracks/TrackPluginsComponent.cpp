@@ -3,8 +3,8 @@
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 #include <blooper/internal/utils/EditTrack.hpp>
-#include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 
@@ -20,14 +20,14 @@ TrackPluginsComponent::TrackPluginsComponent(
           move(state)),
       options(move(options)),
 
-      track(move(track)),
-
-      pluginUpdate(false)
+      track(move(track))
 {
   this->list =
       std::make_unique<juce::ListBox>(
           this->track->getAudio().getName() + " Plugin List",
-          dynamic_cast<juce::ListBoxModel*>(this));
+          static_cast<juce::ListBoxModel*>(this));
+
+  this->list->setRowHeight(35);
 
 
   ext::addAndMakeVisible(
@@ -52,12 +52,6 @@ TrackPluginsComponent::~TrackPluginsComponent()
 }
 
 
-void TrackPluginsComponent::updatePlugins()
-{
-  this->list->updateContent();
-}
-
-
 // Component
 
 void TrackPluginsComponent::resized()
@@ -74,11 +68,11 @@ void TrackPluginsComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
     juce::ValueTree& child)
 {
-  if (tree.hasType(te::IDs::TRACK))
+  if (tree == this->track->getAudio().state)
   {
     if (child.hasType(te::IDs::PLUGIN))
     {
-      this->markAndUpdate(this->pluginUpdate);
+      this->list->updateContent();
     }
   }
 }
@@ -88,11 +82,11 @@ void TrackPluginsComponent::valueTreeChildRemoved(
     juce::ValueTree& child,
     int)
 {
-  if (tree.hasType(te::IDs::TRACK))
+  if (tree == this->track->getAudio().state)
   {
     if (child.hasType(te::IDs::PLUGIN))
     {
-      this->markAndUpdate(this->pluginUpdate);
+      this->list->updateContent();
     }
   }
 }
@@ -102,15 +96,15 @@ void TrackPluginsComponent::valueTreeChildOrderChanged(
     int              childAIndex,
     int              childBIndex)
 {
-  if (tree.hasType(te::IDs::TRACK))
+  if (tree == this->track->getAudio().state)
   {
     if (tree.getChild(childAIndex).hasType(te::IDs::PLUGIN))
     {
-      this->markAndUpdate(this->pluginUpdate);
+      this->list->updateContent();
     }
     if (tree.getChild(childBIndex).hasType(te::IDs::PLUGIN))
     {
-      this->markAndUpdate(this->pluginUpdate);
+      this->list->updateContent();
     }
   }
 }
@@ -135,6 +129,16 @@ void TrackPluginsComponent::paintListBoxItem(
   auto plugin = this->track->getAudio().pluginList[row];
   if (!plugin) return;
 
+  isSelected = false;
+  if (auto selection =
+          this->getContext()
+              .getEngine()
+              .getUIBehaviour()
+              .getCurrentlyFocusedSelectionManager())
+  {
+    isSelected = selection->isSelected(plugin);
+  }
+
   auto availableArea =
       util::drawBottomLine(
           g,
@@ -144,9 +148,7 @@ void TrackPluginsComponent::paintListBoxItem(
               0,
               width,
               height},
-          this->getContext()
-              .getSelectionManager()
-              .isSelected(plugin));
+          isSelected);
 
   if (isSelected)
   {
@@ -169,11 +171,13 @@ void TrackPluginsComponent::paintListBoxItem(
 }
 
 void TrackPluginsComponent::listBoxItemClicked(
-    int row,
-    const juce::MouseEvent&)
+    int                     row,
+    const juce::MouseEvent& event)
 {
   if (!this->isValidRow(row)) return;
+
   auto plugin = this->track->getAudio().pluginList[row];
+  if (!plugin) return;
 
   if (auto selectionManager =
           this->getContext()
@@ -181,14 +185,7 @@ void TrackPluginsComponent::listBoxItemClicked(
               .getUIBehaviour()
               .getCurrentlyFocusedSelectionManager())
   {
-    if (selectionManager->isSelected(plugin))
-    {
-      selectionManager->deselect(plugin);
-    }
-    else
-    {
-      selectionManager->select(plugin, true);
-    }
+    selectionManager->select(plugin, event.mods.isCtrlDown());
   }
 }
 
@@ -219,17 +216,6 @@ juce::String TrackPluginsComponent::getTooltipForRow(int row)
   auto plugin = this->track->getAudio().pluginList[row];
 
   return plugin->getSelectableDescription();
-}
-
-
-// FlaggedAsyncUpdater
-
-void TrackPluginsComponent::handleAsyncUpdate()
-{
-  if (FlaggedAsyncUpdater::compareAndReset(this->pluginUpdate))
-  {
-    this->updatePlugins();
-  }
 }
 
 
@@ -272,10 +258,6 @@ bool TrackPluginsComponent::perform(
     for (auto plugin : this->track->getAudio().pluginList)
       selectionManager->select(plugin, true);
   }
-
-  this->list->selectRangeOfRows(
-      0,
-      this->track->getAudio().pluginList.size());
 
   return true;
 }

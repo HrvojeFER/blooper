@@ -35,6 +35,9 @@ class Synchronizer final :
   getBpm() const noexcept;
 
   [[maybe_unused, nodiscard]] inline double
+  getMilliseconds(Interval of = Interval::quarterOfBeat) const noexcept;
+
+  [[maybe_unused, nodiscard]] inline double
   getProgress(Interval of) const noexcept;
 
   // doesn't lock the Synchronizer - use only for speedy UI stuff
@@ -154,6 +157,11 @@ double Synchronizer::getBpm() const noexcept
   return this->bpm;
 }
 
+double Synchronizer::getMilliseconds(Interval of) const noexcept
+{
+  return static_cast<double>(static_cast<int>(of) * (1000 * 60)) /
+         static_cast<double>(this->bpm * 4);
+}
 
 double Synchronizer::getProgressUnsafe(Interval of) const noexcept
 {
@@ -169,12 +177,16 @@ double Synchronizer::getProgressUnsafe(Interval of) const noexcept
       tickInInterval * this->hiResTicksPerTick +
       currentHiResTick;
 
+  const auto hiResTicksPerInterval =
+      static_cast<Tick>(of) *
+      this->hiResTicksPerTick;
+
   // this is kinda bad because the tick count could be high,
   // but I believe its not going to affect the quantization of double
   // values too much and clamping the result helps as well
   return std::clamp(
       static_cast<double>(hiResTickInInterval) /
-          static_cast<double>(this->hiResTicksPerTick),
+          static_cast<double>(hiResTicksPerInterval),
       0.0,
       1.0);
 }
@@ -276,7 +288,7 @@ void Synchronizer::restartTimer()
   this->stopTimer();
   this->startTimer(
       static_cast<int>(
-          (1000 * 60) / (this->bpm * 4)));
+          this->getMilliseconds()));
 }
 
 

@@ -75,6 +75,8 @@ enum class IconAssetId : ResourceIndex
   pause [[maybe_unused]] = 3001,
   stop [[maybe_unused]] = 3002,
   record [[maybe_unused]] = 3003,
+  scheduledPlay [[maybe_unused]] = 3004, // TODO
+  scheduledRecord [[maybe_unused]] = 3005, // TODO
 
   monitor [[maybe_unused]] = 3100, // TODO
 

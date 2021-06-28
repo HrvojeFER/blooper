@@ -33,7 +33,7 @@ class ProjectsMenuComponent :
   juce::CachedValue<JuceString> projectPath;
 
   BLOOPER_ID(projectFileId);
-  juce::CachedValue<JuceString> projectFile;
+  juce::CachedValue<JuceString> projectName;
 
 
  private:

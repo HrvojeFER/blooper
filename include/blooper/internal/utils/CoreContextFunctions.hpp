@@ -21,7 +21,7 @@ BLOOPER_NAMESPACE_BEGIN
       [&result](const auto& node) mutable {
         if (node.hasType(te::IDs::FOLDER))
         {
-          result += node.getProperty(te::IDs::name);
+          result.add(node.getProperty(te::IDs::name));
         }
       });
 
@@ -47,7 +47,7 @@ BLOOPER_NAMESPACE_BEGIN
             folderName);
   }
 
-  return currentFolder;
+  return move(currentFolder);
 }
 
 [[maybe_unused]] inline void deleteProjectFolder(
@@ -75,16 +75,21 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline auto addProject(
     AbstractCoreContext&   context,
     const JuceStringArray& path,
-    const JuceFile&        file)
+    const JuceString&      name)
 {
   auto& manager = context.getEngine().getProjectManager();
 
   for (auto openProject : manager.getAllProjects(manager.folders))
-    if (file == openProject->getProjectFile())
+    if (name == openProject->getName())
       return JuceProjectRef(openProject);
 
   auto folder = addProjectFolder(context, path);
-  return manager.createNewProject(file, folder);
+  auto project = manager.createNewProjectInteractively(
+      name,
+      context.getProjectsDir(),
+      folder);
+
+  return move(project);
 }
 
 [[maybe_unused]] inline void deleteProject(

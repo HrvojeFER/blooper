@@ -67,7 +67,7 @@ JuceColour DefaultTheme::getColour(JuceColourId id) const
 
       // NOLINTNEXTLINE(bugprone-branch-clone)
     case ColourId::highlight:
-      return JuceColour{0xff343a56};
+      return JuceColour{0xff434f82};
 
 
       // NOLINTNEXTLINE(bugprone-branch-clone)

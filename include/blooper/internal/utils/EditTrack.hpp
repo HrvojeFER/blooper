@@ -42,10 +42,9 @@ class [[maybe_unused]] EditTrack :
       std::decay_t<
           decltype(std::declval<JuceProjectItem>()
                        .getID()
-                       .getRawID())>;
+                       .getItemID())>;
 
-  // TODO: something more sensible
-  inline constexpr static Id invalidId = -1;
+  inline constexpr static Id invalidId = 0;
 
 
   explicit EditTrack(
@@ -94,7 +93,7 @@ class [[maybe_unused]] EditTrack :
   [[maybe_unused]] void clear();
 
 
-  [[maybe_unused]] inline double
+  [[maybe_unused, nodiscard]] double
   getProgress() const noexcept;
 
 
@@ -107,7 +106,7 @@ class [[maybe_unused]] EditTrack :
   JuceAudioTrackRef  audio;
 
   Token syncToken;
-  Token recordToken;
+  Token playbackToken;
 
 
   [[nodiscard]] te::Clip* getShortestClip() const noexcept;
@@ -175,19 +174,6 @@ EditTrack::getEdit() noexcept
 }
 
 
-[[maybe_unused, nodiscard]] double
-EditTrack::getProgress() const noexcept
-{
-  if (auto shortestClip = this->getShortestClip())
-  {
-    return this->transport->getCurrentPosition() /
-           shortestClip->getMaximumLength();
-  }
-
-  return 0.0;
-}
-
-
 [[maybe_unused, nodiscard]] inline EditTrack::Id
 getId(const EditTrack& track) noexcept
 {
@@ -197,7 +183,7 @@ getId(const EditTrack& track) noexcept
 [[maybe_unused, nodiscard]] inline EditTrack::Id
 getEditTrackId(const JuceProjectItemId& id) noexcept
 {
-  return id.getRawID();
+  return id.getItemID();
 }
 
 [[maybe_unused, nodiscard]] inline EditTrack::Id

@@ -33,9 +33,12 @@ TrackPlayheadComponent::~TrackPlayheadComponent()
 
 void TrackPlayheadComponent::paint(JuceGraphics& g)
 {
+  g.fillAll(
+      this->findColour(
+          ColourId::foreground));
+
   g.setColour(
-      this->getLookAndFeel().findColour(
-          this->colourId));
+      this->findColour(this->colourId));
 
   g.drawRect(
       static_cast<int>(
