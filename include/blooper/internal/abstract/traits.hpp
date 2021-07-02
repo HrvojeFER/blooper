@@ -261,6 +261,16 @@ enum class VisitDepth
   shallow,
 };
 
+inline constexpr auto deepVisit =
+    meta::integral_c<VisitDepth, VisitDepth::deep>;
+
+inline constexpr auto shallowVisit =
+    meta::integral_c<VisitDepth, VisitDepth::shallow>;
+
+inline constexpr auto defaultVisitDepth =
+    deepVisit;
+
+
 [[maybe_unused]] inline constexpr auto isAnyStoppingVisitor =
     isAnyPredicate;
 
@@ -414,6 +424,38 @@ BLOOPER_STATIC_ASSERT(
         return true;
       }
     });
+
+
+struct Visit
+{
+  template<typename TVisitDepth>
+  [[maybe_unused]] inline constexpr auto
+  operator()(TVisitDepth) const noexcept
+  {
+    return [](auto&& visited, auto&&... visitors) noexcept(noexcept(
+               BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
+                   BLOOPER_FORWARD(visitors)...)))
+               -> decltype(BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
+                   BLOOPER_FORWARD(visitors)...)) {
+      return BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
+          BLOOPER_FORWARD(visitors)...);
+    };
+  }
+
+  template<typename TVisited, typename... TVisitors>
+  [[maybe_unused]] inline constexpr auto
+  operator()(TVisited&& visited, TVisitors&&... visitors) const noexcept(noexcept(
+      BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...)))
+      -> decltype(BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...))
+  {
+    return BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...);
+  }
+};
+
+[[maybe_unused]] inline constexpr Visit visit{};
+
+[[maybe_unused]] inline constexpr auto visitDeeply = visit(deepVisit);
+[[maybe_unused]] inline constexpr auto visitShallowly = visit(shallowVisit);
 
 BLOOPER_NAMESPACE_END
 

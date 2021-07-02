@@ -18,7 +18,7 @@ class PluginTreeBase : public ContextualBase
   [[nodiscard]] inline int getId() const;
 
 
-  template<VisitDepth Depth = VisitDepth::deep,
+  template<VisitDepth Depth = defaultVisitDepth,
            typename TOnGroup,
            typename TOnItem>
   [[maybe_unused]] void visit(
@@ -46,6 +46,23 @@ class PluginTreeGroup : public PluginTreeBase
   [[nodiscard]] PluginTreeBase** begin() noexcept;
 
   [[nodiscard]] PluginTreeBase** end() noexcept;
+
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "HidingNonVirtualFunction"
+#endif // __JETBRAINS_IDE__
+
+  template<VisitDepth Depth = defaultVisitDepth,
+           typename TOnGroup,
+           typename TOnItem>
+  [[maybe_unused]] void visit(
+      TOnGroup onGroup,
+      TOnItem  onItem);
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif // __JETBRAINS_IDE__
 
 
  private:
@@ -111,7 +128,6 @@ class PluginTreeItem : public PluginTreeBase
   return this->getName().hashCode();
 }
 
-
 template<VisitDepth Depth,
          typename TOnGroup,
          typename TOnItem>
@@ -137,6 +153,41 @@ template<VisitDepth Depth,
       move(onItem));
 }
 
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "HidingNonVirtualFunction"
+#endif // __JETBRAINS_IDE__
+
+template<VisitDepth Depth,
+         typename TOnGroup,
+         typename TOnItem>
+[[maybe_unused]] inline void PluginTreeGroup::visit(
+    TOnGroup onGroup,
+    TOnItem  onItem)
+{
+  static_assert(
+      meta::typeid_(onGroup) ^
+          isVisitorOf ^
+          meta::type_c<PluginTreeGroup&>,
+      "onGroup must be a Visitor of PluginTreeGroup&.");
+
+  static_assert(
+      meta::typeid_(onItem) ^
+          isVisitorOf ^
+          meta::type_c<PluginTreeItem&>,
+      "onItem must be a Visitor of PluginTreeItem&.");
+
+  detail::visit<Depth>(
+      this,
+      move(onGroup),
+      move(onItem));
+}
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif // __JETBRAINS_IDE__
+
 BLOOPER_NAMESPACE_END
 
 BLOOPER_DETAIL_NAMESPACE_BEGIN
@@ -145,14 +196,18 @@ template<VisitDepth Depth,
          typename TOnGroup,
          typename TOnItem>
 [[maybe_unused]] inline void visit(
-    PluginTreeBase* base,
+    PluginTreeBase* root,
     TOnGroup        onGroup,
     TOnItem         onItem)
 {
-  if (auto group = dynamic_cast<PluginTreeGroup*>(base))
+  if (auto group = dynamic_cast<PluginTreeGroup*>(root))
   {
     bool shouldStop = false;
-    visit<Depth>(group, onGroup, onItem, shouldStop);
+    visit<Depth>(
+        group,
+        move(onGroup),
+        move(onItem),
+        shouldStop);
   }
 }
 
@@ -165,19 +220,21 @@ template<VisitDepth Depth,
          typename TOnGroup,
          typename TOnItem>
 [[maybe_unused]] inline void visit(
-    PluginTreeGroup* group,
+    PluginTreeGroup* root,
     TOnGroup         onGroup,
     TOnItem          onItem,
     bool&            shouldStop)
 {
-  for (auto subNode : *group)
+  for (auto subNode : *root)
   {
     if (auto subItem = dynamic_cast<class PluginTreeItem*>(subNode))
+    {
       if (!callVisitor(onItem, *subItem))
       {
         shouldStop = true;
         return;
       }
+    }
 
     if (auto subGroup = dynamic_cast<class PluginTreeGroup*>(subNode))
     {
@@ -189,7 +246,12 @@ template<VisitDepth Depth,
 
       if constexpr (Depth == VisitDepth::deep)
       {
-        visit<Depth>(subGroup, onGroup, onItem, shouldStop);
+        visit<Depth>(
+            subGroup,
+            onGroup,
+            onItem,
+            shouldStop);
+
         if (shouldStop) return;
       }
     }

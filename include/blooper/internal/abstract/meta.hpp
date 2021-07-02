@@ -19,6 +19,20 @@ using remove_cvref_t [[maybe_unused]] = typename remove_cvref<T>::type;
 
 #endif // ENV_CPP < 20
 
+template<bool Condition, typename T = void>
+struct disable_if
+{
+  using type = T;
+};
+
+template<typename T>
+struct disable_if<true, T>
+{
+};
+
+template<bool Condition, typename T = void>
+using disable_if_t [[maybe_unused]] = typename disable_if<Condition, T>::type;
+
 BLOOPER_STD_NAMESPACE_END
 
 BLOOPER_META_NAMESPACE_BEGIN

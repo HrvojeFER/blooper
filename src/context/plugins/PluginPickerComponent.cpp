@@ -22,7 +22,8 @@ class PluginPickerComponent::Popup : public juce::PopupMenu
 
 PluginPickerComponent::Popup::Popup(PluginTreeBase& pluginTree)
 {
-  pluginTree.visit<VisitDepth::shallow>(
+  visitShallowly(
+      pluginTree,
       [this](PluginTreeGroup& group) {
         this->addSubMenu(
             group.getName(),
@@ -73,7 +74,8 @@ class PluginTreeItem* PluginPickerComponent::findIn(
 {
   PluginTreeItem* result = nullptr;
 
-  root.visit<VisitDepth::deep>(
+  visitDeeply(
+      root,
       [](PluginTreeGroup&) {},
       [&result, id](PluginTreeItem& item) {
         if (getId(item) == id)
