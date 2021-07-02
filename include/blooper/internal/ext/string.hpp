@@ -38,6 +38,7 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   return split(move(_), '/');
 }
 
+
 [[maybe_unused]] inline auto toId(juce::StringRef ref)
 {
   return JuceStateIdentifier(ref.operator const char*());

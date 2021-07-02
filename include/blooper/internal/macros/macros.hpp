@@ -4,6 +4,7 @@
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/macros/asserts.hpp>
+#include <blooper/internal/macros/functional.hpp>
 #include <blooper/internal/macros/id.hpp>
 
 #endif //BLOOPER_MACROS_HPP

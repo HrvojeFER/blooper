@@ -23,23 +23,16 @@ class TrackComponent :
   } options;
 
   explicit TrackComponent(
-      AbstractContext&         context,
-      State                    state,
-      JuceRef<class EditTrack> track,
-      Options                  options = {});
+      AbstractContext& context,
+      State            state,
+      JuceTrackRef     track,
+      Options          options = {});
 
   ~TrackComponent() override;
 
 
-  [[maybe_unused, nodiscard]] inline const class EditTrack&
-  getTrack() const noexcept;
-
-  [[maybe_unused, nodiscard]] inline class EditTrack&
-  getTrack() noexcept;
-
-
  private:
-  JuceRef<class EditTrack> track;
+  JuceTrackRef track;
 
   std::unique_ptr<juce::Label> name;
 
@@ -104,17 +97,6 @@ class TrackComponent :
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TrackComponent)
   JUCE_DECLARE_WEAK_REFERENCEABLE(TrackComponent)
 };
-
-
-const EditTrack& TrackComponent::getTrack() const noexcept
-{
-  return *this->track;
-}
-
-EditTrack& TrackComponent::getTrack() noexcept
-{
-  return *this->track;
-}
 
 BLOOPER_NAMESPACE_END
 

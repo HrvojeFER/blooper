@@ -34,11 +34,10 @@ class PluginPickerComponent : public ComponentBase
   class Popup;
   std::unique_ptr<Popup> popup;
 
+
   static int getId(const PluginTreeBase& item);
 
-  static PluginTreeItem* findIn(
-      PluginTreeBase* root,
-      int             hash);
+  static PluginTreeItem* findIn(PluginTreeBase& root, int id);
 };
 
 

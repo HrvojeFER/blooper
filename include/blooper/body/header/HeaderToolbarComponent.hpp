@@ -27,10 +27,13 @@ class HeaderToolbarComponent : public ComponentBase
 
 
  private:
+  class ItemFactory;
+  friend ItemFactory;
+  std::unique_ptr<ItemFactory> factory;
+
   std::unique_ptr<juce::Toolbar> toolbar;
 
-  class ItemFactory;
-  std::unique_ptr<ItemFactory> factory;
+  std::unique_ptr<juce::DrawableButton> toolbarCustomizationButton;
 
 
   // Component

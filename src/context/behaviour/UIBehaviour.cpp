@@ -1,6 +1,6 @@
 #include <blooper/context/behaviour/UIBehaviour.hpp>
 
-#include <blooper/internal/utils/EditTrack.hpp>
+#include <blooper/internal/utils/style.hpp>
 
 #include <blooper/context/behaviour/EditManager.hpp>
 
@@ -23,12 +23,11 @@ UIBehaviour::~UIBehaviour() = default;
 
 te::Edit* UIBehaviour::getCurrentlyFocusedEdit()
 {
-  if (auto selection = this->getCurrentlyFocusedSelectionManager())
+  if (auto fullContext =
+          dynamic_cast<AbstractContext*>(
+              std::addressof(this->getContext())))
   {
-    if (auto track = selection->getFirstItemOfType<EditTrack>())
-    {
-      return std::addressof(track->getEdit());
-    }
+    return fullContext->getFocusedEdit().get();
   }
 
   return nullptr;
@@ -36,12 +35,11 @@ te::Edit* UIBehaviour::getCurrentlyFocusedEdit()
 
 te::Edit* UIBehaviour::getLastFocusedEdit()
 {
-  if (auto selection = this->getCurrentlyFocusedSelectionManager())
+  if (auto fullContext =
+          dynamic_cast<AbstractContext*>(
+              std::addressof(this->getContext())))
   {
-    if (auto track = selection->getFirstItemOfType<EditTrack>())
-    {
-      return std::addressof(track->getEdit());
-    }
+    return fullContext->getFocusedEdit().get();
   }
 
   return nullptr;
@@ -55,8 +53,8 @@ juce::Array<te::Edit*> UIBehaviour::getAllOpenEdits()
     juce::Array<te::Edit*> result;
 
     fullContext->getEditManager().visit(
-        [&result](EditTrack* track) {
-          result.add(std::addressof(track->getEdit()));
+        [&result](const JuceEditRef& edit) {
+          result.add(edit.get());
         });
 
     return result;
@@ -65,14 +63,20 @@ juce::Array<te::Edit*> UIBehaviour::getAllOpenEdits()
   return {};
 }
 
-bool UIBehaviour::isEditVisibleOnScreen(const te::Edit&)
+bool UIBehaviour::isEditVisibleOnScreen(const te::Edit& edit)
 {
-  // TODO
-  if (dynamic_cast<AbstractContext*>(std::addressof(this->getContext())))
-    return true;
+  if (auto fullContext =
+          dynamic_cast<AbstractContext*>(
+              std::addressof(this->getContext())))
+  {
+    return fullContext->getFocusedEdit()->getProjectItemID() ==
+           edit.getProjectItemID();
+  }
 
   return false;
 }
+
+// TODO?
 
 bool UIBehaviour::closeAllEditsBelongingToProject(te::Project& project)
 {
@@ -88,21 +92,15 @@ bool UIBehaviour::closeAllEditsBelongingToProject(te::Project& project)
 }
 
 
-// TODO?
-
 te::SelectionManager* UIBehaviour::getCurrentlyFocusedSelectionManager()
 {
-  auto& manager = this->getContext().getSelectionManager();
-
-  return std::addressof(manager);
+  return this->getContext().getFocusedSelectionManager().get();
 }
 
 te::SelectionManager* UIBehaviour::getSelectionManagerForRack(
     const te::RackType&)
 {
-  auto& manager = this->getContext().getSelectionManager();
-
-  return std::addressof(manager);
+  return this->getContext().getFocusedSelectionManager().get();
 }
 
 
@@ -111,17 +109,17 @@ te::Project::Ptr UIBehaviour::getCurrentlyFocusedProject()
   if (auto fullContext =
           dynamic_cast<AbstractContext*>(
               std::addressof(this->getContext())))
+  {
     return std::addressof(fullContext->getProject());
+  }
 
   return nullptr;
 }
 
 
-// TODO?
-
-void UIBehaviour::selectProjectInFocusedWindow(te::Project::Ptr ptr)
+void UIBehaviour::selectProjectInFocusedWindow(te::Project::Ptr project)
 {
-  te::UIBehaviour::selectProjectInFocusedWindow(ptr);
+  this->getContext().openProject(move(project));
 }
 
 
@@ -136,27 +134,35 @@ juce::ApplicationCommandManager* UIBehaviour::getApplicationCommandManager()
 
 void UIBehaviour::getAllCommands(juce::Array<juce::CommandID>& array)
 {
-  auto& manager = this->getContext().getCommandManager();
-
-  for (const auto& category : manager.getCommandCategories())
-    array.addArray(manager.getCommandsInCategory(category));
+  if (auto commandContext =
+          dynamic_cast<juce::ApplicationCommandTarget*>(
+              std::addressof(this->getContext())))
+  {
+    commandContext->getAllCommands(array);
+  }
 }
 
 void UIBehaviour::getCommandInfo(
     juce::CommandID               commandId,
     juce::ApplicationCommandInfo& info)
 {
-  auto& manager = this->getContext().getCommandManager();
-
-  info = *manager.getCommandForID(commandId);
+  if (auto commandContext =
+          dynamic_cast<juce::ApplicationCommandTarget*>(
+              std::addressof(this->getContext())))
+  {
+    commandContext->getCommandInfo(commandId, info);
+  }
 }
 
 bool UIBehaviour::perform(
     const juce::ApplicationCommandTarget::InvocationInfo& info)
 {
-  auto& manager = this->getContext().getCommandManager();
-
-  return manager.invoke(info, true);
+  if (auto commandContext =
+          dynamic_cast<juce::ApplicationCommandTarget*>(
+              std::addressof(this->getContext())))
+  {
+    commandContext->perform(info);
+  }
 }
 
 
@@ -323,18 +329,57 @@ int UIBehaviour::showYesNoCancelAlertBox(
       cancel);
 }
 
+// in tracktion_engine messages are painted black because
+// the engine doesn't set the attributed message colour
+
 void UIBehaviour::showInfoMessage(
     const juce::String& message)
 {
-  te::UIBehaviour::showInfoMessage(
-      message);
+  if (auto mouseComponent =
+          juce::Desktop::getInstance()
+              .getMainMouseSource()
+              .getComponentUnderMouse())
+  {
+    juce::AttributedString attributedMessage{message};
+    attributedMessage.setColour(
+        this->getContext()
+            .getLookAndFeel()
+            .findColour(ColourId::white));
+
+    auto bubble = new juce::BubbleMessageComponent();
+    bubble->addToDesktop(0);
+    bubble->showAt(
+        mouseComponent,
+        move(attributedMessage),
+        2000,
+        true,
+        true);
+  }
 }
 
 void UIBehaviour::showWarningMessage(
     const juce::String& message)
 {
-  te::UIBehaviour::showWarningMessage(
-      message);
+  if (auto mouseComponent =
+          juce::Desktop::getInstance()
+              .getMainMouseSource()
+              .getComponentUnderMouse())
+  {
+    juce::AttributedString attributedMessage{message};
+    attributedMessage.setColour(
+        this->getContext()
+            .getLookAndFeel()
+            .findColour(ColourId::red));
+
+    auto bubble = new juce::BubbleMessageComponent();
+    bubble->addToDesktop(0);
+    bubble->showAt(
+        mouseComponent,
+        move(attributedMessage),
+        2000,
+        true,
+        true);
+  }
 }
 
 
@@ -425,12 +470,12 @@ void UIBehaviour::recreatePluginWindowContentAsync(
 
 void UIBehaviour::showProjectScreen()
 {
-  showProjectsMenu(getContext());
+  showProjectsMenu(this->getContext());
 }
 
 void UIBehaviour::showSettingsScreen()
 {
-  showSettingsMenu(getContext());
+  showSettingsMenu(this->getContext());
 }
 
 void UIBehaviour::showEditScreen()

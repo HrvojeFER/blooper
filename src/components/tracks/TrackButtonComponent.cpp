@@ -2,6 +2,8 @@
 
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/track.hpp>
+#include <blooper/internal/ext/clip.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 #include <blooper/context/behaviour/EditManager.hpp>
@@ -14,7 +16,7 @@ class TrackButtonComponent::Pimpl final :
  public:
   explicit Pimpl(TrackButtonComponent* parent)
       : juce::DrawableButton(
-            parent->track->getAudio().getName() + " Button",
+            parent->track->getName() + " Button",
             juce::DrawableButton::ImageFitted),
         parent(parent)
   {
@@ -34,40 +36,12 @@ class TrackButtonComponent::Pimpl final :
   {
     auto& parentTrack = *this->parent->track;
 
-    if (parentTrack.playback == TrackPlayback::playing)
-    {
-      parentTrack.playback = TrackPlayback::paused;
-    }
-    else if (parentTrack.playback == TrackPlayback::recording)
-    {
-      parentTrack.playback = TrackPlayback::paused;
-    }
-    else if (parentTrack.playback == TrackPlayback::paused)
-    {
-      if (parentTrack.isClear())
-      {
-        parentTrack.playback = TrackPlayback::scheduledRecording;
-      }
-      else
-      {
-        parentTrack.playback = TrackPlayback::scheduledPlaying;
-      }
-    }
+    parentTrack.setMute(!parentTrack.isMuted(false));
   }
 
-  void clicked(const juce::ModifierKeys& modifiers) final
+  void clicked(const juce::ModifierKeys&) final
   {
-    auto withCommand = modifiers.isCommandDown();
-
-    if (withCommand)
-    {
-      this->parent->track->clear();
-      this->parent->markAndUpdate(this->parent->imageUpdate);
-    }
-    else if (!modifiers.isAnyModifierKeyDown())
-    {
-      this->clicked();
-    }
+    auto& parentTrack = *this->parent->track;
   }
 };
 
@@ -75,7 +49,7 @@ class TrackButtonComponent::Pimpl final :
 TrackButtonComponent::TrackButtonComponent(
     AbstractContext&   context,
     State              state,
-    EditTrackRef       track,
+    JuceTrackRef       track,
     TrackButtonOptions options)
     : ComponentBase(
           context,
@@ -98,69 +72,17 @@ TrackButtonComponent::TrackButtonComponent(
       *this->pimpl);
 
 
-  this->track->getState().addListener(this);
-  this->getContext().getEditManager().addListener(this);
+  this->track->state.addListener(this);
 }
 
 TrackButtonComponent::~TrackButtonComponent()
 {
-  this->getContext().getEditManager().removeListener(this);
-  this->track->getState().removeListener(this);
+  this->track->state.removeListener(this);
 }
 
 
 void TrackButtonComponent::updateImages()
 {
-  auto& assets = this->getContext().getAssetManager();
-
-  const JuceDrawable* stateImage = nullptr;
-  const JuceDrawable* nextStateImage = nullptr;
-
-  if (this->track->playback == TrackPlayback::paused)
-  {
-    stateImage = assets.getIconView(assets::IconAssetId::pause);
-
-    if (this->track->isClear())
-    {
-      nextStateImage = assets.getIconView(assets::IconAssetId::record);
-    }
-    else
-    {
-      nextStateImage = assets.getIconView(assets::IconAssetId::play);
-    }
-  }
-
-  else if (this->track->playback == TrackPlayback::scheduledRecording)
-  {
-    stateImage = assets.getIconView(assets::IconAssetId::scheduledRecord);
-    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
-  }
-  else if (this->track->playback == TrackPlayback::recording)
-  {
-    stateImage = assets.getIconView(assets::IconAssetId::record);
-    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
-  }
-
-  else if (this->track->playback == TrackPlayback::scheduledPlaying)
-  {
-    stateImage = assets.getIconView(assets::IconAssetId::scheduledPlay);
-    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
-  }
-  else if (this->track->playback == TrackPlayback::playing)
-  {
-    stateImage = assets.getIconView(assets::IconAssetId::play);
-    nextStateImage = assets.getIconView(assets::IconAssetId::pause);
-  }
-
-  this->pimpl->setImages(
-      stateImage,
-      nextStateImage,
-      nextStateImage,
-      nullptr,
-      stateImage,
-      nextStateImage,
-      nextStateImage,
-      nullptr);
 }
 
 
@@ -177,30 +99,11 @@ void TrackButtonComponent::resized()
 // ValueTreeListener
 
 void TrackButtonComponent::valueTreePropertyChanged(
-    juce::ValueTree&        tree,
-    const juce::Identifier& id)
+    juce::ValueTree& tree,
+    const juce::Identifier&)
 {
-  auto& editManager = this->getContext().getEditManager();
-
-  if (tree == this->track->getState())
+  if (tree == this->track->state)
   {
-    if (id == id::playback)
-    {
-      this->markAndUpdate(this->imageUpdate);
-    }
-    else if (id == id::interval)
-    {
-    }
-    else if (id == id::mode)
-    {
-    }
-  }
-  else if (tree == editManager.getState())
-  {
-    if (id == id::soloed)
-    {
-      this->markAndUpdate(this->imageUpdate);
-    }
   }
 }
 

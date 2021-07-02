@@ -1,6 +1,5 @@
-#ifndef BLOOPER_PROJECT_CONTENT_COMPONENT_HPP
-#define BLOOPER_PROJECT_CONTENT_COMPONENT_HPP
-#pragma once
+#ifndef BLOOPER_EDIT_CONTENT_COMPONENT_HPP
+#define BLOOPER_EDIT_CONTENT_COMPONENT_HPP
 
 #include <blooper/internal/abstract/components.hpp>
 
@@ -8,39 +7,51 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
-class ProjectContentComponent :
+struct EditContentOptions
+{
+};
+
+class EditContentComponent :
     public ComponentBase,
 
     private util::FlaggedAsyncUpdater,
     private juce::ApplicationCommandTarget
 {
  public:
-  BLOOPER_STATE_ID(ProjectContentComponent);
+  BLOOPER_STATE_ID(EditContentComponent);
 
 
-  struct Options
-  {
-  } options;
+  explicit EditContentComponent(
+      AbstractContext&   context,
+      State              state,
+      JuceEditRef        edit,
+      EditContentOptions options = {});
 
-  explicit ProjectContentComponent(
-      AbstractContext& context,
-      State            state,
-      Options          options = {});
+  ~EditContentComponent() override;
 
-  ~ProjectContentComponent() override;
+  EditContentOptions options;
 
 
  private:
-  class Pimpl;
-  friend Pimpl;
-  std::unique_ptr<Pimpl> tabs;
-
-  juce::OwnedArray<class EditComponent> editComponents;
+  JuceEditRef edit;
 
 
-  JuceFlag editUpdate;
+  JuceState appearanceSettings;
 
-  void updateEdits();
+  JuceCached<int> trackSize;
+
+
+  juce::OwnedArray<class TrackComponent> trackComponents;
+
+
+  JuceFlag trackUpdate;
+
+  void updateTracks();
+
+
+  bool isValidTrackIndex(int index);
+
+  void resizeTracks();
 
 
   // Component
@@ -52,6 +63,10 @@ class ProjectContentComponent :
   // ValueTreeListener
 
  private:
+  void valueTreePropertyChanged(
+      juce::ValueTree&        tree,
+      const juce::Identifier& id) override;
+
   void valueTreeChildAdded(
       juce::ValueTree& tree,
       juce::ValueTree& child) override;
@@ -91,9 +106,9 @@ class ProjectContentComponent :
   // Declarations
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProjectContentComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditContentComponent)
 };
 
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_PROJECT_CONTENT_COMPONENT_HPP
+#endif // BLOOPER_EDIT_CONTENT_COMPONENT_HPP

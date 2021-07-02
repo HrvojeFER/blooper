@@ -3,8 +3,6 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/meta.hpp>
-#include <blooper/internal/abstract/juceTraits.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -49,9 +47,11 @@ visitComponents(TOnComponent onComponent) noexcept(noexcept(onComponent(
       "onComponent passed to visitComponents must satisfy Invokable with "
       "juce::Component*.");
 
-  for (int i = 0; i < JuceDesktop::getInstance().getNumComponents(); ++i)
+  for (int i = 0;
+       i < juce::Desktop::getInstance().getNumComponents();
+       ++i)
   {
-    onComponent(JuceDesktop::getInstance().getComponent(i));
+    onComponent(juce::Desktop::getInstance().getComponent(i));
   }
 }
 

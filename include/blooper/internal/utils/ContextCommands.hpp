@@ -19,7 +19,8 @@ enum _ : JuceCommandId
   // App
 
   quit [[maybe_unused]] = 1000,
-  save [[maybe_unused]] = 1001,
+  saveProject [[maybe_unused]] = 1001,
+  saveEdit [[maybe_unused]] = 1005,
   saveAndQuit [[maybe_unused]] = 1002,
   saveAll [[maybe_unused]] = 1003,
   saveAs [[maybe_unused]] = 1004,
@@ -39,6 +40,11 @@ enum _ : JuceCommandId
   toggleBrowserPanel [[maybe_unused]] = 1402,
 
 
+  // Engine
+
+  toggleMonitoring [[maybe_unused]] = 6000,
+
+
   // Edit
 
   del [[maybe_unused]] = 2000,
@@ -48,6 +54,7 @@ enum _ : JuceCommandId
 
   addTrack [[maybe_unused]] = 2100,
   addPlugin [[maybe_unused]] = 2101,
+  addEdit [[maybe_unused]] = 2102,
 
   undo [[maybe_unused]] = 2200,
   redo [[maybe_unused]] = 2201,
@@ -58,21 +65,18 @@ enum _ : JuceCommandId
 
   // Transport
 
-  play [[maybe_unused]] = 3000,
-  pause [[maybe_unused]] = 3001,
-  stop [[maybe_unused]] = 3002,
-  record [[maybe_unused]] = 3003,
-
-  toggleMonitoring [[maybe_unused]] = 3100,
+  togglePlaying [[maybe_unused]] = 3000,
+  toggleRecording [[maybe_unused]] = 3001,
 
 
   // Track
 
-  muteTrack [[maybe_unused]] = 4001,
-  soloTrack [[maybe_unused]] = 4002,
-  armTrack [[maybe_unused]] = 4003,
+  toggleMuted [[maybe_unused]] = 4001,
+  toggleSoloed [[maybe_unused]] = 4002,
+  toggleArmed [[maybe_unused]] = 4003,
 
   cycleTrackMode [[maybe_unused]] = 4200,
+  cycleTrackInterval [[maybe_unused]] = 4201,
 
   clearTrack [[maybe_unused]] = 4300,
 
@@ -152,10 +156,16 @@ template<typename... TCommandIds>
       in.description = "Quits blooper.";
       break;
 
-    case CommandId::save:
+    case CommandId::saveProject:
       in.categoryName = "App";
-      in.shortName = "Save";
-      in.description = "Save project.";
+      in.shortName = "Save Project";
+      in.description = "Save open Project.";
+      break;
+
+    case CommandId::saveEdit:
+      in.categoryName = "App";
+      in.shortName = "Save Edit";
+      in.description = "Save focused Edit.";
       break;
 
     case CommandId::saveAndQuit:
@@ -241,6 +251,15 @@ template<typename... TCommandIds>
       break;
 
 
+      // Engine
+
+    case CommandId::toggleMonitoring:
+      in.categoryName = "Transport";
+      in.shortName = "Toggle Monitoring";
+      in.description = "Toggle Monitoring of all inputs.";
+      break;
+
+
       // Edit
 
     case CommandId::del:
@@ -267,6 +286,12 @@ template<typename... TCommandIds>
       in.description = "Paste clipboard to selection.";
       break;
 
+
+    case CommandId::addEdit:
+      in.categoryName = "Edit";
+      in.shortName = "Add Edit";
+      in.description = "Add a new Edit.";
+      break;
 
     case CommandId::addTrack:
       in.categoryName = "Edit";
@@ -309,63 +334,50 @@ template<typename... TCommandIds>
 
       // Transport
 
-    case CommandId::play:
+    case CommandId::togglePlaying:
       in.categoryName = "Transport";
-      in.shortName = "Play";
-      in.description = "Starts the blooper loop.";
+      in.shortName = "Toggle Play";
+      in.description = "Toggle playing for the focused Edit.";
       break;
 
-    case CommandId::pause:
+    case CommandId::toggleRecording:
       in.categoryName = "Transport";
-      in.shortName = "Pause";
-      in.description = "Pauses the blooper loop.";
-      break;
-
-    case CommandId::stop:
-      in.categoryName = "Transport";
-      in.shortName = "Stop";
-      in.description = "Stops the blooper loop.";
-      break;
-
-    case CommandId::record:
-      in.categoryName = "Transport";
-      in.shortName = "Record";
-      in.description = "Records input into armed tracks.";
-      break;
-
-
-    case CommandId::toggleMonitoring:
-      in.categoryName = "Transport";
-      in.shortName = "Toggle Monitoring";
-      in.description = "Toggle Monitoring of all inputs.";
+      in.shortName = "Toggle Record";
+      in.description = "Toggle recording for the focused Edit.";
       break;
 
 
       // Track
 
-    case CommandId::muteTrack:
+    case CommandId::toggleMuted:
       in.categoryName = "Track";
-      in.shortName = "Mute Tracks";
-      in.description = "Mute selected Tracks.";
+      in.shortName = "Toggle Track Muting";
+      in.description = "Toggle Muted state of selected Tracks.";
       break;
 
-    case CommandId::soloTrack:
+    case CommandId::toggleSoloed:
       in.categoryName = "Track";
-      in.shortName = "Solo Tracks";
-      in.description = "Solo selected Tracks.";
+      in.shortName = "Toggle Track Soloing";
+      in.description = "Toggle Soloed state of selected Tracks.";
       break;
 
-    case CommandId::armTrack:
+    case CommandId::toggleArmed:
       in.categoryName = "Track";
-      in.shortName = "Arm Tracks";
-      in.description = "Arm selected Tracks.";
+      in.shortName = "Toggle Track Arming";
+      in.description = "Toggle Armed state of selected Tracks.";
       break;
 
 
     case CommandId::cycleTrackMode:
       in.categoryName = "Track";
       in.shortName = "Cycle Track Mode";
-      in.description = "Cycle Track Mode of the first Track in Selection.";
+      in.description = "Cycle Track Mode of selected tracks.";
+      break;
+
+    case CommandId::cycleTrackInterval:
+      in.categoryName = "Track";
+      in.shortName = "Cycle Track Interval";
+      in.description = "Cycle Track Interval of selected tracks.";
       break;
 
 
@@ -381,13 +393,13 @@ template<typename... TCommandIds>
     case CommandId::nudgeUp:
       in.categoryName = "Parameter";
       in.shortName = "Nudge Up";
-      in.description = "Nudge up the controls in selection.";
+      in.description = "Nudge up the parameters in selection.";
       break;
 
     case CommandId::nudgeDown:
       in.categoryName = "Parameter";
       in.shortName = "Nudge Down";
-      in.description = "Nudge down the controls in selection.";
+      in.description = "Nudge down the parameters in selection.";
       break;
 
 

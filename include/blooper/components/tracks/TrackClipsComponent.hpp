@@ -21,10 +21,10 @@ class TrackClipsComponent :
 
 
   explicit TrackClipsComponent(
-      AbstractContext&         context,
-      State                    state,
-      JuceRef<class EditTrack> track,
-      TrackClipsOptions        options = {});
+      AbstractContext&  context,
+      State             state,
+      JuceClipTrackRef  track,
+      TrackClipsOptions options = {});
 
   ~TrackClipsComponent() override;
 
@@ -32,7 +32,7 @@ class TrackClipsComponent :
 
 
  private:
-  JuceRef<class EditTrack> track;
+  JuceClipTrackRef track;
 
   std::unique_ptr<juce::ListBox> list;
 
@@ -82,6 +82,24 @@ class TrackClipsComponent :
       juce::ApplicationCommandInfo& result) override;
 
   bool perform(const InvocationInfo& info) override;
+
+
+  // ValueTreeListener
+
+ private:
+  void valueTreeChildAdded(
+      juce::ValueTree& tree,
+      juce::ValueTree& child) override;
+
+  void valueTreeChildRemoved(
+      juce::ValueTree& tree,
+      juce::ValueTree& child,
+      int              index) override;
+
+  void valueTreeChildOrderChanged(
+      juce::ValueTree& tree,
+      int              childAIndex,
+      int              childBIndex) override;
 
 
   // Declarations

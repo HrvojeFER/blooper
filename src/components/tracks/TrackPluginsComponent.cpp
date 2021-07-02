@@ -2,7 +2,6 @@
 
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
-#include <blooper/internal/utils/EditTrack.hpp>
 #include <blooper/internal/utils/style.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
@@ -13,7 +12,7 @@ BLOOPER_NAMESPACE_BEGIN
 TrackPluginsComponent::TrackPluginsComponent(
     AbstractContext& context,
     State            state,
-    EditTrackRef     track,
+    JuceTrackRef     track,
     Options          options)
     : ComponentBase(
           context,
@@ -24,7 +23,7 @@ TrackPluginsComponent::TrackPluginsComponent(
 {
   this->list =
       std::make_unique<juce::ListBox>(
-          this->track->getAudio().getName() + " Plugin List",
+          this->track->getName() + " Plugin List",
           static_cast<juce::ListBoxModel*>(this));
 
   this->list->setRowHeight(35);
@@ -35,20 +34,20 @@ TrackPluginsComponent::TrackPluginsComponent(
       *this->list);
 
 
-  this->track->getAudio().state.addListener(this);
+  this->track->state.addListener(this);
   this->getContext().registerCommandTarget(this);
 }
 
 TrackPluginsComponent::~TrackPluginsComponent()
 {
   this->getContext().unregisterCommandTarget(this);
-  this->track->getAudio().state.removeListener(this);
+  this->track->state.removeListener(this);
 }
 
 
 [[maybe_unused]] bool TrackPluginsComponent::isValidRow(int row)
 {
-  return row >= 0 && row < this->track->getAudio().pluginList.size();
+  return row >= 0 && row < this->track->pluginList.size();
 }
 
 
@@ -68,7 +67,7 @@ void TrackPluginsComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
     juce::ValueTree& child)
 {
-  if (tree == this->track->getAudio().state)
+  if (tree == this->track->state)
   {
     if (child.hasType(te::IDs::PLUGIN))
     {
@@ -82,7 +81,7 @@ void TrackPluginsComponent::valueTreeChildRemoved(
     juce::ValueTree& child,
     int)
 {
-  if (tree == this->track->getAudio().state)
+  if (tree == this->track->state)
   {
     if (child.hasType(te::IDs::PLUGIN))
     {
@@ -96,7 +95,7 @@ void TrackPluginsComponent::valueTreeChildOrderChanged(
     int              childAIndex,
     int              childBIndex)
 {
-  if (tree == this->track->getAudio().state)
+  if (tree == this->track->state)
   {
     if (tree.getChild(childAIndex).hasType(te::IDs::PLUGIN))
     {
@@ -114,7 +113,7 @@ void TrackPluginsComponent::valueTreeChildOrderChanged(
 
 int TrackPluginsComponent::getNumRows()
 {
-  return this->track->getAudio().pluginList.size();
+  return this->track->pluginList.size();
 }
 
 void TrackPluginsComponent::paintListBoxItem(
@@ -126,7 +125,7 @@ void TrackPluginsComponent::paintListBoxItem(
 {
   if (!this->isValidRow(row)) return;
 
-  auto plugin = this->track->getAudio().pluginList[row];
+  auto plugin = this->track->pluginList[row];
   if (!plugin) return;
 
   isSelected = false;
@@ -176,7 +175,7 @@ void TrackPluginsComponent::listBoxItemClicked(
 {
   if (!this->isValidRow(row)) return;
 
-  auto plugin = this->track->getAudio().pluginList[row];
+  auto plugin = this->track->pluginList[row];
   if (!plugin) return;
 
   if (auto selectionManager =
@@ -195,7 +194,7 @@ void TrackPluginsComponent::listBoxItemDoubleClicked(
 {
   if (!this->isValidRow(row)) return;
 
-  auto plugin = this->track->getAudio().pluginList[row];
+  auto plugin = this->track->pluginList[row];
   if (!plugin) return;
 
   if (auto selectionManager =
@@ -213,7 +212,7 @@ void TrackPluginsComponent::listBoxItemDoubleClicked(
 juce::String TrackPluginsComponent::getTooltipForRow(int row)
 {
   if (!this->isValidRow(row)) return {};
-  auto plugin = this->track->getAudio().pluginList[row];
+  auto plugin = this->track->pluginList[row];
 
   return plugin->getSelectableDescription();
 }
@@ -255,7 +254,7 @@ bool TrackPluginsComponent::perform(
               .getCurrentlyFocusedSelectionManager())
   {
     selectionManager->deselectAll();
-    for (auto plugin : this->track->getAudio().pluginList)
+    for (auto plugin : this->track->pluginList)
       selectionManager->select(plugin, true);
   }
 

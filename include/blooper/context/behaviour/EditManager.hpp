@@ -18,22 +18,75 @@ class EditManager :
     private util::FlaggedAsyncUpdater
 {
  public:
-  explicit EditManager(AbstractContext& context);
+  BLOOPER_STATE_ID(EditManager);
+
+
+  explicit EditManager(
+      AbstractContext& context,
+      State            state);
 
   ~EditManager() override;
 
 
-  EditTrackRef add();
+  JuceCached<int> focusedEdit;
 
-  void remove(EditTrack::Id id);
+  [[maybe_unused, nodiscard]] inline bool
+  isFocusedEdit(const JuceEdit&) const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceEditConstRef
+  getFocusedEdit() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceEditRef
+  getFocusedEdit() noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceEditRef
+  setFocusedEdit(const JuceEdit& edit) noexcept;
 
 
-  inline EditTrackRef operator[](EditTrack::Id id);
+  [[maybe_unused, nodiscard]] inline const JuceEdit&
+  getMasterEdit() const noexcept;
 
-  EditTrackRef get(EditTrack::Id id);
+  [[maybe_unused, nodiscard]] inline JuceEdit&
+  getMasterEdit() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceTransport&
+  getMasterTransport() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceTransport&
+  getMasterTransport() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceTempo&
+  getMasterTempo() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceTempo&
+  getMasterTempo() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceTempoSetting&
+  getMasterBpmSetting() const noexcept;
+
+  [[maybe_unused, nodiscard]] inline JuceTempoSetting&
+  getMasterBpmSetting() noexcept;
+
+
+  [[maybe_unused, nodiscard]] inline JuceEditRef operator[](int id);
+
+  [[maybe_unused, nodiscard]] inline JuceEditConstRef operator[](int id) const;
+
+  [[maybe_unused, nodiscard]] JuceEditRef get(int id);
+
+  [[maybe_unused, nodiscard]] JuceEditConstRef get(int id) const;
+
 
   template<typename TOnEditTrack>
-  inline void visit(TOnEditTrack onEditTrack) const;
+  [[maybe_unused]] inline void visit(TOnEditTrack onEditTrack) const;
+
+
+  JuceEditRef add();
+
+  void remove(int id);
 
 
   inline void addListener(JuceStateListener* listener);
@@ -41,30 +94,45 @@ class EditManager :
   inline void removeListener(JuceStateListener* listener);
 
 
-  [[maybe_unused, nodiscard]] inline bool isAnyTrackSoloed() const noexcept;
-
-  JuceCached<EditTrack::Id> soloed;
-
-
  private:
-  using EditCollection = std::unordered_map<EditTrack::Id, EditTrackRef>;
+  using EditCollection =
+      std::unordered_map<
+          int,
+          JuceEditRef>;
 
   EditCollection edits;
+
+
+  JuceCached<double> bpm;
+
+  JuceEditRef           masterEdit;
+  JuceTransportRef      masterTransport{};
+  JuceTempoRef          masterTempo{};
+  JuceTempoSettingRef   masterBpmSetting;
+  JuceTimeSigSettingRef masterTimeSigSetting;
+
+  void ensureMasterEdit();
+
+  [[nodiscard]] bool isMasterEdit(int id) const;
 
 
   bool inputsUpdate;
 
   void updateInputs() const;
 
-
-  bool soloedUpdate;
-
-  void updateSoloed();
+  void updateInputs(JuceEdit& edit) const;
 
 
-  EditTrackRef add(
-      JuceProjectItemRef item,
-      JuceUndoManager*   undoManager = nullptr);
+  bool bpmUpdate{};
+
+  void updateBpm() const;
+
+  void updateBpm(JuceEdit& edit) const;
+
+
+  JuceEditRef add(
+      JuceProjectItem& item,
+      JuceUndoManager* undoManager = nullptr);
 
 
   // ValueTreeListener
@@ -95,25 +163,142 @@ class EditManager :
   void handleAsyncUpdate() override;
 
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditManager);
+  // Declarations
+
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditManager)
 };
 
 
-EditTrackRef EditManager::operator[](EditTrack::Id id)
+bool EditManager::isFocusedEdit(const JuceEdit& edit) const noexcept
+{
+  return edit.getProjectItemID().getItemID() == this->focusedEdit.get();
+}
+
+JuceEditConstRef EditManager::getFocusedEdit() const noexcept
+{
+  return this->get(this->focusedEdit.get());
+}
+
+JuceEditRef EditManager::getFocusedEdit() noexcept
+{
+  return this->get(this->focusedEdit.get());
+}
+
+JuceEditRef EditManager::setFocusedEdit(const JuceEdit& edit) noexcept
+{
+  this->focusedEdit = edit.getProjectItemID().getItemID();
+  return this->getFocusedEdit();
+}
+
+
+const JuceEdit& EditManager::getMasterEdit() const noexcept
+{
+  return *this->masterEdit;
+}
+
+JuceEdit& EditManager::getMasterEdit() noexcept
+{
+  return *this->masterEdit;
+}
+
+
+const JuceTransport& EditManager::getMasterTransport() const noexcept
+{
+  return *this->masterTransport;
+}
+
+JuceTransport& EditManager::getMasterTransport() noexcept
+{
+  return *this->masterTransport;
+}
+
+
+const JuceTempo& EditManager::getMasterTempo() const noexcept
+{
+  return *this->masterTempo;
+}
+
+JuceTempo& EditManager::getMasterTempo() noexcept
+{
+  return *this->masterTempo;
+}
+
+
+const JuceTempoSetting& EditManager::getMasterBpmSetting() const noexcept
+{
+  return *this->masterBpmSetting;
+}
+
+JuceTempoSetting& EditManager::getMasterBpmSetting() noexcept
+{
+  return *this->masterBpmSetting;
+}
+
+
+JuceEditRef EditManager::operator[](int id)
 {
   return this->get(id);
 }
 
+JuceEditConstRef EditManager::operator[](int id) const
+{
+  return this->get(id);
+}
+
+
 template<typename TOnEditTrack>
 void EditManager::visit(TOnEditTrack onEditTrack) const
 {
+  constexpr auto visitorOf =
+      meta::typeid_(onEditTrack) ^ isVisitorOf;
+
   static_assert(
-      isInvokable(meta::typeid_(onEditTrack), meta::type_c<EditTrackRef>),
-      "onEditTrack passed to visit must be an Invokable with EditTrack.");
+      meta::or_(
+          visitorOf(meta::type_c<JuceEditRef>),
+          visitorOf(meta::type_c<JuceEdit*>),
+          visitorOf(meta::type_c<JuceEdit&>)),
+      "onEditTrack passed to visit must be a Visitor of JuceEditRef, "
+      "JuceEdit* or JuceEdit&.");
+
 
   // Tried destructuring, but Clion complains about unused variables...
-  for (const auto& pair : this->edits)
-    onEditTrack(move(pair.second));
+  for (auto [id, edit] : this->edits)
+  {
+    if (!this->isMasterEdit(id))
+    {
+      if constexpr (isAnyStoppingVisitor(meta::typeid_(onEditTrack)))
+      {
+        if constexpr (visitorOf(meta::type_c<JuceEditRef>))
+        {
+          if (!onEditTrack(std::move(edit))) break;
+        }
+        else if constexpr (visitorOf(meta::type_c<JuceEdit*>))
+        {
+          if (!onEditTrack(edit.get())) break;
+        }
+        else if constexpr (visitorOf(meta::type_c<JuceEdit&>))
+        {
+          if (!onEditTrack(*edit)) break;
+        }
+      }
+      else
+      {
+        if constexpr (visitorOf(meta::type_c<JuceEditRef>))
+        {
+          onEditTrack(std::move(edit));
+        }
+        else if constexpr (visitorOf(meta::type_c<JuceEdit*>))
+        {
+          onEditTrack(edit.get());
+        }
+        else if constexpr (visitorOf(meta::type_c<JuceEdit&>))
+        {
+          onEditTrack(*edit);
+        }
+      }
+    }
+  }
 }
 
 
@@ -125,12 +310,6 @@ void EditManager::addListener(JuceStateListener* listener)
 void EditManager::removeListener(JuceStateListener* listener)
 {
   this->getState().removeListener(listener);
-}
-
-
-[[maybe_unused]] bool EditManager::isAnyTrackSoloed() const noexcept
-{
-  return this->soloed != EditTrack::invalidId;
 }
 
 BLOOPER_NAMESPACE_END

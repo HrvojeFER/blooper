@@ -1,49 +1,59 @@
 #include <blooper/internal/utils/selection.hpp>
 
 #include <blooper/internal/abstract/juceTraits.hpp>
-#include <blooper/internal/utils/EditTrack.hpp>
-
-#include <blooper/context/behaviour/EditManager.hpp>
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
-// EditTrack
+// Project
 
-bool EditTrackSelectableClass::canObjectsBeSelectedAtTheSameTime(
-    te::Selectable&,
-    te::Selectable&)
+bool ProjectSelectableClass::canObjectsBeSelectedAtTheSameTime(
+    te::Selectable& object1,
+    te::Selectable& object2)
 {
-  return true;
+  auto project1 = dynamic_cast<JuceProject*>(std::addressof(object1));
+  auto project2 = dynamic_cast<JuceProject*>(std::addressof(object2));
+
+  if (!project1 || !project2) return false;
+
+  return project1->engine
+             .getProjectManager()
+             .getFolderItemFor(*project1)
+             .getParent() ==
+         project2->engine
+             .getProjectManager()
+             .getFolderItemFor(*project2)
+             .getParent();
 }
 
 
-void EditTrackSelectableClass::deleteSelected(
+void ProjectSelectableClass::deleteSelected(
     const te::SelectableList& list,
     bool)
 {
   for (auto selectable : list)
   {
-    if (auto editTrack = dynamic_cast<EditTrack*>(selectable))
+    if (auto project = dynamic_cast<JuceProject*>(selectable))
     {
-      editTrack->getContext().getEditManager().remove(editTrack->getId());
+      project->engine.getProjectManager()
+          .removeProjectFromList(project->getProjectFile());
     }
   }
 }
 
 
-void EditTrackSelectableClass::addClipboardEntriesFor(
+void ProjectSelectableClass::addClipboardEntriesFor(
     te::SelectableClass::AddClipboardEntryParams&)
 {
 }
 
-bool EditTrackSelectableClass::pasteClipboard(
+bool ProjectSelectableClass::pasteClipboard(
     const te::SelectableList&,
     int)
 {
   return false;
 }
 
-bool EditTrackSelectableClass::canCutSelected(
+bool ProjectSelectableClass::canCutSelected(
     const te::SelectableList&)
 {
   return false;
@@ -51,7 +61,126 @@ bool EditTrackSelectableClass::canCutSelected(
 
 
 // ??
-void EditTrackSelectableClass::selectOtherObjects(
+void ProjectSelectableClass::selectOtherObjects(
+    const te::SelectableClass::SelectOtherObjectsParams&)
+{
+}
+
+
+// Edit
+
+bool EditSelectableClass::canObjectsBeSelectedAtTheSameTime(
+    te::Selectable& object1,
+    te::Selectable& object2)
+{
+  auto edit1 = dynamic_cast<JuceEdit*>(std::addressof(object1));
+  auto edit2 = dynamic_cast<JuceEdit*>(std::addressof(object2));
+
+  if (!edit1 || !edit2) return false;
+
+  return edit1->engine
+             .getProjectManager()
+             .getProject(*edit1)
+             ->getProjectID() ==
+         edit2->engine
+             .getProjectManager()
+             .getProject(*edit1)
+             ->getProjectID();
+}
+
+
+void EditSelectableClass::deleteSelected(
+    const te::SelectableList& list,
+    bool)
+{
+  for (auto selectable : list)
+  {
+    if (auto edit = dynamic_cast<JuceEdit*>(selectable))
+    {
+      edit->engine.getProjectManager().getProject(*edit)->removeProjectItem(
+          edit->getProjectItemID(), false);
+    }
+  }
+}
+
+
+void EditSelectableClass::addClipboardEntriesFor(
+    te::SelectableClass::AddClipboardEntryParams&)
+{
+}
+
+bool EditSelectableClass::pasteClipboard(
+    const te::SelectableList&,
+    int)
+{
+  return false;
+}
+
+bool EditSelectableClass::canCutSelected(
+    const te::SelectableList&)
+{
+  return false;
+}
+
+
+// ??
+void EditSelectableClass::selectOtherObjects(
+    const te::SelectableClass::SelectOtherObjectsParams&)
+{
+}
+
+
+// Track
+
+bool TrackSelectableClass::canObjectsBeSelectedAtTheSameTime(
+    te::Selectable& object1,
+    te::Selectable& object2)
+{
+  auto track1 = dynamic_cast<JuceTrack*>(std::addressof(object1));
+  auto track2 = dynamic_cast<JuceTrack*>(std::addressof(object2));
+
+  if (!track1 || !track2) return false;
+
+  return track1->edit.getProjectItemID() ==
+         track2->edit.getProjectItemID();
+}
+
+
+void TrackSelectableClass::deleteSelected(
+    const te::SelectableList& list,
+    bool)
+{
+  for (auto selectable : list)
+  {
+    if (auto track = dynamic_cast<JuceTrack*>(selectable))
+    {
+      track->edit.deleteTrack(track);
+    }
+  }
+}
+
+
+void TrackSelectableClass::addClipboardEntriesFor(
+    te::SelectableClass::AddClipboardEntryParams&)
+{
+}
+
+bool TrackSelectableClass::pasteClipboard(
+    const te::SelectableList&,
+    int)
+{
+  return false;
+}
+
+bool TrackSelectableClass::canCutSelected(
+    const te::SelectableList&)
+{
+  return false;
+}
+
+
+// ??
+void TrackSelectableClass::selectOtherObjects(
     const te::SelectableClass::SelectOtherObjectsParams&)
 {
 }
@@ -68,7 +197,8 @@ bool PluginSelectableClass::canObjectsBeSelectedAtTheSameTime(
 
   if (!plugin1 || !plugin2) return false;
 
-  return plugin1->getOwnerTrack() == plugin2->getOwnerTrack();
+  return plugin1->getOwnerTrack() ==
+         plugin2->getOwnerTrack();
 }
 
 
@@ -161,7 +291,9 @@ void ParameterSelectableClass::selectOtherObjects(
       _object> /* NOLINTNEXTLINE(cert-err58-cpp) */       \
       _class##Instance
 
-BLOOPER_DECLARE_SELECTABLE_CLASS(EditTrackSelectableClass, EditTrack);
+BLOOPER_DECLARE_SELECTABLE_CLASS(ProjectSelectableClass, JuceProject);
+BLOOPER_DECLARE_SELECTABLE_CLASS(EditSelectableClass, JuceEdit);
+BLOOPER_DECLARE_SELECTABLE_CLASS(TrackSelectableClass, JuceTrack);
 BLOOPER_DECLARE_SELECTABLE_CLASS(PluginSelectableClass, JucePlugin);
 BLOOPER_DECLARE_SELECTABLE_CLASS(ParameterSelectableClass, JuceParameter);
 

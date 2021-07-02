@@ -6,26 +6,6 @@
 
 BLOOPER_ID_NAMESPACE_BEGIN
 
-// Old
-
-BLOOPER_ID(editViewState);
-
-BLOOPER_ID(showChordTrack);
-BLOOPER_ID(showGlobalTrack);
-BLOOPER_ID(showMarkerTrack);
-BLOOPER_ID(showMidiDevices);
-BLOOPER_ID(showWaveDevices);
-
-BLOOPER_ID(drawWaveforms);
-BLOOPER_ID(showHeaders);
-BLOOPER_ID(showFooters);
-BLOOPER_ID(showArranger);
-
-BLOOPER_ID(viewX1);
-BLOOPER_ID(viewX2);
-BLOOPER_ID(viewY);
-
-
 // Properties
 
 BLOOPER_ID(properties);
@@ -78,6 +58,8 @@ BLOOPER_ID(bpm);
 // Project State
 
 BLOOPER_ID(edit);
+BLOOPER_ID(masterEdit);
+BLOOPER_ID(focusedEdit);
 
 BLOOPER_ID(track);
 

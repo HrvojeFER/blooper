@@ -1,57 +1,86 @@
 #include <blooper/context/behaviour/EditManager.hpp>
 
 #include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/ext/edit.hpp>
+#include <blooper/internal/ext/track.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-EditManager::EditManager(AbstractContext& context)
+EditManager::EditManager(
+    AbstractContext& context,
+    State            state)
     : ContextualBase(context),
-      StatefulBase(
-          this->getContext()
-              .getProjectState()
-              .getOrCreateChildWithName(
-                  id::edit,
-                  nullptr)),
+      StatefulBase(move(state)),
 
       inputsUpdate(false),
-      soloedUpdate(false)
+      bpmUpdate(false),
+
+      masterEdit(),
+      masterTransport(),
+      masterTempo(),
+      masterBpmSetting(),
+      masterTimeSigSetting()
 {
-  auto& project = this->getContext().getProject();
-  auto  undoManager = std::addressof(this->getContext().getUndoManager());
+  this->bpm.referTo(
+      this->getContext().getProjectSettings(),
+      id::bpm,
+      this->getContext().getUndoManagerPtr(),
+      defaultBpm);
 
-
-  this->soloed.referTo(
+  this->focusedEdit.referTo(
       this->getState(),
-      id::soloed,
-      undoManager,
-      EditTrack::invalidId);
+      id::focusedEdit,
+      nullptr,
+      0);
 
+  this->ensureMasterEdit();
+
+  auto& project = this->getContext().getProject();
 
   for (int i = 0; i < project.getNumProjectItems(); ++i)
-    if (JuceProjectItemRef item = project.getProjectItemAt(i); item->isEdit())
-      this->add(move(item), nullptr);
-
+    if (JuceProjectItemRef item = project.getProjectItemAt(i);
+        item->isEdit() && !this->isMasterEdit(item->getID().getItemID()))
+      this->add(*item, nullptr);
 
   this->updateInputs();
-  this->updateSoloed();
+  this->updateBpm();
+
+  this->getContext().getProjectSettings().addListener(this);
 }
 
-EditManager::~EditManager() = default;
+EditManager::~EditManager()
+{
+  this->getContext().getProjectSettings().removeListener(this);
+}
 
 
-EditTrackRef EditManager::add()
+JuceEditRef EditManager::get(int id)
+{
+  return this->edits.at(id);
+}
+
+JuceEditConstRef EditManager::get(int id) const
+{
+  return this->edits.at(id);
+}
+
+
+JuceEditRef EditManager::add()
 {
   return this->add(
-      this->getContext().getProject().createNewEdit(),
+      *this->getContext().getProject().createNewEdit(),
       std::addressof(this->getContext().getUndoManager()));
 }
 
-void EditManager::remove(EditTrack::Id id)
+void EditManager::remove(int id)
 {
   auto& project = this->getContext().getProject();
 
   project.removeProjectItem(
-      te::ProjectItemID{id, project.getProjectID()},
+      JuceProjectItemId{
+          id,
+          project.getProjectID()},
       false);
 
   this->getState()
@@ -64,59 +93,164 @@ void EditManager::remove(EditTrack::Id id)
   this->edits.erase(id);
 }
 
-EditTrackRef EditManager::get(EditTrack::Id id)
+
+void EditManager::ensureMasterEdit()
 {
-  return this->edits[id];
+  auto& context = this->getContext();
+  auto& project = context.getProject();
+
+  auto masterEditChild =
+      this->getState()
+          .getChildWithName(id::masterEdit);
+  JuceProjectItemRef masterEditItem{};
+
+  if (!masterEditChild.isValid())
+  {
+    masterEditChild = JuceState{id::masterEdit};
+    masterEditItem = project.createNewEdit();
+
+    masterEditChild.setProperty(
+        te::IDs::uid,
+        masterEditItem->getID().getItemID(),
+        nullptr);
+
+    this->getState().addChild(
+        move(masterEditChild),
+        -1,
+        context.getUndoManagerPtr());
+  }
+  else
+  {
+    masterEditItem =
+        project.getProjectItemForID(
+            JuceProjectItemId{
+                masterEditChild.getProperty(te::IDs::uid),
+                project.getProjectID()});
+  }
+
+  this->masterEdit =
+      ext::loadEditFromItem(
+          context.getEngine(),
+          *masterEditItem);
+
+  this->masterTransport = std::addressof(this->masterEdit->getTransport());
+
+  this->masterTempo = std::addressof(this->masterEdit->tempoSequence);
+  this->masterTempo->createEmptyState();
+
+  this->masterBpmSetting = this->masterTempo->insertTempo(0.0);
+  this->masterBpmSetting->setBpm(this->bpm);
+
+  this->masterTimeSigSetting = this->masterTempo->insertTimeSig(0.0);
+  this->masterTimeSigSetting->numerator = 4;
+  this->masterTimeSigSetting->denominator = 4;
+
+  this->masterTransport->setCurrentPosition(0.0);
+  this->masterTransport->looping = true;
+  this->masterTransport->setLoopPoint1(0.0);
+  this->masterTransport->setLoopPoint2(
+      this->masterTempo->beatsToTime(16));
+
+  this->masterTransport->play(false);
+}
+
+bool EditManager::isMasterEdit(int id) const
+{
+  auto masterEditChild =
+      this->getState()
+          .getChildWithProperty(
+              te::IDs::uid,
+              id);
+
+  if (!masterEditChild.isValid()) return false;
+
+  return masterEditChild.getProperty(id::masterEdit);
 }
 
 
 void EditManager::updateInputs() const
 {
-  this->visit([index = 0](EditTrack* track) mutable {
-    for (auto inputInstance : track->getEdit().getAllInputDevices())
-    {
-      if (inputInstance->getInputDevice().getDeviceType() ==
-          te::InputDevice::waveDevice)
-      {
-        inputInstance->setTargetTrack(
-            track->getAudio(),
-            0,
-            true);
-
-        inputInstance->setRecordingEnabled(
-            track->getAudio(),
-            track->armed);
-      }
-    }
+  this->visit([this](JuceEdit& edit) {
+    this->updateInputs(edit);
   });
 }
 
-void EditManager::updateSoloed()
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+void EditManager::updateInputs(JuceEdit& edit) const
 {
-  if (this->isAnyTrackSoloed())
-  {
-    this->visit([this](EditTrack* track) {
-      if (track->id == this->soloed)
-        track->audio->setMute(false);
-      else
-        track->audio->setMute(true);
-    });
-  }
-  else
-  {
-    this->visit([](EditTrack* track) {
-      track->audio->setMute(track->muted);
-    });
-  }
+  edit.visitAllTopLevelTracks(
+      [&edit, index = 0](JuceTrack& track) mutable {
+        if (auto* audioTrack =
+                dynamic_cast<te::AudioTrack*>(
+                    std::addressof(track)))
+        {
+          for (auto inputInstance : edit.getAllInputDevices())
+          {
+            if (inputInstance->getInputDevice().getDeviceType() ==
+                te::InputDevice::waveDevice)
+            {
+              inputInstance->setTargetTrack(
+                  *audioTrack,
+                  index,
+                  true);
+
+              inputInstance->setRecordingEnabled(
+                  *audioTrack,
+                  ext::isArmed(*audioTrack));
+            }
+          }
+        }
+
+        index++;
+        return true; // continue to other tracks
+      });
 }
 
 
-EditTrackRef EditManager::add(
-    JuceProjectItemRef item,
-    JuceUndoManager*   undoManager)
+void EditManager::updateBpm() const
 {
-  BLOOPER_ASSERT(item->isEdit());
-  auto id = getEditTrackId(*item);
+  this->masterBpmSetting->setBpm(this->bpm);
+  this->masterTransport->setLoopPoint2(
+      this->masterTempo->beatsToTime(16));
+
+  this->visit([this](JuceEdit& edit) {
+    this->updateBpm(edit);
+  });
+}
+
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+void EditManager::updateBpm(JuceEdit& edit) const
+{
+  edit.tempoSequence.getTempo(0)->setBpm(this->bpm);
+}
+
+
+JuceEditRef EditManager::add(
+    JuceProjectItem& item,
+    JuceUndoManager* undoManager)
+{
+  BLOOPER_ASSERT(item.isEdit());
+  const auto id = item.getID().getItemID();
+
+  auto edit =
+      ext::loadEditFromItem(
+          this->getContext().getEngine(),
+          item);
+  this->edits.emplace(id, edit);
+  edit->getTransport()
+      .syncToEdit(
+          this->masterEdit.get(),
+          false);
+
+  edit->tempoSequence.createEmptyState();
+  auto tempo = edit->tempoSequence.insertTempo(0.0);
+  tempo->setBpm(this->bpm);
+  auto timeSig = edit->tempoSequence.insertTimeSig(0.0);
+  timeSig->denominator = 4;
+  timeSig->numerator = 4;
+
+  edit->getTransport().play(false);
+
 
   auto editChild =
       this->getState()
@@ -126,29 +260,15 @@ EditTrackRef EditManager::add(
   if (!editChild.isValid())
   {
     editChild = JuceState{id::edit};
-    editChild.setProperty(te::IDs::uid, id, nullptr);
+    editChild.setProperty(
+        te::IDs::uid,
+        id,
+        nullptr);
 
-    auto track =
-        new EditTrack(
-            this->getContext(),
-            editChild,
-            move(item));
-
-    this->edits.emplace(id, track);
     this->getState().appendChild(move(editChild), undoManager);
-    return track;
   }
-  else
-  {
-    auto track =
-        new EditTrack(
-            this->getContext(),
-            move(editChild),
-            move(item));
 
-    this->edits.emplace(id, track);
-    return track;
-  }
+  return std::move(edit);
 }
 
 
@@ -156,13 +276,13 @@ EditTrackRef EditManager::add(
 
 void EditManager::valueTreePropertyChanged(
     juce::ValueTree&        tree,
-    const juce::Identifier& _id)
+    const juce::Identifier& id)
 {
-  if (tree == this->getState())
+  if (tree == this->getContext().getProjectSettings())
   {
-    if (_id == id::soloed)
+    if (id == id::bpm)
     {
-      this->markAndUpdate(this->soloedUpdate);
+      this->markAndUpdate(this->bpmUpdate);
     }
   }
 }
@@ -210,15 +330,14 @@ void EditManager::valueTreeChildOrderChanged(
 
 void EditManager::handleAsyncUpdate()
 {
-  if (util::FlaggedAsyncUpdater::compareAndReset(
-          this->inputsUpdate))
+  if (util::FlaggedAsyncUpdater::compareAndReset(this->inputsUpdate))
   {
     this->updateInputs();
   }
-  else if (util::FlaggedAsyncUpdater::compareAndReset(
-               this->soloedUpdate))
+
+  if (util::FlaggedAsyncUpdater::compareAndReset(this->bpmUpdate))
   {
-    this->updateSoloed();
+    this->updateBpm();
   }
 }
 

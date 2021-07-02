@@ -2,6 +2,10 @@
 
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/value_tree.hpp>
+#include <blooper/internal/ext/engine.hpp>
+#include <blooper/internal/ext/edit.hpp>
+#include <blooper/internal/ext/track.hpp>
+#include <blooper/internal/ext/parameter.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/context/behaviour/behaviour.hpp>
@@ -41,6 +45,25 @@ Context::~Context()
 }
 
 
+// Expiration
+
+void Context::removeExpiredCommandTargets()
+{
+  this->commandTargets.removeIf(
+      [](const auto& commandTarget) {
+        return commandTarget.wasObjectDeleted();
+      });
+}
+
+void Context::popExpiredSelectionManagers()
+{
+  for (auto currentTop = this->focusedSelectionManagerStack.top();
+       currentTop.expired();
+       currentTop = this->focusedSelectionManagerStack.top())
+    this->focusedSelectionManagerStack.pop();
+}
+
+
 // Context
 
 void Context::saveEngineSettings()
@@ -53,6 +76,17 @@ void Context::saveEngineSettings()
   }
 
   this->engineSettingsFile->save();
+}
+
+
+JuceEditRef Context::getFocusedEdit()
+{
+  return this->getEditManager().getFocusedEdit();
+}
+
+JuceEditRef Context::setFocusedEdit(JuceEditRef edit)
+{
+  return this->getEditManager().setFocusedEdit(*edit);
 }
 
 
@@ -593,21 +627,6 @@ void Context::loadUnsafe()
               rootDirSpecialLocation)
               .getChildFile(rootDirName));
 
-  this->projectsDir =
-      ext::ensureExistingDirectory(
-          this->getRootDir().getChildFile(
-              projectsDirName));
-
-  this->engineSettingsFile =
-      ext::ensureValidStateFile(
-          this->getRootDir().getChildFile(
-              engineSettingsFileName));
-  this->engineSettings =
-      ext::ensureValidState(
-          *this->engineSettingsFile,
-          contextKey,
-          Context::stateId);
-
   this->settingsFile =
       ext::ensureValidStateFile(
           this->getRootDir().getChildFile(
@@ -627,12 +646,6 @@ void Context::loadUnsafe()
           *this->stateFile,
           contextKey,
           Context::stateId);
-
-  this->openProjectFilePath.referTo(
-      this->getState(),
-      id::openProject,
-      std::addressof(this->getUndoManager()),
-      "");
 
 
   this->logDir =
@@ -663,8 +676,6 @@ void Context::loadUnsafe()
                      "development team if necessary."});
   JuceLogger::setCurrentLogger(this->logger.get());
 
-  this->assetManager = std::make_unique<AssetManager>(*this);
-
   this->undoManager = std::make_unique<JuceUndoManager>();
 
   this->commandManager = std::make_unique<JuceCommandManager>();
@@ -672,81 +683,14 @@ void Context::loadUnsafe()
   this->commandManager->registerAllCommandsForTarget(this);
   this->commandManager->setFirstCommandTarget(this);
 
-  this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
-  JuceLookAndFeel::setDefaultLookAndFeel(
-      this->lookAndFeel.get());
+  this->selectionManager =
+      std::make_shared<JuceSelectionManager>(
+          this->getEngine());
+
+  this->focusedSelectionManagerStack.push(this->selectionManager);
 }
 
 void Context::unloadUnsafe()
-{
-  JuceLookAndFeel::setDefaultLookAndFeel(nullptr);
-  this->lookAndFeel.reset();
-
-  this->commandTargets.clear();
-  this->commandManager->setFirstCommandTarget(nullptr);
-  this->commandManager.reset();
-
-  this->undoManager.reset();
-
-  this->assetManager.reset();
-
-  JuceLogger::setCurrentLogger(nullptr);
-  this->logger.reset();
-  this->logFile.reset();
-  this->logDir.reset();
-
-
-  this->state = {};
-  this->stateFile.reset();
-
-  this->openProjectFilePath.referTo(
-      // it has to be an lvalue for some reason
-      // even though it is used for copying..
-      this->state,
-      {},
-      nullptr);
-
-  this->settings = {};
-  this->settingsFile.reset();
-
-  this->engineSettings = {};
-  this->engineSettingsFile.reset();
-
-  this->projectsDir.reset();
-
-  this->rootDir.reset();
-}
-
-void Context::saveUnsafe()
-{
-  // TODO?
-}
-
-
-void Context::loadEngineUnsafe(JuceString name)
-{
-  this->tooltipWindow = std::make_unique<juce::TooltipWindow>();
-  this->tooltipWindow->setLookAndFeel(this->lookAndFeel.get());
-
-  this->engine =
-      std::make_unique<JuceEngine>(
-          std::make_unique<PropertyStorage>(move(name), *this),
-          std::make_unique<UIBehaviour>(*this),
-          std::make_unique<EngineBehaviour>(*this));
-  this->getEngine().getProjectManager().loadList();
-
-  this->monitored.referTo(
-      this->getState(),
-      id::monitored,
-      this->undoManager.get(),
-      true);
-
-  this->selectionManager =
-      std::make_unique<JuceSelectionManager>(
-          this->getEngine());
-}
-
-void Context::unloadEngineUnsafe()
 {
   {
     auto stateXml = this->getState().createXml();
@@ -760,25 +704,29 @@ void Context::unloadEngineUnsafe()
 
   this->selectionManager.reset();
 
-  this->engine->getTemporaryFileManager()
-      .getTempDirectory()
-      .deleteRecursively();
-  this->engine->getProjectManager().clearProjects();
-  this->engine.reset();
+  this->commandTargets.clear();
+  this->commandManager->setFirstCommandTarget(nullptr);
+  this->commandManager.reset();
 
-  this->tooltipWindow.reset();
+  this->undoManager.reset();
+
+  JuceLogger::setCurrentLogger(nullptr);
+  this->logger.reset();
+  this->logFile.reset();
+  this->logDir.reset();
+
+
+  this->state = {};
+  this->stateFile.reset();
+
+  this->settings = {};
+  this->settingsFile.reset();
+
+  this->rootDir.reset();
 }
 
-void Context::saveEngineUnsafe()
+void Context::saveUnsafe()
 {
-  this->engine->getDeviceManager().saveSettings();
-
-  {
-    auto engineSettingsXml = this->getEngineSettings().createXml();
-    this->engineSettingsFile->setValue(
-        contextKey,
-        engineSettingsXml.get());
-  }
   {
     auto settingsXml = this->getSettings().createXml();
     this->settingsFile->setValue(
@@ -792,9 +740,112 @@ void Context::saveEngineUnsafe()
         stateXml.get());
   }
 
-  this->engineSettingsFile->save();
   this->settingsFile->save();
   this->stateFile->save();
+}
+
+
+void Context::loadEngineUnsafe(JuceString name)
+{
+  this->lookAndFeel = std::make_unique<LookAndFeel>(*this);
+  JuceLookAndFeel::setDefaultLookAndFeel(
+      this->lookAndFeel.get());
+
+  this->assetManager = std::make_unique<AssetManager>(*this);
+
+  this->tooltipWindow = std::make_unique<juce::TooltipWindow>();
+  this->tooltipWindow->setLookAndFeel(this->lookAndFeel.get());
+
+
+  this->engineSettingsFile =
+      ext::ensureValidStateFile(
+          this->getRootDir().getChildFile(
+              engineSettingsFileName));
+  this->engineSettings =
+      ext::ensureValidState(
+          *this->engineSettingsFile,
+          contextKey,
+          Context::stateId);
+
+  this->projectsDir =
+      ext::ensureExistingDirectory(
+          this->getRootDir().getChildFile(
+              projectsDirName));
+
+
+  this->engine =
+      std::make_unique<JuceEngine>(
+          std::make_unique<PropertyStorage>(move(name), *this),
+          std::make_unique<UIBehaviour>(*this),
+          std::make_unique<EngineBehaviour>(*this));
+  this->getEngine().getProjectManager().loadList();
+
+
+  this->monitored.referTo(
+      this->getState(),
+      id::monitored,
+      this->undoManager.get(),
+      true);
+
+  this->openProjectFilePath.referTo(
+      this->getState(),
+      id::openProject,
+      std::addressof(this->getUndoManager()),
+      "");
+}
+
+void Context::unloadEngineUnsafe()
+{
+  State invalidState{};
+
+  this->openProjectFilePath.referTo(
+      // it has to be an lvalue for some reason
+      // even though it is used for copying..
+      invalidState,
+      {},
+      nullptr);
+
+  this->monitored.referTo(
+      // it has to be an lvalue for some reason
+      // even though it is used for copying..
+      invalidState,
+      {},
+      nullptr);
+
+
+  this->engine->getTemporaryFileManager()
+      .getTempDirectory()
+      .deleteRecursively();
+  this->engine->getProjectManager().clearProjects();
+  this->engine.reset();
+
+
+  this->projectsDir.reset();
+
+  this->engineSettings = {};
+  this->engineSettingsFile.reset();
+
+
+  this->tooltipWindow.reset();
+
+  this->assetManager.reset();
+
+  JuceLookAndFeel::setDefaultLookAndFeel(nullptr);
+  this->lookAndFeel.reset();
+}
+
+void Context::saveEngineUnsafe()
+{
+  this->engine->getDeviceManager().saveSettings();
+
+  {
+    auto engineSettingsXml = this->getEngineSettings().createXml();
+    this->engineSettingsFile->setValue(
+        contextKey,
+        engineSettingsXml.get());
+  }
+
+  this->engineSettingsFile->save();
 }
 
 
@@ -804,6 +855,7 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
 
   this->openProjectFilePath =
       this->getProject().getProjectFile().getFullPathName();
+
 
   this->projectSettingsFile =
       ext::ensureValidStateFile(
@@ -883,7 +935,12 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
               Synchronizer::stateId,
               nullptr));
 
-  this->editManager = std::make_unique<EditManager>(*this);
+  this->editManager =
+      std::make_unique<EditManager>(
+          *this,
+          this->projectState.getOrCreateChildWithName(
+              EditManager::stateId,
+              nullptr));
 
 
   // TODO: manage this a bit more elegantly
@@ -920,6 +977,7 @@ void Context::unloadProjectUnsafe()
   this->editManager.reset();
 
   this->synchronizer.reset();
+
 
   this->projectState = {};
   this->projectStateFile.reset();
@@ -969,7 +1027,8 @@ void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
 
       CommandId::quit,
 
-      CommandId::save,
+      CommandId::saveProject,
+      CommandId::saveEdit,
       CommandId::saveAll,
       CommandId::saveAndQuit,
       CommandId::saveAs,
@@ -983,6 +1042,11 @@ void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
       CommandId::openHelp,
       CommandId::openInfo,
       CommandId::openDev,
+
+
+      // Engine
+
+      CommandId::toggleMonitoring,
 
 
       // Edit
@@ -1003,19 +1067,18 @@ void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
 
       // Transport
 
-      CommandId::play,
-      CommandId::pause,
-      CommandId::stop,
-      CommandId::record,
-
-      CommandId::toggleMonitoring,
+      CommandId::togglePlaying,
+      CommandId::toggleRecording,
 
 
       // Track
 
-      CommandId::muteTrack,
-      CommandId::soloTrack,
-      CommandId::armTrack,
+      CommandId::toggleMuted,
+      CommandId::toggleSoloed,
+      CommandId::toggleArmed,
+
+      CommandId::cycleTrackMode,
+      CommandId::cycleTrackInterval,
 
       CommandId::clearTrack,
 
@@ -1054,8 +1117,19 @@ bool Context::perform(const JuceCommand& command)
       return true;
 
 
-    case CommandId::save:
+    case CommandId::saveProject:
       this->saveProjectAsync();
+      return true;
+
+    case CommandId::saveEdit:
+      if (auto edit = this->getFocusedEdit())
+      {
+        te::EditFileOperations{*edit}
+            .save(
+                true,
+                false,
+                false);
+      }
       return true;
 
     case CommandId::saveAll:
@@ -1132,6 +1206,15 @@ bool Context::perform(const JuceCommand& command)
       }
 
 
+      // Engine
+
+    case CommandId::toggleMonitoring:
+      {
+        ext::toggleMonitoring(this->getEngine());
+        return true;
+      }
+
+
       // Edit
 
     case CommandId::del:
@@ -1191,8 +1274,24 @@ bool Context::perform(const JuceCommand& command)
       return true;
 
 
+      // TODO: better
+
+    case CommandId::addEdit:
+      {
+        this->setFocusedEdit(this->getEditManager().add());
+      }
+      return true;
+
     case CommandId::addTrack:
-      this->getEditManager().add();
+      if (auto edit =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedEdit())
+      {
+        edit->insertNewAudioTrack(
+            {nullptr, nullptr},
+            nullptr);
+      }
       return true;
 
     case CommandId::addPlugin:
@@ -1222,11 +1321,31 @@ bool Context::perform(const JuceCommand& command)
 
 
     case CommandId::undo:
-      this->getUndoManager().undo();
+      if (auto edit =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedEdit())
+      {
+        edit->getUndoManager().undo();
+      }
+      else
+      {
+        this->getUndoManager().undo();
+      }
       return true;
 
     case CommandId::redo:
-      this->getUndoManager().redo();
+      if (auto edit =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedEdit())
+      {
+        edit->getUndoManager().redo();
+      }
+      else
+      {
+        this->getUndoManager().redo();
+      }
       return true;
 
 
@@ -1243,82 +1362,95 @@ bool Context::perform(const JuceCommand& command)
 
       // Transport
 
-    case CommandId::play:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        track->playback = TrackPlayback::playing;
-      return true;
-
-    case CommandId::pause:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        track->playback = TrackPlayback::paused;
-      return true;
-
-    case CommandId::stop:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        track->playback = TrackPlayback::paused;
-      return true;
-
-    case CommandId::record:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        track->playback = TrackPlayback::recording;
-      return true;
-
-
-    case CommandId::toggleMonitoring:
+    case CommandId::togglePlaying:
+      if (auto edit =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedEdit())
       {
-        auto& deviceManager = this->getEngine().getDeviceManager();
-        for (int i = 0; i < deviceManager.getNumInputDevices(); ++i)
-          if (auto input = deviceManager.getInputDevice(i))
-            input->flipEndToEnd();
-        return true;
+        ext::togglePlaying(*edit);
       }
+      return true;
+
+    case CommandId::toggleRecording:
+      if (auto edit =
+              this->getEngine()
+                  .getUIBehaviour()
+                  .getCurrentlyFocusedEdit())
+      {
+        ext::toggleRecording(*edit);
+      }
+      return true;
 
 
       // Track
 
-    case CommandId::muteTrack:
+    case CommandId::toggleMuted:
       for (auto track :
            this->getEngine()
                .getUIBehaviour()
                .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        toggle(track->muted);
-      return true;
-
-    case CommandId::soloTrack:
-      if (auto track =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager()
-                  ->getFirstItemOfType<EditTrack>())
+               ->getItemsOfType<JuceTrack>())
       {
-        this->getEditManager().soloed = track->getId();
+        ext::toggleMuted(*track);
       }
       return true;
 
-    case CommandId::armTrack:
+    case CommandId::toggleSoloed:
       for (auto track :
            this->getEngine()
                .getUIBehaviour()
                .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<EditTrack>())
-        toggle(track->armed);
+               ->getItemsOfType<JuceTrack>())
+      {
+        ext::toggleSoloed(*track);
+      }
+      return true;
+
+    case CommandId::toggleArmed:
+      for (auto track :
+           this->getEngine()
+               .getUIBehaviour()
+               .getCurrentlyFocusedSelectionManager()
+               ->getItemsOfType<JuceTrack>())
+      {
+        ext::toggleArmed(*track);
+      }
+      return true;
+
+
+    case CommandId::cycleTrackMode:
+      for (auto track :
+           this->getEngine()
+               .getUIBehaviour()
+               .getCurrentlyFocusedSelectionManager()
+               ->getItemsOfType<JuceTrack>())
+      {
+        ext::cycleTrackMode(*track);
+      }
+      return true;
+
+    case CommandId::cycleTrackInterval:
+      for (auto track :
+           this->getEngine()
+               .getUIBehaviour()
+               .getCurrentlyFocusedSelectionManager()
+               ->getItemsOfType<JuceTrack>())
+      {
+        ext::cycleTrackInterval(*track);
+      }
+      return true;
+
+
+    case CommandId::clearTrack:
+      for (auto track :
+           this->getEngine()
+               .getUIBehaviour()
+               .getCurrentlyFocusedSelectionManager()
+               ->getItemsOfType<JuceTrack>())
+      {
+        ext::clear(*track);
+      }
       return true;
 
 
@@ -1331,10 +1463,7 @@ bool Context::perform(const JuceCommand& command)
                .getCurrentlyFocusedSelectionManager()
                ->getItemsOfType<te::AutomatableParameter>())
       {
-        parameter->setNormalisedParameter(
-            parameter->getCurrentValue() +
-                parameter->getValueRange().getLength() / 20,
-            juce::sendNotificationAsync);
+        ext::nudgeParameterUp(*parameter);
       }
       return true;
 
@@ -1345,10 +1474,7 @@ bool Context::perform(const JuceCommand& command)
                .getCurrentlyFocusedSelectionManager()
                ->getItemsOfType<te::AutomatableParameter>())
       {
-        parameter->setNormalisedParameter(
-            parameter->getCurrentValue() -
-                parameter->getValueRange().getLength() / 20,
-            juce::sendNotificationAsync);
+        ext::nudgeParameterDown(*parameter);
       }
       return true;
 
@@ -1358,26 +1484,22 @@ bool Context::perform(const JuceCommand& command)
   }
 
 
-  bool             actionPerformed = false;
-  juce::Array<int> deletedTargets{};
+  bool actionPerformed = false;
 
-  for (int i = 0; i < this->commandTargets.size(); ++i)
+  for (const auto& target : this->commandTargets)
   {
-    const auto& target = this->commandTargets[i];
+    if (target.wasObjectDeleted()) continue;
 
-    if (target.wasObjectDeleted())
+    if (auto targetPerformer = target->getTargetForCommand(command.commandID);
+        targetPerformer->perform(command))
     {
-      deletedTargets.add(i);
-      continue;
+      actionPerformed = true;
+      break;
     }
-
-    if (auto targetPerformer = target->getTargetForCommand(command.commandID))
-      if (targetPerformer->perform(command))
-        actionPerformed = true;
   }
 
-  for (auto deleted : deletedTargets)
-    this->commandTargets.remove(deleted);
+  this->removeExpiredCommandTargets();
+
 
   return actionPerformed;
 }

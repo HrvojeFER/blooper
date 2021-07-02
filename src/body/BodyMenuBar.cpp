@@ -51,10 +51,17 @@ BLOOPER_NAMESPACE_BEGIN
 
       result.addCommandItem(
           commandManager,
-          CommandId::save,
-          "Save",
+          CommandId::saveProject,
+          "Save Project",
           assetManager.getIcon(
-              assets::IconAssetId::save));
+              assets::IconAssetId::saveProject));
+
+      result.addCommandItem(
+          commandManager,
+          CommandId::saveEdit,
+          "Save Edit",
+          assetManager.getIcon(
+              assets::IconAssetId::saveEdit));
 
       result.addCommandItem(
           commandManager,
@@ -164,17 +171,24 @@ BLOOPER_NAMESPACE_BEGIN
 
       result.addCommandItem(
           commandManager,
+          CommandId::addEdit,
+          "Add Edit",
+          assetManager.getIcon(
+              assets::IconAssetId::addEdit));
+
+      result.addCommandItem(
+          commandManager,
           CommandId::addTrack,
           "Add Track",
           assetManager.getIcon(
-              assets::IconAssetId::add));
+              assets::IconAssetId::addTrack));
 
       result.addCommandItem(
           commandManager,
           CommandId::addPlugin,
           "Add Plugin",
           assetManager.getIcon(
-              assets::IconAssetId::addOther));
+              assets::IconAssetId::addPlugin));
       break;
 
 

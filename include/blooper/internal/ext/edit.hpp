@@ -3,47 +3,63 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/id.hpp>
+#include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
-[[maybe_unused]] inline te::AudioTrack* getOrInsertAudioTrackAt(
-    te::Edit& edit,
-    int       index)
+// Load
+
+[[maybe_unused]] inline std::shared_ptr<te::Edit> loadEditFromItem(
+    te::Engine&      engine,
+    te::ProjectItem& item)
 {
-  edit.ensureNumberOfAudioTracks(index + 1);
-  return te::getAudioTracks(edit)[index];
+  BLOOPER_ASSERT(item.isEdit());
+
+  std::shared_ptr edit{
+      te::loadEditFromFile(
+          engine,
+          item.getSourceFile())};
+
+  edit->setProjectItemID(item.getID());
+
+  return edit;
 }
 
-[[maybe_unused]] inline void togglePlay(te::Edit& edit)
-{
-  auto& transport = edit.getTransport();
 
-  if (transport.isPlaying())
-    transport.stop(false, false);
-  else
-    transport.play(false);
+// Visit
+
+template<typename TCallback>
+[[maybe_unused]] inline void visit(te::Edit& edit, TCallback callback)
+{
+  static_assert(
+      isInvokable
+      );
 }
 
-[[maybe_unused]] inline void toggleRecord(te::Edit& edit)
-{
-  auto& transport = edit.getTransport();
 
-  if (transport.isRecording())
-    transport.stop(true, false);
-  else
-    transport.record(false);
+// Armed
+
+[[maybe_unused]] inline juce::Array<te::Track*> getArmedTracks(te::Edit& edit);
+
+
+// Transport
+
+[[maybe_unused]] inline bool isPlaying(te::Edit& edit)
+{
+  return edit.getTransport().isPlaying();
 }
 
-[[maybe_unused]] inline te::Clip::Ptr getLongestClip(const te::Edit& edit)
-{
-  te::Clip::Ptr longest;
-  for (auto track : getClipTracks(edit))
-    for (auto clip : track->getClips())
-      if (clip->getLengthInBeats() > longest->getLengthInBeats())
-        longest = clip;
+[[maybe_unused]] inline void togglePlaying(te::Edit& edit);
 
-  return longest;
+
+[[maybe_unused]] inline bool isRecording(te::Edit& edit)
+{
+  return edit.getTransport().isRecording();
 }
+
+[[maybe_unused]] void toggleRecording(te::Edit& edit);
 
 BLOOPER_EXT_NAMESPACE_END
 

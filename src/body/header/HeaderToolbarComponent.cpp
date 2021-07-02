@@ -37,28 +37,38 @@ class HeaderToolbarComponent::ItemFactory :
 
     // blooper IDs
 
-    playButtonId = 1,
-    pauseButtonId = 2,
-    stopButtonId = 3,
-    recordButtonId = 4,
+    // Edit
 
-    muteTrackButtonId = 5,
-    soloTrackButtonId = 6,
-    armTrackButtonId = 7,
+    deleteButtonId = CommandId::del,
+    cutButtonId = CommandId::cut,
+    copyButtonId = CommandId::copy,
+    pasteButtonId = CommandId::paste,
 
-    nudgeUpButtonId = 9,
-    nudgeDownButtonId = 10,
+    undoButtonId = CommandId::undo,
+    redoButtonId = CommandId::redo,
 
-    deleteButtonId = 11,
-    cutButtonId = 12,
-    copyButtonId = 13,
-    pasteButtonId = 14,
+    addEditButtonId = CommandId::addEdit,
+    addTrackButtonId = CommandId::addTrack,
+    addPluginButtonId = CommandId::addPlugin,
 
-    undoButtonId = 15,
-    redoButtonId = 16,
+    // Transport
 
-    addTrackButtonId = 17,
-    addPluginButtonId = 18,
+    togglePlayingButtonId = CommandId::togglePlaying,
+    toggleRecordingButtonId = CommandId::toggleRecording,
+
+    cycleTrackModeButtonId = CommandId::cycleTrackMode,
+    cycleTrackIntervalButtonId = CommandId::cycleTrackInterval,
+
+    // Tracks
+
+    toggleMutedButtonId = CommandId::toggleMuted,
+    toggleSoloedButtonId = CommandId::toggleSoloed,
+    toggleArmedButtonId = CommandId::toggleArmed,
+
+    // Parameters
+
+    nudgeUpButtonId = CommandId::nudgeUp,
+    nudgeDownButtonId = CommandId::nudgeDown,
   };
 
 
@@ -73,17 +83,7 @@ class HeaderToolbarComponent::ItemFactory :
 
     // Blooper IDs
 
-    ids.add(playButtonId);
-    ids.add(pauseButtonId);
-    ids.add(stopButtonId);
-    ids.add(recordButtonId);
-
-    ids.add(muteTrackButtonId);
-    ids.add(soloTrackButtonId);
-    ids.add(armTrackButtonId);
-
-    ids.add(nudgeUpButtonId);
-    ids.add(nudgeDownButtonId);
+    // Edit
 
     ids.add(deleteButtonId);
     ids.add(cutButtonId);
@@ -93,23 +93,46 @@ class HeaderToolbarComponent::ItemFactory :
     ids.add(undoButtonId);
     ids.add(redoButtonId);
 
+    ids.add(addEditButtonId);
     ids.add(addTrackButtonId);
     ids.add(addPluginButtonId);
+
+    // Transport
+
+    ids.add(togglePlayingButtonId);
+    ids.add(toggleRecordingButtonId);
+
+    // Tracks
+
+    ids.add(toggleMutedButtonId);
+    ids.add(toggleSoloedButtonId);
+    ids.add(toggleArmedButtonId);
+
+    ids.add(cycleTrackModeButtonId);
+    ids.add(cycleTrackIntervalButtonId);
+
+    // Parameters
+
+    ids.add(nudgeUpButtonId);
+    ids.add(nudgeDownButtonId);
   }
 
 
   void getDefaultItemSet(juce::Array<int>& ids) override
   {
-    ids.add(playButtonId);
-    ids.add(pauseButtonId);
-    ids.add(stopButtonId);
-    ids.add(recordButtonId);
+    ids.add(togglePlayingButtonId);
+    ids.add(toggleRecordingButtonId);
 
     ids.add(spacerId);
 
-    ids.add(muteTrackButtonId);
-    ids.add(soloTrackButtonId);
-    ids.add(armTrackButtonId);
+    ids.add(toggleMutedButtonId);
+    ids.add(toggleSoloedButtonId);
+    ids.add(toggleArmedButtonId);
+
+    ids.add(spacerId);
+
+    ids.add(cycleTrackModeButtonId);
+    ids.add(cycleTrackIntervalButtonId);
 
     ids.add(spacerId);
 
@@ -132,6 +155,7 @@ class HeaderToolbarComponent::ItemFactory :
 
     ids.add(separatorBarId);
 
+    ids.add(addEditButtonId);
     ids.add(addTrackButtonId);
     ids.add(addPluginButtonId);
   }
@@ -141,80 +165,88 @@ class HeaderToolbarComponent::ItemFactory :
   {
     auto& assetManager = this->parent->getContext().getAssetManager();
 
-    juce::ToolbarButton* result;
-    JuceCommandId        commandId;
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "UnusedValue"
+#endif //__JETBRAINS_IDE__
+    juce::ToolbarButton* result{nullptr};
+    JuceCommandId        commandId{CommandId::none};
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif //__JETBRAINS_IDE__
 
     switch (itemId)
     {
-      case playButtonId:
+      case togglePlayingButtonId:
         result = new juce::ToolbarButton(
             itemId,
-            "Play",
+            "Toggle Playing",
             assetManager.getIcon(
                 assets::IconAssetId::play),
             {});
-        commandId = CommandId::play;
+        commandId = CommandId::togglePlaying;
         break;
 
-      case pauseButtonId:
+      case toggleRecordingButtonId:
         result = new juce::ToolbarButton(
             itemId,
-            "Pause",
-            assetManager.getIcon(
-                assets::IconAssetId::pause),
-            {});
-        commandId = CommandId::pause;
-        break;
-
-      case stopButtonId:
-        result = new juce::ToolbarButton(
-            itemId,
-            "Stop",
-            assetManager.getIcon(
-                assets::IconAssetId::stop),
-            {});
-        commandId = CommandId::stop;
-        break;
-
-      case recordButtonId:
-        result = new juce::ToolbarButton(
-            itemId,
-            "Record",
+            "Toggle Recording",
             assetManager.getIcon(
                 assets::IconAssetId::record),
             {});
-        commandId = CommandId::record;
+        commandId = CommandId::toggleRecording;
         break;
 
 
-      case muteTrackButtonId:
+      case toggleMutedButtonId:
         result = new juce::ToolbarButton(
             itemId,
-            "Mute",
+            "Toggle Muted",
             assetManager.getIcon(
                 assets::IconAssetId::muteTrack),
             {});
-        commandId = CommandId::muteTrack;
+        commandId = CommandId::toggleMuted;
         break;
 
-      case soloTrackButtonId:
+      case toggleSoloedButtonId:
         result = new juce::ToolbarButton(
             itemId,
-            "Solo",
+            "Toggle Soloed",
             assetManager.getIcon(
                 assets::IconAssetId::soloTrack),
             {});
-        commandId = CommandId::soloTrack;
+        commandId = CommandId::toggleSoloed;
         break;
 
-      case armTrackButtonId:
+      case toggleArmedButtonId:
         result = new juce::ToolbarButton(
             itemId,
-            "Arm",
+            "Toggle Armed",
             assetManager.getIcon(
                 assets::IconAssetId::armTrack),
             {});
-        commandId = CommandId::armTrack;
+        commandId = CommandId::toggleArmed;
+        break;
+
+
+      case cycleTrackModeButtonId:
+        result = new juce::ToolbarButton(
+            itemId,
+            "Cycle Track Mode",
+            assetManager.getIcon(
+                assets::IconAssetId::cycleTrackMode),
+            {});
+        commandId = CommandId::cycleTrackMode;
+        break;
+
+      case cycleTrackIntervalButtonId:
+        result = new juce::ToolbarButton(
+            itemId,
+            "Cycle Track Interval",
+            assetManager.getIcon(
+                assets::IconAssetId::cycleTrackInterval),
+            {});
+        commandId = CommandId::cycleTrackInterval;
         break;
 
 
@@ -301,12 +333,22 @@ class HeaderToolbarComponent::ItemFactory :
         break;
 
 
+      case addEditButtonId:
+        result = new juce::ToolbarButton(
+            itemId,
+            "Add Edit",
+            assetManager.getIcon(
+                assets::IconAssetId::addEdit),
+            {});
+        commandId = CommandId::addEdit;
+        break;
+
       case addTrackButtonId:
         result = new juce::ToolbarButton(
             itemId,
             "Add Track",
             assetManager.getIcon(
-                assets::IconAssetId::add),
+                assets::IconAssetId::addTrack),
             {});
         commandId = CommandId::addTrack;
         break;
@@ -316,23 +358,31 @@ class HeaderToolbarComponent::ItemFactory :
             itemId,
             "Add Plugin",
             assetManager.getIcon(
-                assets::IconAssetId::addOther),
+                assets::IconAssetId::addPlugin),
             {});
         commandId = CommandId::addPlugin;
         break;
 
 
       default:
-        result = nullptr;
-        commandId = CommandId::none;
+        break;
     }
 
-    if (result)
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "ConstantConditionsOC"
+#endif //__JETBRAINS_IDE__
+    if (result && commandId != CommandId::none)
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif //__JETBRAINS_IDE__
+    {
       result->setCommandToTrigger(
           std::addressof(
               this->parent->getContext().getCommandManager()),
           static_cast<JuceCommandId>(commandId),
           true);
+    }
 
     return result;
   }
@@ -353,12 +403,27 @@ HeaderToolbarComponent::HeaderToolbarComponent(
           move(state)),
       options(move(options))
 {
-  this->toolbar =
-      std::make_unique<juce::Toolbar>();
+  auto& assets = this->getContext().getAssetManager();
+
 
   this->factory =
       std::make_unique<HeaderToolbarComponent::ItemFactory>(
           this);
+
+  this->toolbar =
+      std::make_unique<juce::Toolbar>();
+
+  this->toolbarCustomizationButton =
+      std::make_unique<juce::DrawableButton>(
+          JuceString{"Customize Toolbar"},
+          juce::DrawableButton::ButtonStyle::ImageFitted);
+
+  this->toolbarCustomizationButton->setImages(
+      assets.getIconView(assets::IconAssetId::menu));
+
+  this->toolbarCustomizationButton->onClick = [this] {
+    this->toolbar->showCustomisationDialog(*this->factory);
+  };
 
 
   auto toolbarState =
@@ -369,17 +434,18 @@ HeaderToolbarComponent::HeaderToolbarComponent(
 
   if (toolbarState.isEmpty())
   {
-    this->toolbar->addDefaultItems(*factory);
+    this->toolbar->addDefaultItems(*this->factory);
   }
   else
   {
-    this->toolbar->restoreFromString(*factory, toolbarState);
+    this->toolbar->restoreFromString(*this->factory, toolbarState);
   }
 
 
   ext::addAndMakeVisible(
       *this,
-      *this->toolbar);
+      *this->toolbar,
+      *this->toolbarCustomizationButton);
 }
 
 HeaderToolbarComponent::~HeaderToolbarComponent()
@@ -398,6 +464,11 @@ HeaderToolbarComponent::~HeaderToolbarComponent()
 void HeaderToolbarComponent::resized()
 {
   auto availableArea = this->getLocalBounds();
+
+
+  this->toolbarCustomizationButton->setBounds(
+      availableArea.removeFromRight(
+          availableArea.getHeight()));
 
   this->toolbar->setBounds(availableArea);
 }

@@ -2,18 +2,50 @@
 
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/abstract/const.hpp>
-#include <blooper/internal/ext/value_tree.hpp>
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/style.hpp>
-#include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 #include <blooper/context/behaviour/EditManager.hpp>
 
-#include <blooper/components/tracks/TrackComponent.hpp>
+#include <blooper/body/panels/project/EditComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
+
+class ProjectContentComponent::Pimpl :
+    public juce::TabbedComponent
+{
+ public:
+  explicit Pimpl(ProjectContentComponent* parent)
+      : juce::TabbedComponent(
+            juce::TabbedButtonBar::Orientation::TabsAtTop),
+        parent(parent)
+  {
+  }
+
+  ~Pimpl() override = default;
+
+
+  void currentTabChanged(
+      int newCurrentTabIndex,
+      const juce::String&) override
+  {
+    this->parent->getContext().setFocusedEdit(
+        this->parent->editComponents[newCurrentTabIndex]->getEdit());
+  }
+
+  void popupMenuClickOnTab(
+      int,
+      const juce::String&) override
+  {
+  }
+
+
+ private:
+  [[maybe_unused]] ProjectContentComponent* parent;
+};
+
 
 ProjectContentComponent::ProjectContentComponent(
     AbstractContext& context,
@@ -24,29 +56,20 @@ ProjectContentComponent::ProjectContentComponent(
           move(state)),
       options(move(options)),
 
-      trackUpdate(false)
+      editUpdate(false)
 {
-  auto undoManager = this->getContext().getUndoManagerPtr();
+  this->tabs =
+      std::make_unique<ProjectContentComponent::Pimpl>(
+          this);
 
 
-  this->appearanceSettings =
-      this->getContext()
-          .getSettings()
-          .getOrCreateChildWithName(
-              id::appearance,
-              nullptr);
-
-  ext::referTo(
-      this->trackSize,
-      this->appearanceSettings,
-      id::trackSize,
-      undoManager,
-      defaultTrackSize);
+  ext::addAndMakeVisible(
+      *this,
+      *this->tabs);
 
 
-  this->updateTracks();
+  this->updateEdits();
 
-  this->getContext().getSettings().addListener(this);
   this->getContext().getEditManager().addListener(this);
   this->getContext().registerCommandTarget(this);
 }
@@ -55,57 +78,55 @@ ProjectContentComponent::~ProjectContentComponent()
 {
   this->getContext().unregisterCommandTarget(this);
   this->getContext().getEditManager().removeListener(this);
-  this->getContext().getSettings().removeListener(this);
 }
 
 
-[[maybe_unused]] bool ProjectContentComponent::isValidTrackIndex(int index)
+[[maybe_unused]] void ProjectContentComponent::updateEdits()
 {
-  return index >= 0 && index < this->trackComponents.size();
-}
-
-void ProjectContentComponent::resizeTracks()
-{
-  ext::setWidth(
-      *this,
-      this->trackSize *
-          this->trackComponents.size());
-}
-
-[[maybe_unused]] void ProjectContentComponent::updateTracks()
-{
-  for (int i = 0; i < this->getChildren().size(); ++i)
-  {
-    if (dynamic_cast<TrackComponent*>(this->getChildComponent(i)))
-    {
-      this->removeChildComponent(i);
-    }
-  }
-
-  this->trackComponents.clear();
+  this->tabs->clearTabs();
+  this->editComponents.clear();
 
   this->getContext().getEditManager().visit(
-      [this](EditTrackRef track) {
-        TrackComponent::Options componentOptions{};
+      [this](JuceEditRef edit) {
+        EditOptions componentOptions{};
 
-        auto trackComponent =
-            new TrackComponent(
+        const auto editName = edit->getName();
+
+        auto editChild =
+            this->getState()
+                .getChildWithProperty(
+                    te::IDs::uid,
+                    edit->getProjectItemID().getItemID());
+
+        if (!editChild.isValid())
+        {
+          editChild =
+              this->getState()
+                  .getOrCreateChildWithName(
+                      EditComponent::stateId,
+                      nullptr);
+
+          editChild.setProperty(
+              te::IDs::uid,
+              edit->getProjectItemID().getItemID(),
+              nullptr);
+        }
+
+        auto editComponent =
+            new EditComponent(
                 this->getContext(),
-                this->getState().getOrCreateChildWithName(
-                    TrackComponent::stateId,
-                    nullptr),
-                move(track),
+                move(editChild),
+                std::move(edit),
                 move(componentOptions));
+        this->editComponents.add(editComponent);
 
-        this->trackComponents.add(trackComponent);
+        this->tabs->addTab(
+            move(editName),
+            this->findColour(
+                ColourId::background),
+            editComponent,
+            false);
       });
-
-  for (auto trackComponent : this->trackComponents)
-  {
-    ext::addAndMakeVisible(*this, *trackComponent);
-  }
-
-  this->resizeTracks();
 }
 
 
@@ -113,34 +134,13 @@ void ProjectContentComponent::resizeTracks()
 
 void ProjectContentComponent::resized()
 {
-  auto availableArea = util::pad(this->getLocalBounds(), 2);
-  auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
+  auto availableArea = this->getLocalBounds();
 
-  for (auto component : this->trackComponents)
-  {
-    component->setBounds(
-        util::pad(
-            availableArea
-                .removeFromLeft(trackWidth),
-            2));
-  }
+  this->tabs->setBounds(availableArea);
 }
 
 
 // ValueTreeListener
-
-void ProjectContentComponent::valueTreePropertyChanged(
-    juce::ValueTree&        tree,
-    const juce::Identifier& id)
-{
-  if (tree == this->appearanceSettings)
-  {
-    if (id == id::trackSize)
-    {
-      this->resizeTracks();
-    }
-  }
-}
 
 void ProjectContentComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
@@ -150,7 +150,7 @@ void ProjectContentComponent::valueTreeChildAdded(
   {
     if (child.hasType(id::edit))
     {
-      this->markAndUpdate(this->trackUpdate);
+      this->markAndUpdate(this->editUpdate);
     }
   }
 }
@@ -164,7 +164,7 @@ void ProjectContentComponent::valueTreeChildRemoved(
   {
     if (child.hasType(id::edit))
     {
-      this->markAndUpdate(this->trackUpdate);
+      this->markAndUpdate(this->editUpdate);
     }
   }
 }
@@ -179,7 +179,7 @@ void ProjectContentComponent::valueTreeChildOrderChanged(
     if (tree.getChild(childAIndex).hasType(id::edit) &&
         tree.getChild(childBIndex).hasType(id::edit))
     {
-      this->markAndUpdate(this->trackUpdate);
+      this->markAndUpdate(this->editUpdate);
     }
   }
 }
@@ -189,16 +189,17 @@ void ProjectContentComponent::valueTreeChildOrderChanged(
 
 void ProjectContentComponent::handleAsyncUpdate()
 {
-  if (util::FlaggedAsyncUpdater::compareAndReset(this->trackUpdate))
+  if (util::FlaggedAsyncUpdater::compareAndReset(this->editUpdate))
   {
-    this->updateTracks();
+    this->updateEdits();
   }
 }
 
 
 // ApplicationCommandTarget
 
-juce::ApplicationCommandTarget* ProjectContentComponent::getNextCommandTarget()
+juce::ApplicationCommandTarget*
+ProjectContentComponent::getNextCommandTarget()
 {
   return nullptr;
 }
@@ -233,8 +234,8 @@ bool ProjectContentComponent::perform(
   {
     selectionManager->deselectAll();
     this->getContext().getEditManager().visit(
-        [selectionManager](EditTrack* track) {
-          selectionManager->select(track, true);
+        [selectionManager](const JuceEditRef& edit) {
+          selectionManager->select(*edit, true);
         });
   }
 

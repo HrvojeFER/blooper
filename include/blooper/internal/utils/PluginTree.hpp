@@ -14,6 +14,16 @@ class PluginTreeBase : public ContextualBase
 
 
   [[nodiscard]] virtual juce::String getName() const = 0;
+
+  [[nodiscard]] inline int getId() const;
+
+
+  template<VisitDepth Depth = VisitDepth::deep,
+           typename TOnGroup,
+           typename TOnItem>
+  [[maybe_unused]] void visit(
+      TOnGroup onGroup,
+      TOnItem  onItem);
 };
 
 
@@ -37,8 +47,6 @@ class PluginTreeGroup : public PluginTreeBase
 
   [[nodiscard]] PluginTreeBase** end() noexcept;
 
-  void addOwned(PluginTreeBase* item);
-
 
  private:
   juce::String name;
@@ -47,6 +55,8 @@ class PluginTreeGroup : public PluginTreeBase
 
 
   void populateFrom(juce::KnownPluginList::PluginTree& list);
+
+  void addOwned(PluginTreeBase* item);
 
 
   [[nodiscard]] static PluginTreeGroup* createBuiltinsGroup(
@@ -96,71 +106,100 @@ class PluginTreeItem : public PluginTreeBase
 };
 
 
-enum class PluginTreeVisitType
+[[nodiscard]] inline int PluginTreeBase::getId() const
 {
-  deep,
-  shallow
-};
+  return this->getName().hashCode();
+}
 
-template<typename TOnGroup, typename TOnItem>
-[[maybe_unused]] static inline constexpr auto isPluginTreeVisitNoexcept =
-    noexcept(std::declval<TOnGroup>()(
-                 std::declval<class PluginTreeGroup&>()),
-             std::declval<TOnItem>()(
-                 std::declval<class PluginTreeItem&>()));
+
+template<VisitDepth Depth,
+         typename TOnGroup,
+         typename TOnItem>
+[[maybe_unused]] inline void PluginTreeBase::visit(
+    TOnGroup onGroup,
+    TOnItem  onItem)
+{
+  static_assert(
+      meta::typeid_(onGroup) ^
+          isVisitorOf ^
+          meta::type_c<PluginTreeGroup&>,
+      "onGroup must be a Visitor of PluginTreeGroup&.");
+
+  static_assert(
+      meta::typeid_(onItem) ^
+          isVisitorOf ^
+          meta::type_c<PluginTreeItem&>,
+      "onItem must be a Visitor of PluginTreeItem&.");
+
+  detail::visit<Depth>(
+      this,
+      move(onGroup),
+      move(onItem));
+}
+
+BLOOPER_NAMESPACE_END
+
+BLOOPER_DETAIL_NAMESPACE_BEGIN
+
+template<VisitDepth Depth,
+         typename TOnGroup,
+         typename TOnItem>
+[[maybe_unused]] inline void visit(
+    PluginTreeBase* base,
+    TOnGroup        onGroup,
+    TOnItem         onItem)
+{
+  if (auto group = dynamic_cast<PluginTreeGroup*>(base))
+  {
+    bool shouldStop = false;
+    visit<Depth>(group, onGroup, onItem, shouldStop);
+  }
+}
 
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic push
   #pragma ide diagnostic   ignored "misc-no-recursion"
 #endif // __JETBRAINS_IDE__
 
-template<PluginTreeVisitType VisitType = PluginTreeVisitType::shallow,
+template<VisitDepth Depth,
          typename TOnGroup,
          typename TOnItem>
-[[maybe_unused]] auto visit(
-    PluginTreeBase* base,
-    TOnGroup        onGroup,
-    TOnItem         onItem) noexcept(isPluginTreeVisitNoexcept<TOnGroup, TOnItem>)
+[[maybe_unused]] inline void visit(
+    PluginTreeGroup* group,
+    TOnGroup         onGroup,
+    TOnItem          onItem,
+    bool&            shouldStop)
 {
-  static_assert(
-      isInvokable(
-          env::meta::typeid_(onGroup),
-          env::meta::type_c<PluginTreeGroup&>),
-      "onSubGroup must be invokable with PluginTreeGroup&.");
-
-  static_assert(
-      isInvokable(
-          env::meta::typeid_(onItem),
-          env::meta::type_c<PluginTreeItem&>),
-      "onSubItem must be invokable with PluginTreeItem&.");
-
-
-  if (auto group = dynamic_cast<PluginTreeGroup*>(base))
+  for (auto subNode : *group)
   {
-    for (auto subNode : *group)
-      if (auto subGroup = dynamic_cast<class PluginTreeGroup*>(subNode))
+    if (auto subItem = dynamic_cast<class PluginTreeItem*>(subNode))
+      if (!callVisitor(onItem, *subItem))
       {
-        onGroup(*subGroup);
-
-        if constexpr (VisitType == PluginTreeVisitType::deep)
-        {
-          visit(group, onGroup, onItem);
-        }
+        shouldStop = true;
+        return;
       }
 
-    for (auto subNode : *group)
-      if (auto subItem = dynamic_cast<class PluginTreeItem*>(subNode))
-        onItem(*subItem);
-  }
+    if (auto subGroup = dynamic_cast<class PluginTreeGroup*>(subNode))
+    {
+      if (!callVisitor(onGroup, *subGroup))
+      {
+        shouldStop = true;
+        return;
+      }
 
-  if (auto item = dynamic_cast<PluginTreeItem*>(base))
-    onItem(*item);
+      if constexpr (Depth == VisitDepth::deep)
+      {
+        visit<Depth>(subGroup, onGroup, onItem, shouldStop);
+        if (shouldStop) return;
+      }
+    }
+  }
 }
 
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic pop
 #endif // __JETBRAINS_IDE__
 
-BLOOPER_NAMESPACE_END
+BLOOPER_DETAIL_NAMESPACE_END
 
 #endif // BLOOPER_PLUGIN_TREE_HPP

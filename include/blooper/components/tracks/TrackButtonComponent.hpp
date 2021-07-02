@@ -22,10 +22,10 @@ class TrackButtonComponent final :
 
 
   explicit TrackButtonComponent(
-      AbstractContext&         context,
-      State                    state,
-      JuceRef<class EditTrack> track,
-      TrackButtonOptions       options = {});
+      AbstractContext&   context,
+      State              state,
+      JuceTrackRef       track,
+      TrackButtonOptions options = {});
 
   ~TrackButtonComponent() override;
 
@@ -33,7 +33,7 @@ class TrackButtonComponent final :
 
 
  private:
-  JuceRef<class EditTrack> track;
+  JuceTrackRef track;
 
   class Pimpl;
   friend Pimpl;

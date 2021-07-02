@@ -35,7 +35,8 @@ enum class IconAssetId : ResourceIndex
   // App
 
   quit [[maybe_unused]] = 1000,
-  save [[maybe_unused]] = 1001,
+  saveProject [[maybe_unused]] = 1001,
+  saveEdit [[maybe_unused]] = 1005, // TODO
   saveAndQuit [[maybe_unused]] = 1002,
   saveAll [[maybe_unused]] = 1003,
   saveAs [[maybe_unused]] = 1004,
@@ -54,6 +55,8 @@ enum class IconAssetId : ResourceIndex
   toggleControlSurfacePanel [[maybe_unused]] = 1401,
   toggleBrowserPanel [[maybe_unused]] = 1402,
 
+  menu [[maybe_unused]] = 1500, // TODO
+
 
   // Edit
 
@@ -62,8 +65,9 @@ enum class IconAssetId : ResourceIndex
   copy [[maybe_unused]] = 2002,
   paste [[maybe_unused]] = 2003,
 
-  add [[maybe_unused]] = 2100,
-  addOther [[maybe_unused]] = 2101,
+  addTrack [[maybe_unused]] = 2100,
+  addPlugin [[maybe_unused]] = 2101,
+  addEdit [[maybe_unused]] = 2102, // TODO
 
   undo [[maybe_unused]] = 2200,
   redo [[maybe_unused]] = 2201,
@@ -75,7 +79,7 @@ enum class IconAssetId : ResourceIndex
   pause [[maybe_unused]] = 3001,
   stop [[maybe_unused]] = 3002,
   record [[maybe_unused]] = 3003,
-  scheduledPlay [[maybe_unused]] = 3004, // TODO
+  scheduledPlay [[maybe_unused]] = 3004,   // TODO
   scheduledRecord [[maybe_unused]] = 3005, // TODO
 
   monitor [[maybe_unused]] = 3100, // TODO
@@ -93,6 +97,8 @@ enum class IconAssetId : ResourceIndex
   syncTrackMode [[maybe_unused]] = 4201, // TODO
   oneShotTrackMode [[maybe_unused]] = 4202,
   freeTrackMode [[maybe_unused]] = 4203,
+
+  cycleTrackInterval [[maybe_unused]] = 4400, // TODO
 
   clearTrack [[maybe_unused]] = 4300, // TODO
 
@@ -135,7 +141,7 @@ getAsset(TId                       id,
          AssetType<TConstructor>&& _default)
 {
   static_assert(
-      meta::traits::is_castable(
+      meta::traits::is_statically_castable_into(
           meta::type_c<TId>,
           meta::type_c<ResourceIndex>),
       "Id passed to getAsset needs to be castable to a ResourceIndex.");

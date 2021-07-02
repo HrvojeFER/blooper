@@ -49,8 +49,25 @@ BLOOPER_NAMESPACE_BEGIN
                         meta::typeid_(toCheck.getUndoManager()),
                         meta::type_c<JuceUndoManager>),
                     meta::traits::is_same(
+                        meta::typeid_(toCheck.getUndoManagerPtr()),
+                        meta::type_c<JuceUndoManager*>),
+                    meta::traits::is_same(
                         meta::typeid_(toCheck.getCommandManager()),
                         meta::type_c<JuceCommandManager>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getSelectionManager()),
+                        meta::type_c<JuceSelectionManager>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getSelectionManagerPtr()),
+                        meta::type_c<JuceSelectionManager*>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getFocusedSelectionManager()),
+                        meta::type_c<JuceSelectionManagerRef>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.setFocusedSelectionManager(
+                            std::declval<JuceSelectionManagerRef>())),
+                        meta::type_c<JuceSelectionManagerRef>),
 
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getLookAndFeel()),
@@ -58,11 +75,8 @@ BLOOPER_NAMESPACE_BEGIN
 
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getEngine()),
-                        meta::type_c<JuceEngine>),
-                    meta::traits::is_same(
-                        meta::typeid_(toCheck.getSelectionManager()),
-                        meta::type_c<JuceSelectionManager>))) {}) ^
-            meta::inherit ^
+                        meta::type_c<JuceEngine>))) {}) ^
+            meta::after ^
             meta::check(
                 [](auto&& toCheck)
                     -> decltype(toCheck.getRootDir(),
@@ -78,6 +92,7 @@ BLOOPER_NAMESPACE_BEGIN
 
                                 toCheck.getAssetManager(),
                                 toCheck.getUndoManager(),
+                                toCheck.getUndoManagerPtr(),
 
                                 toCheck.getCommandManager(),
                                 toCheck.registerCommandTarget(
@@ -85,10 +100,15 @@ BLOOPER_NAMESPACE_BEGIN
                                 toCheck.unregisterCommandTarget(
                                     std::declval<JuceCommandTarget*>()),
 
+                                toCheck.getSelectionManager(),
+                                toCheck.getSelectionManagerPtr(),
+                                toCheck.getFocusedSelectionManager(),
+                                toCheck.setFocusedSelectionManager(
+                                    std::declval<JuceSelectionManagerRef>()),
+
                                 toCheck.getLookAndFeel(),
 
-                                toCheck.getEngine(),
-                                toCheck.getSelectionManager()) {}));
+                                toCheck.getEngine()) {}));
 
 [[maybe_unused]] inline constexpr auto isContext =
     meta::satisfies_all(
@@ -114,9 +134,18 @@ BLOOPER_NAMESPACE_BEGIN
                         meta::typeid_(toCheck.getEditManager()),
                         meta::type_c<class EditManager>),
                     meta::traits::is_same(
+                        meta::typeid_(toCheck.getFocusedEdit()),
+                        meta::type_c<JuceEditRef>),
+
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getEditManager()),
+                        meta::type_c<class EditManager>),
+
+
+                    meta::traits::is_same(
                         meta::typeid_(toCheck.getSynchronizer()),
                         meta::type_c<class Synchronizer>))) {}) ^
-            meta::inherit ^
+            meta::after ^
             meta::check(
                 [](auto&& toCheck)
                     -> decltype(toCheck.getProject(),
@@ -126,12 +155,16 @@ BLOOPER_NAMESPACE_BEGIN
                                 toCheck.getProjectState(),
 
                                 toCheck.getEditManager(),
+                                toCheck.getFocusedEdit(),
+                                toCheck.setFocusedEdit(
+                                    std::declval<JuceEditRef>()),
+
                                 toCheck.getSynchronizer()) {}));
 
 template<typename TStatefulTraits>
 class [[maybe_unused]] AnyAbstractCoreContext :
     public virtual TStatefulTraits::abstractType,
-    public juce::ApplicationCommandTarget
+    public virtual juce::ApplicationCommandTarget
 {
   using stateType [[maybe_unused]] =
       typename TStatefulTraits::stateType;
@@ -226,6 +259,25 @@ class [[maybe_unused]] AnyAbstractCoreContext :
   unregisterCommandTarget(JuceCommandTarget* target) = 0;
 
 
+  [[maybe_unused, nodiscard]] virtual inline const JuceSelectionManager&
+  getSelectionManager() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceSelectionManager&
+  getSelectionManager() noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline const JuceSelectionManager*
+  getSelectionManagerPtr() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceSelectionManager*
+  getSelectionManagerPtr() noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline JuceSelectionManagerRef
+  getFocusedSelectionManager() = 0;
+
+  [[maybe_unused]] virtual inline JuceSelectionManagerRef
+      setFocusedSelectionManager(JuceSelectionManagerRef) = 0;
+
+
   [[maybe_unused, nodiscard]] virtual inline const JuceLookAndFeel&
   getLookAndFeel() const noexcept = 0;
 
@@ -240,11 +292,8 @@ class [[maybe_unused]] AnyAbstractCoreContext :
   getEngine() noexcept = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceSelectionManager&
-  getSelectionManager() const noexcept = 0;
-
-  [[maybe_unused, nodiscard]] virtual inline JuceSelectionManager&
-  getSelectionManager() noexcept = 0;
+  [[maybe_unused]] virtual inline void
+      openProject(JuceProjectRef) = 0;
 };
 
 template<typename TStatefulTraits>
@@ -288,6 +337,12 @@ class [[maybe_unused]] AnyAbstractContext :
   [[maybe_unused, nodiscard]] virtual inline class EditManager&
   getEditManager() noexcept = 0;
 
+  [[maybe_unused, nodiscard]] virtual inline JuceEditRef
+  getFocusedEdit() = 0;
+
+  [[maybe_unused]] virtual inline JuceEditRef
+      setFocusedEdit(JuceEditRef) = 0;
+
 
   [[maybe_unused, nodiscard]] virtual inline const class Synchronizer&
   getSynchronizer() const noexcept = 0;
@@ -313,14 +368,14 @@ template<typename TContextualTraits>
         [](auto&& toCheck)
             -> decltype(isCoreContext(
                 meta::typeid_(toCheck.getContext()))) {}) ^
-    meta::inherit ^ isAnyContextual;
+    meta::after ^ isAnyContextual;
 
 [[maybe_unused]] inline constexpr auto isContextual =
     meta::attribute(
         [](auto&& toCheck)
             -> decltype(isContext(
                 meta::typeid_(toCheck.getContext()))) {}) ^
-    meta::inherit ^ isAnyContextual;
+    meta::after ^ isAnyContextual;
 
 [[maybe_unused]] inline constexpr auto isCoreContextualBase =
     meta::satisfies_all(
@@ -350,7 +405,7 @@ template<typename TContextualTraits>
                 isAnyContextualBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::

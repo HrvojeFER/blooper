@@ -72,8 +72,8 @@ ProjectComponent::ProjectComponent(
       {new juce::SliderPropertyComponent(
           this->bpm.getPropertyAsValue(),
           "Bpm",
-          30,
-          500,
+          te::TempoSetting::minBPM,
+          te::TempoSetting::maxBPM,
           0.01)});
 
 

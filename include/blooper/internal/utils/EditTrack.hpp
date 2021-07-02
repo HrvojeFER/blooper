@@ -12,13 +12,6 @@ BLOOPER_NAMESPACE_BEGIN
 
 // indices so it works with dropdowns
 
-enum class TrackMode : int
-{
-  sync [[maybe_unused]] = 1,
-  oneShot [[maybe_unused]] = 2,
-  free [[maybe_unused]] = 3,
-};
-
 enum class TrackPlayback : int
 {
   paused [[maybe_unused]] = 1,
@@ -252,18 +245,6 @@ BLOOPER_NAMESPACE_END
 
 namespace juce
 {
-template<>
-struct VariantConverter<blooper::TrackMode>
-{
-  static blooper::TrackMode fromVar(const var& v)
-  {
-    return static_cast<blooper::TrackMode>(static_cast<int>(v));
-  }
-  static var toVar(const blooper::TrackMode& i)
-  {
-    return static_cast<int>(i);
-  }
-};
 template<>
 struct VariantConverter<blooper::TrackPlayback>
 {

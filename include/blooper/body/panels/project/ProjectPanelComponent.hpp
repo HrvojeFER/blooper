@@ -6,41 +6,34 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+struct ProjectPanelOptions
+{
+};
+
 class ProjectPanelComponent : public ComponentBase
 {
  public:
   BLOOPER_STATE_ID(ProjectPanelComponent);
 
 
-  struct Options
-  {
-  } options;
-
   explicit ProjectPanelComponent(
-      AbstractContext& context,
-      State            state,
-      Options          options = {});
+      AbstractContext&    context,
+      State               state,
+      ProjectPanelOptions options = {});
 
   ~ProjectPanelComponent() override;
 
+  ProjectPanelOptions options;
+
 
  private:
-  BLOOPER_ID(projectScrollStartId);
-  JuceCached<double> projectScrollStart;
-
-  BLOOPER_ID(projectScrollEndId);
-  JuceCached<double> projectScrollEnd;
-
-
   std::unique_ptr<class ProjectContentComponent> content;
-
-  std::unique_ptr<juce::Viewport> viewport;
 
 
   // Component
 
  public:
-  void paint(JuceGraphics&) override;
+  void paint(JuceGraphics& g) override;
 
   void resized() override;
 

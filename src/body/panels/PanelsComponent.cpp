@@ -77,7 +77,7 @@ PanelsComponent::PanelsComponent(
       defaultBrowserPanelOpen);
 
 
-  ProjectPanelComponent::Options projectPanelOptions{};
+  ProjectPanelOptions projectPanelOptions{};
 
   this->projectPanel = std::make_unique<ProjectPanelComponent>(
       this->getContext(),

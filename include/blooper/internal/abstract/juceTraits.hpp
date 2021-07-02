@@ -21,7 +21,7 @@ template<typename TObject>
 using JuceRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
 
 template<typename TObject>
-// can't put const chere because of how juce does reference counting...
+// can't put const here because of how juce does reference counting...
 using JuceConstRef [[maybe_unused]] = juce::ReferenceCountedObjectPtr<TObject>;
 
 using JuceValue [[maybe_unused]] = juce::Value;
@@ -91,7 +91,16 @@ using JuceLogger [[maybe_unused]] = juce::Logger;
 using JuceUndoManager [[maybe_unused]] = juce::UndoManager;
 using JuceUndoableAction [[maybe_unused]] = juce::UndoableAction;
 
-using JuceSelectionManager [[maybe_unused]] = te::SelectionManager;
+using JuceSelectionManager [[maybe_unused]] =
+    te::SelectionManager;
+using JuceSelectionManagerRef [[maybe_unused]] =
+    std::shared_ptr<te::SelectionManager>;
+using JuceSelectionManagerConstRef [[maybe_unused]] =
+    std::shared_ptr<te::SelectionManager>;
+using JuceSelectionManagerWeakRef [[maybe_unused]] =
+    std::weak_ptr<te::SelectionManager>;
+using JuceSelectionManagerWeakConstRef [[maybe_unused]] =
+    std::weak_ptr<te::SelectionManager>;
 
 
 [[maybe_unused]] inline constexpr auto isJuceLookAndFeel =
@@ -176,13 +185,25 @@ BLOOPER_STATIC_ASSERT(
 
 using JuceEdit [[maybe_unused]] = te::Edit;
 using JuceEditRef [[maybe_unused]] = std::shared_ptr<JuceEdit>;
-// for now the same as other juce refs because they work the same way
 using JuceEditConstRef [[maybe_unused]] = std::shared_ptr<JuceEdit>;
+using JuceEditWeakRef [[maybe_unused]] = std::weak_ptr<JuceEdit>;
+using JuceEditWeakConstRef [[maybe_unused]] = std::weak_ptr<JuceEdit>;
 
 using JuceTransport [[maybe_unused]] = te::TransportControl;
 using JuceTransportRef [[maybe_unused]] = te::TransportControl*;
-// for now the same as other juce refs because they work the same way
 using JuceTransportConstRef [[maybe_unused]] = te::TransportControl*;
+
+using JuceTempo [[maybe_unused]] = te::TempoSequence;
+using JuceTempoRef [[maybe_unused]] = JuceTempo*;
+using JuceTempoConstRef [[maybe_unused]] = JuceTempo*;
+
+using JuceTempoSetting [[maybe_unused]] = te::TempoSetting;
+using JuceTempoSettingRef [[maybe_unused]] = JuceRef<JuceTempoSetting>;
+using JuceTempoSettingConstRef [[maybe_unused]] = JuceConstRef<JuceTempoSetting>;
+
+using JuceTimeSigSetting [[maybe_unused]] = te::TimeSigSetting;
+using JuceTimeSigSettingRef [[maybe_unused]] = JuceRef<JuceTimeSigSetting>;
+using JuceTimeSigSettingConstRef [[maybe_unused]] = JuceConstRef<JuceTimeSigSetting>;
 
 
 [[maybe_unused]] inline constexpr auto isJuceTrack =
@@ -227,17 +248,15 @@ BLOOPER_STATIC_ASSERT(
         meta::reverse_partial(
             meta::traits::is_convertible,
             meta::type_c<const te::Plugin&>),
-        meta::traits::dereference);
+        meta::traits::dereferenced);
 
 
 using JucePlugin [[maybe_unused]] = te::Plugin;
 using JucePluginRef [[maybe_unused]] = JuceRef<JucePlugin>;
-// can't put const chere because of how juce does reference counting...
 using JucePluginConstRef [[maybe_unused]] = JuceConstRef<JucePlugin>;
 
 using JuceExternalPlugin [[maybe_unused]] = te::ExternalPlugin;
 using JuceExternalPluginRef [[maybe_unused]] = JuceRef<JuceExternalPlugin>;
-// can't put const chere because of how juce does reference counting...
 using JuceExternalPluginConstRef [[maybe_unused]] = JuceConstRef<JuceExternalPlugin>;
 
 using JucePluginWindowState [[maybe_unused]] = te::PluginWindowState;

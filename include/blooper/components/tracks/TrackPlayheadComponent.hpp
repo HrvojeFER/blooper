@@ -3,7 +3,8 @@
 #pragma once
 
 #include <blooper/internal/abstract/components.hpp>
-#include <blooper/internal/abstract/juceTraits.hpp>
+
+#include <blooper/internal/abstract/time.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -21,10 +22,10 @@ class TrackPlayheadComponent :
 
 
   explicit TrackPlayheadComponent(
-      AbstractContext&         context,
-      State                    state,
-      JuceRef<class EditTrack> track,
-      TrackPlayheadOptions     options = {});
+      AbstractContext&     context,
+      State                state,
+      JuceTrackRef         track,
+      TrackPlayheadOptions options = {});
 
   ~TrackPlayheadComponent() override;
 
@@ -33,7 +34,10 @@ class TrackPlayheadComponent :
 
 
  private:
-  JuceRef<class EditTrack> track;
+  JuceTrackRef track;
+
+  JuceCached<Interval> interval;
+
 
   JuceColourId colourId;
 

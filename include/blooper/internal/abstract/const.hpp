@@ -21,6 +21,9 @@ inline constexpr auto delayedCallbackDelayMilliseconds{50};
 
 inline constexpr auto defaultBpm{120};
 
+inline constexpr auto loopStartBeat{0.0};
+inline constexpr auto loopEndBeat{16.0};
+
 
 // context
 

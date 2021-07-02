@@ -4,8 +4,6 @@
 
 #include <blooper/internal/abstract/components.hpp>
 
-#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
-
 BLOOPER_NAMESPACE_BEGIN
 
 class TrackPluginsComponent :
@@ -23,16 +21,16 @@ class TrackPluginsComponent :
   } options;
 
   explicit TrackPluginsComponent(
-      AbstractContext&         context,
-      State                    state,
-      JuceRef<class EditTrack> track,
-      Options                  options = {});
+      AbstractContext& context,
+      State            state,
+      JuceTrackRef     track,
+      Options          options = {});
 
   ~TrackPluginsComponent() override;
 
 
  private:
-  JuceRef<class EditTrack> track;
+  JuceTrackRef track;
 
 
   std::unique_ptr<juce::ListBox> list;

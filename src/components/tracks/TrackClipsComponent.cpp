@@ -2,7 +2,6 @@
 
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
-#include <blooper/internal/utils/EditTrack.hpp>
 #include <blooper/internal/utils/style.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
@@ -11,7 +10,7 @@ BLOOPER_NAMESPACE_BEGIN
 TrackClipsComponent::TrackClipsComponent(
     AbstractContext&  context,
     State             state,
-    EditTrackRef      track,
+    JuceClipTrackRef  track,
     TrackClipsOptions options)
     : ComponentBase(
           context,
@@ -22,7 +21,7 @@ TrackClipsComponent::TrackClipsComponent(
 {
   this->list =
       std::make_unique<juce::ListBox>(
-          this->track->getAudio().getName() + " Clips",
+          this->track->getName() + " Clips",
           static_cast<juce::ListBoxModel*>(this));
 
   this->list->setRowHeight(35);
@@ -33,20 +32,20 @@ TrackClipsComponent::TrackClipsComponent(
       *this->list);
 
 
-  this->track->getAudio().state.addListener(this);
+  this->track->state.addListener(this);
   this->getContext().registerCommandTarget(this);
 }
 
 TrackClipsComponent::~TrackClipsComponent()
 {
   this->getContext().unregisterCommandTarget(this);
-  this->track->getAudio().state.removeListener(this);
+  this->track->state.removeListener(this);
 }
 
 
 bool TrackClipsComponent::isValidRow(int row) const noexcept
 {
-  return row >= 0 && row < this->track->getAudio().getClips().size();
+  return row >= 0 && row < this->track->getClips().size();
 }
 
 
@@ -64,7 +63,7 @@ void TrackClipsComponent::resized()
 
 int TrackClipsComponent::getNumRows()
 {
-  return this->track->getAudio().getClips().size();
+  return this->track->getClips().size();
 }
 
 void TrackClipsComponent::paintListBoxItem(
@@ -76,7 +75,7 @@ void TrackClipsComponent::paintListBoxItem(
 {
   if (!this->isValidRow(row)) return;
 
-  const auto clip = this->track->getAudio().getClips()[row];
+  const auto clip = this->track->getClips()[row];
   if (!clip) return;
 
   isSelected = false;
@@ -124,7 +123,7 @@ void TrackClipsComponent::listBoxItemClicked(
 {
   if (!this->isValidRow(row)) return;
 
-  const auto clip = this->track->getAudio().getClips()[row];
+  const auto clip = this->track->getClips()[row];
   if (!clip) return;
 
   if (auto selection =
@@ -143,7 +142,7 @@ void TrackClipsComponent::listBoxItemDoubleClicked(
 {
   if (!this->isValidRow(row)) return;
 
-  const auto clip = this->track->getAudio().getClips()[row];
+  const auto clip = this->track->getClips()[row];
   if (!clip) return;
 
   if (auto selection =
@@ -161,10 +160,16 @@ juce::String TrackClipsComponent::getTooltipForRow(
 {
   if (!this->isValidRow(row)) return {};
 
-  const auto clip = this->track->getAudio().getClips()[row];
+  const auto clip = this->track->getClips()[row];
   if (!clip) return {};
 
-  return clip->getSelectableDescription();
+  return clip->getSelectableDescription() +
+         "\n" +
+         "Takes: " + JuceString(clip->getNumTakes(false)) +
+         "\n" +
+         "Start: " + JuceString(clip->getStartBeat()) +
+         "\n" +
+         "End: " + JuceString(clip->getEndBeat());
 }
 
 
@@ -204,11 +209,56 @@ bool TrackClipsComponent::perform(
               .getCurrentlyFocusedSelectionManager())
   {
     selectionManager->deselectAll();
-    for (auto clip : this->track->getAudio().getClips())
+    for (auto clip : this->track->getClips())
       selectionManager->select(clip, true);
   }
 
   return true;
+}
+
+
+// ValueTreeListener
+
+void TrackClipsComponent::valueTreeChildAdded(
+    juce::ValueTree& tree,
+    juce::ValueTree& child)
+{
+  if (tree == this->track->state)
+  {
+    if (child.hasType(te::IDs::AUDIOCLIP))
+    {
+      this->list->updateContent();
+    }
+  }
+}
+
+void TrackClipsComponent::valueTreeChildRemoved(
+    juce::ValueTree& tree,
+    juce::ValueTree& child,
+    int)
+{
+  if (tree == this->track->state)
+  {
+    if (child.hasType(te::IDs::AUDIOCLIP))
+    {
+      this->list->updateContent();
+    }
+  }
+}
+
+void TrackClipsComponent::valueTreeChildOrderChanged(
+    juce::ValueTree& tree,
+    int              childAIndex,
+    int              childBIndex)
+{
+  if (tree == this->track->state)
+  {
+    if (tree.getChild(childAIndex).hasType(te::IDs::AUDIOCLIP) ||
+        tree.getChild(childBIndex).hasType(te::IDs::AUDIOCLIP))
+    {
+      this->list->updateContent();
+    }
+  }
 }
 
 BLOOPER_NAMESPACE_END

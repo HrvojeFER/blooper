@@ -1,7 +1,7 @@
 #include <blooper/components/tracks/TrackComponent.hpp>
 
 #include <blooper/internal/ext/component.hpp>
-#include <blooper/internal/utils/EditTrack.hpp>
+#include <blooper/internal/ext/track.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
@@ -18,7 +18,7 @@ BLOOPER_NAMESPACE_BEGIN
 TrackComponent::TrackComponent(
     AbstractContext& context,
     State            state,
-    EditTrackRef     track,
+    JuceTrackRef     track,
     Options          options)
     : ComponentBase(
           context,
@@ -49,7 +49,7 @@ TrackComponent::TrackComponent(
 
   // Header
 
-  const auto trackName = this->track->getAudio().getName();
+  const auto trackName = this->track->getName();
 
   this->name =
       std::make_unique<juce::Label>(
@@ -92,7 +92,9 @@ TrackComponent::TrackComponent(
   this->muteButton->setClickingTogglesState(true);
 
   this->muteButton->getToggleStateValue().referTo(
-      this->track->muted.getPropertyAsValue());
+      this->track->state.getPropertyAsValue(
+          te::IDs::mute,
+          std::addressof(this->track->edit.getUndoManager())));
 
   this->soloButton =
       std::make_unique<juce::DrawableButton>(
@@ -102,22 +104,28 @@ TrackComponent::TrackComponent(
   this->soloButton->setImages(
       assets.getIconView(assets::IconAssetId::soloTrack));
 
-  this->soloButton->onClick = [this] {
-    this->track->toggleSoloed();
-  };
+  this->soloButton->getToggleStateValue().referTo(
+      this->track->state.getPropertyAsValue(
+          te::IDs::solo,
+          std::addressof(this->track->edit.getUndoManager())));
 
-  this->armButton =
-      std::make_unique<juce::DrawableButton>(
-          "Arm",
-          juce::DrawableButton::ImageFitted);
+  if (track->isAudioTrack())
+  {
+    this->armButton =
+        std::make_unique<juce::DrawableButton>(
+            "Arm",
+            juce::DrawableButton::ImageFitted);
 
-  this->armButton->setImages(
-      assets.getIconView(assets::IconAssetId::armTrack));
+    this->armButton->setImages(
+        assets.getIconView(assets::IconAssetId::armTrack));
 
-  this->armButton->setClickingTogglesState(true);
+    this->armButton->setClickingTogglesState(true);
 
-  this->armButton->getToggleStateValue().referTo(
-      this->track->armed.getPropertyAsValue());
+    this->armButton->getToggleStateValue().referTo(
+        this->track->state.getPropertyAsValue(
+            id::armed,
+            std::addressof(this->track->edit.getUndoManager())));
+  }
 
 
   // Dropdowns
@@ -137,7 +145,7 @@ TrackComponent::TrackComponent(
       static_cast<int>(TrackMode::free));
 
   this->modeDropdown->setSelectedId(
-      static_cast<int>(this->track->mode.get()),
+      static_cast<int>(this->track->state[id::mode]),
       juce::dontSendNotification);
 
 
@@ -172,7 +180,7 @@ TrackComponent::TrackComponent(
       static_cast<int>(Interval::sixteenBeats));
 
   this->intervalDropdown->setSelectedId(
-      static_cast<int>(this->track->interval.get()),
+      static_cast<int>(this->track->state[id::interval]),
       juce::dontSendNotification);
 
 
@@ -192,16 +200,19 @@ TrackComponent::TrackComponent(
 
   // Footer
 
-  TrackClipsOptions clipsOptions{};
+  if (auto clipTrack = dynamic_cast<te::ClipTrack*>(this->track.get()))
+  {
+    TrackClipsOptions clipsOptions{};
 
-  this->clips =
-      std::make_unique<TrackClipsComponent>(
-          this->getContext(),
-          this->getState().getOrCreateChildWithName(
-              TrackClipsComponent::stateId,
-              nullptr),
-          this->track,
-          move(clipsOptions));
+    this->clips =
+        std::make_unique<TrackClipsComponent>(
+            this->getContext(),
+            this->getState().getOrCreateChildWithName(
+                TrackClipsComponent::stateId,
+                nullptr),
+            clipTrack,
+            move(clipsOptions));
+  }
 
 
   // Add
@@ -225,7 +236,7 @@ TrackComponent::TrackComponent(
 
   // RAII
 
-  this->track->getAudio().state.addListener(this);
+  this->track->state.addListener(this);
 
   this->name->addListener(this);
 
@@ -234,16 +245,12 @@ TrackComponent::TrackComponent(
 
   this->getContext().getSelectionManager().addChangeListener(this);
 
-  this->getContext().getEditManager().addListener(this);
-
   this->appearanceSettings.addListener(this);
 }
 
 TrackComponent::~TrackComponent()
 {
   this->appearanceSettings.removeListener(this);
-
-  this->getContext().getEditManager().removeListener(this);
 
   this->getContext().getSelectionManager().removeChangeListener(this);
 
@@ -252,7 +259,7 @@ TrackComponent::~TrackComponent()
 
   this->name->removeListener(this);
 
-  this->track->getAudio().state.removeListener(this);
+  this->track->state.removeListener(this);
 }
 
 
@@ -347,13 +354,16 @@ void TrackComponent::resized()
   availableArea.removeFromTop(10);
 
 
-  // Footer
+  // Clips
 
-  this->clips->setBounds(
-      availableArea.removeFromBottom(
-          static_cast<int>(this->clipsSize)));
+  if (ext::isClipTrack(this->track))
+  {
+    this->clips->setBounds(
+        availableArea.removeFromBottom(
+            static_cast<int>(this->clipsSize)));
 
-  availableArea.removeFromBottom(10);
+    availableArea.removeFromBottom(10);
+  }
 
 
   // Plugin List
@@ -401,15 +411,6 @@ void TrackComponent::valueTreePropertyChanged(
           juce::dontSendNotification);
     }
   }
-  else if (tree == this->getContext().getEditManager().getState())
-  {
-    if (_id == id::soloed)
-    {
-      this->soloButton->setToggleState(
-          this->track->isSoloed(),
-          juce::dontSendNotification);
-    }
-  }
   else if (tree == this->appearanceSettings)
   {
     if (_id == id::trackClipsSize)
@@ -427,7 +428,7 @@ void TrackComponent::labelTextChanged(
 {
   if (this->name.get() == labelThatHasChanged)
   {
-    this->track->getAudio().setName(this->name->getText());
+    this->track->setName(this->name->getText());
   }
 }
 
@@ -439,13 +440,17 @@ void TrackComponent::comboBoxChanged(
 {
   if (comboBoxThatHasChanged == this->modeDropdown.get())
   {
-    this->track->mode = static_cast<TrackMode>(
-        this->modeDropdown->getSelectedId());
+    this->track->state.setProperty(
+        id::mode,
+        this->modeDropdown->getSelectedId(),
+        std::addressof(this->track->edit.getUndoManager()));
   }
   else if (comboBoxThatHasChanged == this->intervalDropdown.get())
   {
-    this->track->interval = static_cast<Interval>(
-        this->intervalDropdown->getSelectedId());
+    this->track->state.setProperty(
+        id::mode,
+        this->intervalDropdown->getSelectedId(),
+        std::addressof(this->track->edit.getUndoManager()));
   }
 }
 

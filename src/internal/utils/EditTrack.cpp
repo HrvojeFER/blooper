@@ -155,13 +155,19 @@ EditTrack::~EditTrack()
 [[maybe_unused, nodiscard]] double
 EditTrack::getProgress() const noexcept
 {
-  if (this->mode == TrackMode::sync)
+  if (this->transport->looping)
+  {
+    return this->transport->getCurrentPosition() /
+           this->transport->getLoopRange().getLength();
+  }
+  else if (this->mode == TrackMode::sync)
   {
     return this->getContext()
         .getSynchronizer()
         .getProgress(this->interval);
   }
-  else if (auto shortestClip = this->getShortestClip())
+  else if (auto shortestClip = this->getShortestClip();
+           this->transport->isPlaying())
   {
     return this->transport->getCurrentPosition() /
            shortestClip->getMaximumLength();
@@ -199,7 +205,7 @@ void EditTrack::synchronize()
         this->transport->looping = true;
         this->transport->setLoopRange(
             {0,
-             sync.getMilliseconds(this->interval)});
+             getBeats(this->interval) / 2.0});
       }
       break;
 
@@ -321,6 +327,24 @@ void EditTrack::valueTreePropertyChanged(
       else if (this->playback == TrackPlayback::recording)
       {
         this->transport->record(false);
+
+        if (this->mode == TrackMode::sync)
+        {
+          this->playbackToken =
+              sync.onAsync(
+                  static_cast<Delay>(this->interval.get()),
+                  [weak = juce::WeakReference<EditTrack>(this)] {
+                    if (weak.wasObjectDeleted())
+                      return;
+
+                    weak->playbackToken = invalidToken;
+
+                    if (weak->playback != TrackPlayback::recording)
+                      return;
+
+                    weak->playback = TrackPlayback::paused;
+                  });
+        }
       }
     }
 

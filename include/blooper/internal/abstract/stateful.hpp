@@ -15,15 +15,15 @@ BLOOPER_NAMESPACE_BEGIN
     meta::always(meta::true_c);
 
 using State [[maybe_unused]] = JuceState;
-using StateListener [[maybe_unused]] = JuceStateListener;
 using StateIdentifier [[maybe_unused]] = JuceStateIdentifier;
+using StateListener [[maybe_unused]] = JuceStateListener;
 
 
 [[maybe_unused]] inline constexpr auto isAnyStateful =
     meta::attribute(
         [](auto&& toCheck)
             -> decltype(isAnyState(meta::typeid_(toCheck.getState()))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(toCheck.getState()) {});
@@ -43,7 +43,7 @@ template<typename TStatefulTraits>
                 meta::traits::is_same(
                     meta::typeid_(toCheck.getState()),
                     meta::type_c<State>))) {}) ^
-    meta::inherit ^ isAnyStateful;
+    meta::after ^ isAnyStateful;
 
 [[maybe_unused]] inline constexpr auto isStatefulBase =
     meta::satisfies_all(
@@ -66,7 +66,7 @@ template<typename TStatefulTraits>
                 isAnyStatefulBase<std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::

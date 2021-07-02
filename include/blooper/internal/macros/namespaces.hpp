@@ -54,6 +54,18 @@ BLOOPER_EXT_NAMESPACE_END
 BLOOPER_UTIL_NAMESPACE_BEGIN
 BLOOPER_UTIL_NAMESPACE_END
 
+#define BLOOPER_DETAIL_NAMESPACE_BEGIN \
+  namespace blooper::detail            \
+  {                                    \
+  namespace                            \
+  {
+#define BLOOPER_DETAIL_NAMESPACE_END \
+  } /* namespace */                  \
+  } /* namespace blooper::detail */
+
+BLOOPER_DETAIL_NAMESPACE_BEGIN
+BLOOPER_DETAIL_NAMESPACE_END
+
 
 #define BLOOPER_ASSETS_NAMESPACE_BEGIN \
   namespace blooper::assets            \
@@ -95,5 +107,15 @@ BLOOPER_META_NAMESPACE_END
 
 BLOOPER_TRAITS_NAMESPACE_BEGIN
 BLOOPER_TRAITS_NAMESPACE_END
+
+#define BLOOPER_STD_NAMESPACE_BEGIN    \
+  /* NOLINTNEXTLINE(cert-dcl58-cpp) */ \
+  namespace std                        \
+  {
+#define BLOOPER_STD_NAMESPACE_END \
+  } /* namespace std */
+
+BLOOPER_STD_NAMESPACE_BEGIN
+BLOOPER_STD_NAMESPACE_END
 
 #endif //BLOOPER_NAMESPACES_HPP

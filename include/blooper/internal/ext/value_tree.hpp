@@ -7,22 +7,34 @@
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
-template<typename TOnNode>
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic push
+  #pragma ide diagnostic   ignored "misc-no-recursion"
+#endif // __JETBRAINS_IDE__
+
+template<VisitDepth Type = VisitDepth::deep,
+         typename TOnNode>
 [[maybe_unused]] inline void visit(
     const JuceValueTree& root,
     TOnNode              onNode)
 {
   static_assert(
-      isInvokable(
-          meta::typeid_(onNode),
-          meta::type_c<juce::ValueTree>),
-      "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
+      meta::typeid_(onNode) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
 
 
-  onNode(root);
+  if (!root.isValid()) return;
 
-  for (auto node : root)
-    visit(node, onNode);
+  if constexpr (isAnyStoppingVisitor(meta::typeid_(onNode)))
+  {
+    if (!onNode(root)) return;
+  }
+  else
+  {
+    onNode(root);
+  }
+
+  for (auto node : root) visit(node, onNode);
 }
 
 template<typename TOnNode>
@@ -31,16 +43,21 @@ template<typename TOnNode>
     TOnNode              onNode)
 {
   static_assert(
-      isInvokable(
-          meta::typeid_(onNode),
-          meta::type_c<juce::ValueTree>),
-      "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
+      meta::typeid_(onNode) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
 
+  if (!root.isValid()) return;
 
-  onNode(root);
+  if constexpr (isAnyStoppingVisitor(meta::typeid_(onNode)))
+  {
+    if (!onNode(root)) return;
+  }
+  else
+  {
+    onNode(root);
+  }
 
-  if (auto parent = root.getParent(); parent.isValid())
-    visitAncestors(parent, onNode);
+  visitAncestors(root.getParent(), onNode);
 }
 
 template<typename TPredicate>
@@ -49,13 +66,11 @@ template<typename TPredicate>
     TPredicate           predicate)
 {
   static_assert(
-      meta::traits::is_convertible(
-          meta::traits::return_type(
-              meta::typeid_(predicate),
-              meta::type_c<juce::ValueTree>),
-          meta::type_c<bool>),
-      "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
+      meta::typeid_(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      "juce::ValueTree find requires a Predicate of juce::ValueTree.");
 
+
+  if (!root.isValid()) return {};
 
   if (predicate(root)) return root;
 
@@ -72,22 +87,24 @@ template<typename TPredicate>
     TPredicate           predicate)
 {
   static_assert(
-      meta::traits::is_convertible(
-          meta::traits::return_type(
-              meta::typeid_(predicate),
-              meta::type_c<juce::ValueTree>),
-          meta::type_c<bool>),
-      "juce::ValueTree visitor requires an Invokable with juce::ValueTree.");
+      meta::typeid_(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      "juce::ValueTree findAncestor requires a Predicate of juce::ValueTree.");
 
+
+  if (!root.isValid()) return {};
 
   if (predicate(root)) return root;
 
-  if (auto parent = root.getParent(); parent.isValid())
-    if (auto result = find(parent, predicate); result.isValid())
-      return result;
+  if (auto result = findAncestor(root.getParent(), predicate);
+      result.isValid())
+    return result;
 
   return {};
 }
+
+#ifdef __JETBRAINS_IDE__
+  #pragma clang diagnostic pop
+#endif // __JETBRAINS_IDE__
 
 
 [[maybe_unused]] inline auto ensureAllItemsHaveUids(

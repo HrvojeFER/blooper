@@ -50,7 +50,7 @@ class Context :
   getState() noexcept final;
 
 
-  // Context
+  // CoreContext
 
   [[maybe_unused, nodiscard]] inline const JuceFile&
   getRootDir() const noexcept final;
@@ -124,7 +124,24 @@ class Context :
   getLookAndFeel() noexcept final;
 
 
-  // Engine
+  [[maybe_unused, nodiscard]] inline const JuceSelectionManager&
+  getSelectionManager() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceSelectionManager&
+  getSelectionManager() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline const JuceSelectionManager*
+  getSelectionManagerPtr() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceSelectionManager*
+  getSelectionManagerPtr() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceSelectionManagerRef
+  getFocusedSelectionManager() final;
+
+  [[maybe_unused]] inline JuceSelectionManagerRef
+      setFocusedSelectionManager(JuceSelectionManagerRef) final;
+
 
   [[maybe_unused, nodiscard]] inline const class AssetManager&
   getAssetManager() const noexcept final;
@@ -140,14 +157,11 @@ class Context :
   getEngine() noexcept final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceSelectionManager&
-  getSelectionManager() const noexcept final;
-
-  [[maybe_unused, nodiscard]] inline JuceSelectionManager&
-  getSelectionManager() noexcept final;
+  [[maybe_unused]] inline void
+      openProject(JuceProjectRef) final;
 
 
-  // Project
+  // Context
 
   [[maybe_unused, nodiscard]] inline const JuceProject&
   getProject() const noexcept final;
@@ -179,6 +193,12 @@ class Context :
 
   [[maybe_unused, nodiscard]] inline class EditManager&
   getEditManager() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceEditRef
+  getFocusedEdit() final;
+
+  [[maybe_unused]] inline JuceEditRef
+      setFocusedEdit(JuceEditRef) final;
 
 
   [[maybe_unused, nodiscard]] inline const class Synchronizer&
@@ -259,18 +279,11 @@ class Context :
 
   std::unique_ptr<JuceFile> rootDir;
 
-  std::unique_ptr<JuceFile> projectsDir;
-
-  std::unique_ptr<JuceXmlFile> engineSettingsFile;
-  JuceState                    engineSettings;
-
   std::unique_ptr<JuceXmlFile> settingsFile;
   JuceState                    settings;
 
   std::unique_ptr<JuceXmlFile> stateFile;
   JuceState                    state;
-
-  JuceCached<JuceString> openProjectFilePath;
 
   std::unique_ptr<JuceFile>         logDir;
   std::unique_ptr<JuceFile>         logFile;
@@ -281,19 +294,27 @@ class Context :
   std::unique_ptr<JuceCommandManager>                 commandManager;
   juce::Array<juce::WeakReference<JuceCommandTarget>> commandTargets;
 
-  std::unique_ptr<JuceLookAndFeel> lookAndFeel;
+  std::shared_ptr<JuceSelectionManager>   selectionManager;
+  std::stack<JuceSelectionManagerWeakRef> focusedSelectionManagerStack;
 
   bool loaded;
 
+
+  std::unique_ptr<JuceLookAndFeel> lookAndFeel;
 
   std::unique_ptr<class AssetManager> assetManager;
 
   std::unique_ptr<juce::TooltipWindow> tooltipWindow;
 
-  std::unique_ptr<JuceEngine> engine;
-  JuceCached<bool>            monitored;
+  std::unique_ptr<JuceXmlFile> engineSettingsFile;
+  JuceState                    engineSettings;
 
-  std::unique_ptr<JuceSelectionManager> selectionManager;
+  std::unique_ptr<JuceFile> projectsDir;
+
+  std::unique_ptr<JuceEngine> engine;
+
+  JuceCached<bool>       monitored;
+  JuceCached<JuceString> openProjectFilePath;
 
   bool loadedEngine;
 
@@ -313,6 +334,11 @@ class Context :
   std::unique_ptr<class EditManager> editManager;
 
   bool loadedProject;
+
+
+  [[maybe_unused]] void removeExpiredCommandTargets();
+
+  [[maybe_unused]] void popExpiredSelectionManagers();
 
 
   // Special, Async
@@ -493,7 +519,40 @@ JuceLookAndFeel& Context::getLookAndFeel() noexcept
 }
 
 
-// Engine
+const JuceSelectionManager& Context::getSelectionManager() const noexcept
+{
+  return *this->selectionManager;
+}
+
+JuceSelectionManager& Context::getSelectionManager() noexcept
+{
+  return *this->selectionManager;
+}
+
+const JuceSelectionManager* Context::getSelectionManagerPtr() const noexcept
+{
+  return this->selectionManager.get();
+}
+
+JuceSelectionManager* Context::getSelectionManagerPtr() noexcept
+{
+  return this->selectionManager.get();
+}
+
+JuceSelectionManagerRef
+Context::getFocusedSelectionManager()
+{
+  this->popExpiredSelectionManagers();
+  return this->focusedSelectionManagerStack.top().lock();
+}
+
+JuceSelectionManagerRef
+Context::setFocusedSelectionManager(JuceSelectionManagerRef toFocus)
+{
+  this->focusedSelectionManagerStack.push(toFocus);
+  return std::move(toFocus);
+}
+
 
 const class AssetManager& Context::getAssetManager() const noexcept
 {
@@ -517,18 +576,13 @@ JuceEngine& Context::getEngine() noexcept
 }
 
 
-const JuceSelectionManager& Context::getSelectionManager() const noexcept
+void Context::openProject(JuceProjectRef _project)
 {
-  return *this->selectionManager;
-}
-
-JuceSelectionManager& Context::getSelectionManager() noexcept
-{
-  return *this->selectionManager;
+  this->reloadProjectAsync(move(_project));
 }
 
 
-// Project
+// Context
 
 const JuceProject& Context::getProject() const noexcept
 {

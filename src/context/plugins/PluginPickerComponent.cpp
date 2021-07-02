@@ -17,23 +17,22 @@ PluginPickerComponent::PluginPickerComponent(
 class PluginPickerComponent::Popup : public juce::PopupMenu
 {
  public:
-  explicit Popup(PluginTreeBase* pluginTree);
+  explicit Popup(PluginTreeBase& pluginTree);
 };
 
-PluginPickerComponent::Popup::Popup(PluginTreeBase* pluginTree)
+PluginPickerComponent::Popup::Popup(PluginTreeBase& pluginTree)
 {
-  visit(
-      pluginTree,
-      [this](auto& subGroup) {
+  pluginTree.visit<VisitDepth::shallow>(
+      [this](PluginTreeGroup& group) {
         this->addSubMenu(
-            subGroup.getName(),
-            PluginPickerComponent::Popup(&subGroup),
+            group.getName(),
+            PluginPickerComponent::Popup(group),
             true);
       },
-      [this](auto& subItem) {
+      [this](PluginTreeItem& item) {
         this->addItem(
-            getId(subItem),
-            subItem.getName(),
+            getId(item),
+            item.getName(),
             true,
             false);
       });
@@ -43,17 +42,19 @@ JucePluginRef PluginPickerComponent::runPopup()
 {
   if (!this->pluginTree)
     this->pluginTree =
-        std::make_unique<PluginTreeGroup>(getContext());
+        std::make_unique<PluginTreeGroup>(
+            this->getContext());
 
   if (!this->popup)
     this->popup =
-        std::make_unique<Popup>(pluginTree.get());
+        std::make_unique<Popup>(
+            *this->pluginTree);
 
-  auto idOfUserSelection = popup->show();
+  auto idOfUserSelection = this->popup->show();
   if (!idOfUserSelection) return nullptr;
 
   auto item = PluginPickerComponent::findIn(
-      pluginTree.get(),
+      *this->pluginTree,
       idOfUserSelection);
   if (!item) return nullptr;
 
@@ -67,16 +68,20 @@ int PluginPickerComponent::getId(const PluginTreeBase& item)
 }
 
 class PluginTreeItem* PluginPickerComponent::findIn(
-    PluginTreeBase* pluginTree,
+    PluginTreeBase& root,
     int             id)
 {
   PluginTreeItem* result = nullptr;
 
-  visit<PluginTreeVisitType::deep>(
-      pluginTree,
-      [](auto&) {},
-      [&result, id](auto& subItem) {
-        if (getId(subItem) == id) result = &subItem;
+  root.visit<VisitDepth::deep>(
+      [](PluginTreeGroup&) {},
+      [&result, id](PluginTreeItem& item) {
+        if (getId(item) == id)
+        {
+          result = std::addressof(item);
+          return false;
+        }
+        return true;
       });
 
   return result;

@@ -1,7 +1,5 @@
 #include <blooper/body/panels/project/ProjectPanelComponent.hpp>
 
-#include <blooper/internal/abstract/const.hpp>
-#include <blooper/internal/ext/value_tree.hpp>
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/utils/gui.hpp>
 
@@ -10,9 +8,9 @@
 BLOOPER_NAMESPACE_BEGIN
 
 ProjectPanelComponent::ProjectPanelComponent(
-    AbstractContext& context,
-    State            state,
-    Options          options)
+    AbstractContext&    context,
+    State               state,
+    ProjectPanelOptions options)
     : ComponentBase(
           context,
           move(state)),
@@ -29,67 +27,12 @@ ProjectPanelComponent::ProjectPanelComponent(
           move(contentOptions));
 
 
-  this->viewport =
-      std::make_unique<juce::Viewport>(
-          "Project Panel");
-
-  this->viewport->setViewedComponent(
-      this->content.get(),
-      false);
-
-  this->viewport->setScrollBarsShown(
-      false,
-      true,
-      false,
-      false);
-
-  this->viewport->setScrollOnDragEnabled(
-      true);
-
-
   ext::addAndMakeVisible(
       *this,
-      *this->viewport);
-
-
-  ext::referTo(
-      this->projectScrollStart,
-      this->getState(),
-      ProjectPanelComponent::projectScrollStartId,
-      nullptr,
-      0);
-
-  ext::referTo(
-      this->projectScrollEnd,
-      this->getState(),
-      ProjectPanelComponent::projectScrollEndId,
-      nullptr,
-      0);
-
-  if (this->projectScrollStart == 0 && this->projectScrollEnd == 0)
-  {
-    this->viewport->getHorizontalScrollBar()
-        .scrollToBottom(
-            juce::sendNotificationAsync);
-  }
-  else
-  {
-    this->viewport->getHorizontalScrollBar().setCurrentRange(
-        {this->projectScrollStart.get(),
-         this->projectScrollEnd.get()},
-        juce::sendNotificationAsync);
-  }
+      *this->content);
 }
 
-ProjectPanelComponent::~ProjectPanelComponent()
-{
-  auto currentScrollRange =
-      this->viewport->getHorizontalScrollBar()
-          .getCurrentRange();
-
-  this->projectScrollStart = currentScrollRange.getStart();
-  this->projectScrollEnd = currentScrollRange.getEnd();
-}
+ProjectPanelComponent::~ProjectPanelComponent() = default;
 
 
 // Component
@@ -108,8 +51,7 @@ void ProjectPanelComponent::resized()
           this->getLocalBounds(),
           outlinePaddingFactor);
 
-  ext::setHeight(*this->content, availableArea.getHeight());
-  this->viewport->setBounds(availableArea);
+  this->content->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END

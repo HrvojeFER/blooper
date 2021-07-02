@@ -2,9 +2,19 @@
 #define BLOOPER_ASSERTS_HPP
 #pragma once
 
-// TODO: flag to disable
+// TODO: flags to disable when not debug
 
-#define BLOOPER_STATIC_ASSERT(...) static_assert(__VA_ARGS__)
+#if ENV_CPP >= 17
+
+  #define BLOOPER_STATIC_ASSERT(...) \
+    static_assert(__VA_ARGS__)
+
+#else
+
+  #define BLOOPER_STATIC_ASSERT(...) \
+    static_assert(__VA_ARGS__, "Blooper static assert failed.")
+
+#endif
 
 #define BLOOPER_ASSERT(...) jassert(__VA_ARGS__)
 

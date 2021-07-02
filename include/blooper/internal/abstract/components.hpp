@@ -90,7 +90,7 @@ template<typename TComponentTraits>
                                      abstractType>,
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::

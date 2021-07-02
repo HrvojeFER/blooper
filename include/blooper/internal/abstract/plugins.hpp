@@ -41,7 +41,7 @@ BLOOPER_NAMESPACE_BEGIN
                 isAnyPluginConstRef(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      pluginConstRefType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
@@ -81,7 +81,7 @@ struct [[maybe_unused]] AnyPluginTraits
                         meta::typeid_(toCheck.checkIsResizable()),
                         meta::type_c<bool>))) {}) ^
 
-            meta::inherit ^
+            meta::after ^
             meta::check(
                 [](auto&& toCheck)
                     -> decltype(toCheck.getPlugin(),
@@ -125,7 +125,7 @@ template<
                     std::decay_t<decltype(toCheck)>>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::
@@ -191,7 +191,7 @@ struct [[maybe_unused]] AnyPluginContentTraits
                         heldPluginTraits>(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      baseType>))) {}) ^
-    meta::inherit ^
+    meta::after ^
     meta::check(
         [](auto&& toCheck)
             -> decltype(meta::type_c<typename std::decay_t<decltype(toCheck)>::

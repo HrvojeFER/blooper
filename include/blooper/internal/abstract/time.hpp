@@ -52,6 +52,26 @@ enum class Delay : Tick
   nextSixteenthBeat [[maybe_unused]] = 64,
 };
 
+[[maybe_unused, nodiscard]] inline constexpr double
+getBeats(Interval of) noexcept
+{
+  return static_cast<double>(of) / 4.0;
+}
+
+[[maybe_unused, nodiscard]] inline constexpr double
+getBeats(Delay of) noexcept
+{
+  return static_cast<double>(of) / 4.0;
+}
+
+
+enum class TrackMode : int
+{
+  sync [[maybe_unused]] = 1,
+  oneShot [[maybe_unused]] = 2,
+  free [[maybe_unused]] = 3,
+};
+
 BLOOPER_NAMESPACE_END
 
 namespace juce
@@ -80,6 +100,20 @@ struct VariantConverter<blooper::Delay>
     return static_cast<int>(i);
   }
 };
+
+template<>
+struct VariantConverter<blooper::TrackMode>
+{
+  static blooper::TrackMode fromVar(const var& v)
+  {
+    return static_cast<blooper::TrackMode>(static_cast<int>(v));
+  }
+  static var toVar(const blooper::TrackMode& i)
+  {
+    return static_cast<int>(i);
+  }
+};
+
 template<>
 struct VariantConverter<blooper::Tick>
 {
