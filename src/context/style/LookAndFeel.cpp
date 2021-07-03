@@ -1,7 +1,7 @@
 #include <blooper/context/style/LookAndFeel.hpp>
 
 #include <blooper/internal/abstract/id.hpp>
-#include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/desktop.hpp>
 
 #include <blooper/context/style/DefaultTheme.hpp>
 #include <blooper/context/style/PropertyFileTheme.hpp>
@@ -1109,9 +1109,12 @@ void LookAndFeel::handleAsyncUpdate()
     this->updateTheme();
   }
 
-  ext::visitComponents([](auto component) {
-    component->sendLookAndFeelChange();
-  });
+  // sendLookAndFeelChange is recursive, so it's enough to visit every
+  // top-level desktop component
+  ext::visitComponents<VisitDepth::shallow>(
+      [](JuceComponent& component) {
+        component.sendLookAndFeelChange();
+      });
 }
 
 BLOOPER_NAMESPACE_END

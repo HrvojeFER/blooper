@@ -33,12 +33,22 @@ bool App::moreThanOneInstanceAllowed()
 }
 
 
-void App::initialise(const juce::String&)
+void App::initialise(const juce::String& commandLine)
 {
-  requestRuntimePermissions(
-      [app = juce::WeakReference<App>(this)](bool granted) {
+  util::requestRuntimePermissions(
+      [app = juce::WeakReference<App>(this),
+       commandLine](bool granted) {
         if (app.wasObjectDeleted()) return;
         if (!granted) return app->systemRequestedQuit();
+
+        if (juce::RuntimePermissions::isGranted(
+                juce::RuntimePermissions::readExternalStorage))
+        {
+          if (!te::PluginManager::startChildProcessPluginScan(commandLine))
+          {
+            app->systemRequestedQuit();
+          }
+        }
       });
 
 
@@ -95,7 +105,10 @@ void App::initialise(const juce::String&)
       ([app = juce::WeakReference<App>(this)] {
         if (app.wasObjectDeleted()) return;
 
-        ext::visitWindows([](auto window) { delete window; });
+        ext::visitWindows(
+            [](juce::TopLevelWindow& window) {
+              delete std::addressof(window);
+            });
       });
 
   options.afterEngineUnload =
@@ -126,7 +139,6 @@ void App::initialise(const juce::String&)
         {
           app->context->unloadProjectAsync();
         }
-
         if (app->context->didLoadEngine())
         {
           app->context->unloadEngineAsync();
@@ -138,7 +150,7 @@ void App::initialise(const juce::String&)
       });
 
 
-  this->context = std::make_unique<Context>(options);
+  this->context = std::make_unique<Context>(move(options));
   this->context->startAsync();
 }
 

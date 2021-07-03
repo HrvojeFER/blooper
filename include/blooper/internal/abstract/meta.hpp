@@ -19,21 +19,76 @@ using remove_cvref_t [[maybe_unused]] = typename remove_cvref<T>::type;
 
 #endif // ENV_CPP < 20
 
-template<bool Condition, typename T = void>
-struct disable_if
+BLOOPER_STD_NAMESPACE_END
+
+BLOOPER_NAMESPACE_BEGIN
+
+// ignores any maybe unused value warning
+template<typename... Ts>
+[[maybe_unused]] inline constexpr auto maybeUnused(Ts&&...) noexcept
 {
-  using type = T;
-};
+}
+
+
+// ignores Clang-tidy performance-move-const-arg - identical to std::move
+template<typename T>
+[[maybe_unused, nodiscard]] inline constexpr std::remove_reference_t<T>&&
+move(T&& v) noexcept
+{
+  return static_cast<std::remove_reference_t<T>&&>(v);
+}
+
+
+// BLOOPER_FORWARD macro function - identical to std::forward
 
 template<typename T>
-struct disable_if<true, T>
+[[maybe_unused, nodiscard]] inline constexpr T&&
+forward(std::remove_reference_t<T>&& v) noexcept
 {
-};
+  BLOOPER_STATIC_ASSERT(
+      meta::traits::is_lvalue_reference(meta::type_c<decltype(v)>),
+      "Casting an lvalue to a rvalue is undefined behaviour.");
 
-template<bool Condition, typename T = void>
-using disable_if_t [[maybe_unused]] = typename disable_if<Condition, T>::type;
+  return static_cast<T&&>(v);
+}
 
-BLOOPER_STD_NAMESPACE_END
+template<typename T>
+[[maybe_unused, nodiscard]] inline constexpr T&&
+forward(std::remove_reference_t<T>& v) noexcept
+{
+  return static_cast<T&&>(v);
+}
+
+
+// the name is useful for adding meaning
+template<typename T>
+[[maybe_unused]] inline constexpr auto toggle(T& v) noexcept(noexcept(
+    v = !v))
+    -> decltype(v = !v)
+{
+  return v = !v;
+}
+
+template<typename T1, typename T2>
+[[maybe_unused]] inline constexpr auto
+implies(T1&& v1, T2&& v2) noexcept(noexcept(
+    static_cast<bool>(BLOOPER_FORWARD(v1)),
+    void(),
+    static_cast<bool>(BLOOPER_FORWARD(v2))))
+
+    -> decltype(static_cast<bool>(BLOOPER_FORWARD(v1)),
+                void(),
+                static_cast<bool>(BLOOPER_FORWARD(v2)),
+                void(),
+                bool())
+{
+  const auto b1 = static_cast<bool>(BLOOPER_FORWARD(v1));
+  const auto b2 = static_cast<bool>(BLOOPER_FORWARD(v2));
+
+  return (b1 && b2) || !b1;
+}
+
+BLOOPER_NAMESPACE_END
 
 BLOOPER_META_NAMESPACE_BEGIN
 
@@ -55,6 +110,9 @@ struct anything
 [[maybe_unused]] inline constexpr auto consume =
     [](auto&&...) {};
 
+[[maybe_unused]] inline constexpr auto hoard =
+    [](auto&...) {};
+
 
 // Types
 
@@ -65,170 +123,12 @@ struct anything
     is_valid(origin);
 
 BLOOPER_STATIC_ASSERT(is_type(type_c<bool>));
+BLOOPER_STATIC_ASSERT(not_(is_type(1)));
 BLOOPER_STATIC_ASSERT(and_(is_type(type_c<bool>), is_type(type_c<int>)));
 
-
 template<typename T>
-[[maybe_unused]] inline constexpr type<std::remove_cvref_t<T>> typeid_c{};
-
-namespace detail
-{
-template<typename T, typename = type_tag>
-struct decl;
-
-template<typename T>
-using decl_t = typename decl<T>::type;
-
-template<typename T, typename>
-struct decl
-{
-  using type = T;
-};
-
-template<typename T>
-struct decl<T, typename tag_of<T>::type>
-{
-  using type = decl_t<typename std::remove_reference_t<T>::type>;
-};
-} // namespace detail
-
-[[maybe_unused]] inline constexpr auto decl =
-    ([](auto&& v) -> type<detail::decl_t<decltype(v)>> {
-      return {};
-    });
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decl(1),
-        type_c<int&&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decl(type_c<int&>),
-        type_c<int&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decl(type_c<const int&&>),
-        type_c<const int&&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decl(static_cast<const int&&>(1)),
-        type_c<const int&&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decl(static_cast<const int&>(1)),
-        type_c<const int&>));
-
-
-namespace detail
-{
-template<typename T, typename = type_tag>
-struct decll;
-
-template<typename T>
-using decll_t = typename decll<T>::type;
-
-template<typename T, typename>
-struct decll
-{
-  using type = std::remove_reference_t<T>&;
-};
-
-template<typename T>
-struct decll<T, typename tag_of<T>::type>
-{
-  using type = decll_t<typename std::remove_reference_t<T>::type>;
-};
-} // namespace detail
-
-[[maybe_unused]] inline constexpr auto decll =
-    ([](auto&& v) -> type<detail::decll_t<decltype(v)>> {
-      return {};
-    });
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decll(1),
-        type_c<int&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decll(type_c<int&>),
-        type_c<int&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        decll(type_c<const int&&>),
-        type_c<const int&>));
-
-
-namespace detail
-{
-template<typename T, typename = type_tag>
-struct declr;
-
-template<typename T>
-using declr_t = typename declr<T>::type;
-
-template<typename T, typename>
-struct declr
-{
-  using type = std::remove_reference_t<T>&&;
-};
-
-template<typename T>
-struct declr<T, typename tag_of<T>::type>
-{
-  using type = declr_t<typename std::remove_reference_t<T>::type>;
-};
-} // namespace detail
-
-[[maybe_unused]] inline constexpr auto declr =
-    ([](auto&& v) -> type<detail::declr_t<decltype(v)>> {
-      return {};
-    });
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        declr(1),
-        type_c<int&&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        declr(type_c<int&>),
-        type_c<int&&>));
-
-BLOOPER_STATIC_ASSERT(
-    traits::is_same(
-        declr(type_c<const int&&>),
-        type_c<const int&&>));
-
-
-// Casts
-
-#define BLOOPER_MAKE_CAST(_cast)                             \
-  [[maybe_unused]] inline constexpr auto ENV_CAT(_cast, _) = \
-      [](auto&& t) {                                         \
-        static_assert(                                       \
-            decltype(is_type(t)){},                          \
-            ENV_STRING(ENV_CAT(_cast, _) requires a type));  \
-                                                             \
-        return [](auto&& var) {                              \
-          return ENV_EVAL(_cast)<decltype(origin(            \
-              BLOOPER_FORWARD(t)))>(                         \
-              BLOOPER_FORWARD(var));                         \
-        };                                                   \
-      }
-
-BLOOPER_MAKE_CAST(static_cast);
-BLOOPER_MAKE_CAST(dynamic_cast);
-BLOOPER_MAKE_CAST(const_cast);
-BLOOPER_MAKE_CAST(reinterpret_cast);
-
-#undef BLOOPER_MAKE_CAST
+[[maybe_unused]] inline constexpr auto typeid_c =
+    type_c<std::remove_const_t<T>>;
 
 
 // Checks
@@ -278,19 +178,34 @@ BLOOPER_STATIC_ASSERT(
 [[maybe_unused]] inline constexpr auto complement_of =
     demux(not_);
 
-[[maybe_unused]] inline constexpr auto nand =
+[[maybe_unused]] inline constexpr auto nand_ =
     complement_of(and_);
 
-BLOOPER_STATIC_ASSERT(nand(true, false));
-BLOOPER_STATIC_ASSERT(not_(nand(true, true, true)));
-BLOOPER_STATIC_ASSERT(nand(false, false, false));
+BLOOPER_STATIC_ASSERT(nand_(true, false));
+BLOOPER_STATIC_ASSERT(not_(nand_(true, true, true)));
+BLOOPER_STATIC_ASSERT(nand_(false, false, false));
 
-[[maybe_unused]] inline constexpr auto nor =
+[[maybe_unused]] inline constexpr auto nor_ =
     complement_of(or_);
 
-BLOOPER_STATIC_ASSERT(nor(false, false));
-BLOOPER_STATIC_ASSERT(not_(nor(true, false, false)));
-BLOOPER_STATIC_ASSERT(not_(nor(true, true, true)));
+BLOOPER_STATIC_ASSERT(nor_(false, false));
+BLOOPER_STATIC_ASSERT(not_(nor_(true, false, false)));
+BLOOPER_STATIC_ASSERT(not_(nor_(true, true, true)));
+
+[[maybe_unused]] inline constexpr auto xor_ =
+    demux(and_)(or_, nand_);
+
+BLOOPER_STATIC_ASSERT(xor_(true, false, true));
+BLOOPER_STATIC_ASSERT(not_(xor_(true, true, true)));
+BLOOPER_STATIC_ASSERT(not_(xor_(false, false, false)));
+
+[[maybe_unused]] inline constexpr auto nxor_ =
+    complement_of(xor_);
+
+BLOOPER_STATIC_ASSERT(nxor_(true, true, true));
+BLOOPER_STATIC_ASSERT(nxor_(false, false));
+BLOOPER_STATIC_ASSERT(not_(nxor_(true, false, true)));
+BLOOPER_STATIC_ASSERT(not_(nxor_(false, true, false)));
 
 
 [[maybe_unused]] inline constexpr auto satisfies_all =
@@ -306,7 +221,7 @@ BLOOPER_STATIC_ASSERT(
 
 
 [[maybe_unused]] inline constexpr auto doesnt_satisfy_all =
-    demux(nand);
+    demux(nand_);
 
 BLOOPER_STATIC_ASSERT(
     doesnt_satisfy_all(traits::is_pointer, traits::is_const)(
@@ -334,7 +249,7 @@ BLOOPER_STATIC_ASSERT(
 
 
 [[maybe_unused]] inline constexpr auto doesnt_satisfy_any =
-    demux(nor);
+    demux(nor_);
 
 BLOOPER_STATIC_ASSERT(
     doesnt_satisfy_any(traits::is_pointer, traits::is_const)(
@@ -347,6 +262,38 @@ BLOOPER_STATIC_ASSERT(
 BLOOPER_STATIC_ASSERT(
     not_(doesnt_satisfy_any(traits::is_pointer, traits::is_const)(
         type_c<float* const>)));
+
+
+[[maybe_unused]] inline constexpr auto satisfies_some =
+    demux(xor_);
+
+BLOOPER_STATIC_ASSERT(
+    satisfies_some(traits::is_pointer, traits::is_const)(
+        type_c<float*>));
+
+BLOOPER_STATIC_ASSERT(
+    not_(satisfies_some(traits::is_pointer, traits::is_const)(
+        type_c<float* const>)));
+
+BLOOPER_STATIC_ASSERT(
+    not_(satisfies_some(traits::is_pointer, traits::is_const)(
+        type_c<float>)));
+
+
+[[maybe_unused]] inline constexpr auto doesnt_satisfy_some =
+    demux(nxor_);
+
+BLOOPER_STATIC_ASSERT(
+    doesnt_satisfy_some(traits::is_pointer, traits::is_const)(
+        type_c<float* const>));
+
+BLOOPER_STATIC_ASSERT(
+    doesnt_satisfy_some(traits::is_pointer, traits::is_const)(
+        type_c<float>));
+
+BLOOPER_STATIC_ASSERT(
+    not_(doesnt_satisfy_some(traits::is_pointer, traits::is_const)(
+        type_c<float*>)));
 
 
 [[maybe_unused]] inline constexpr auto after =
@@ -395,16 +342,16 @@ BLOOPER_STATIC_ASSERT(
 
 [[maybe_unused]] inline constexpr auto mediate =
     ([](auto&& callee, auto&& mediator) {
-      auto _construct =
+      auto construct =
           meta::demux(BLOOPER_FORWARD(mediator))(
               meta::make_tuple);
 
-      auto _unpack =
+      auto unpack =
           meta::reverse_partial(
               meta::unpack,
               BLOOPER_FORWARD(callee));
 
-      return meta::demux(_unpack)(_construct);
+      return meta::demux(unpack)(construct);
     });
 
 BLOOPER_STATIC_ASSERT(
@@ -415,32 +362,5 @@ BLOOPER_STATIC_ASSERT(
         reverse_partial(drop_front, int_c<1>))(1, 2));
 
 BLOOPER_META_NAMESPACE_END
-
-
-BLOOPER_NAMESPACE_BEGIN
-
-// ignores any maybe unused value warning
-template<typename... Ts>
-[[maybe_unused]] inline constexpr auto maybeUnused(Ts&&...) noexcept
-{
-}
-
-// ignores Clang-tidy performance-move-const-arg
-template<typename T>
-[[maybe_unused, nodiscard]] inline constexpr std::remove_reference_t<T>&&
-move(T&& v) noexcept
-{
-  return static_cast<std::remove_reference_t<T>&&>(v);
-}
-
-// the name is useful for adding meaning
-template<typename T>
-[[maybe_unused]] inline constexpr auto toggle(T& _) noexcept
-    -> decltype(auto)
-{
-  return _ = !_;
-}
-
-BLOOPER_NAMESPACE_END
 
 #endif //BLOOPER_META_HPP

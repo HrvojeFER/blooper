@@ -6,6 +6,7 @@
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/abstract/meta.hpp>
 #include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/ext/track.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -30,12 +31,53 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 // Visit
 
-template<typename TCallback>
-[[maybe_unused]] inline void visit(te::Edit& edit, TCallback callback)
+template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+[[maybe_unused]] inline bool visit(te::Edit& edit, TVisitor visitor)
 {
   static_assert(
-      isInvokable
-      );
+      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      "te::Edit visit requires a Visitor of te::Track&");
+
+  for (auto track : edit.getTrackList().objects)
+  {
+    if (track)
+    {
+      if (!callVisitor(visitor, *track))
+        return stopVisit;
+
+      if constexpr (Depth == VisitDepth::deep)
+        if (!visit<Depth>(*track, visitor))
+          return stopVisit;
+    }
+  }
+
+  return continueVisit;
+}
+
+template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
+[[maybe_unused]] inline te::Track* find(te::Edit& edit, TPredicate predicate)
+{
+  static_assert(
+      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      "te::Edit visit requires a Visitor of te::Track&");
+
+
+  te::Track* result;
+
+  visit<Depth>(
+      edit,
+      [&result, predicate = move(predicate)](
+          te::Track& track) {
+        if (predicate(track))
+        {
+          result = std::addressof(track);
+          return stopVisit;
+        }
+
+        return continueVisit;
+      });
+
+  return result;
 }
 
 

@@ -18,12 +18,8 @@ class PluginTreeBase : public ContextualBase
   [[nodiscard]] inline int getId() const;
 
 
-  template<VisitDepth Depth = defaultVisitDepth,
-           typename TOnGroup,
-           typename TOnItem>
-  [[maybe_unused]] void visit(
-      TOnGroup onGroup,
-      TOnItem  onItem);
+  template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+  [[maybe_unused]] void visit(TVisitor visitor);
 };
 
 
@@ -48,21 +44,8 @@ class PluginTreeGroup : public PluginTreeBase
   [[nodiscard]] PluginTreeBase** end() noexcept;
 
 
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "HidingNonVirtualFunction"
-#endif // __JETBRAINS_IDE__
-
-  template<VisitDepth Depth = defaultVisitDepth,
-           typename TOnGroup,
-           typename TOnItem>
-  [[maybe_unused]] void visit(
-      TOnGroup onGroup,
-      TOnItem  onItem);
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif // __JETBRAINS_IDE__
+  template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+  [[maybe_unused]] void visitGroup(TVisitor visitor);
 
 
  private:
@@ -128,87 +111,42 @@ class PluginTreeItem : public PluginTreeBase
   return this->getName().hashCode();
 }
 
-template<VisitDepth Depth,
-         typename TOnGroup,
-         typename TOnItem>
-[[maybe_unused]] inline void PluginTreeBase::visit(
-    TOnGroup onGroup,
-    TOnItem  onItem)
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline void PluginTreeBase::visit(TVisitor visitor)
 {
   static_assert(
-      meta::typeid_(onGroup) ^
-          isVisitorOf ^
-          meta::type_c<PluginTreeGroup&>,
-      "onGroup must be a Visitor of PluginTreeGroup&.");
+      meta::satisfies_any(
+          isVisitorOf ^ meta::type_c<PluginTreeGroup&>,
+          isVisitorOf ^ meta::type_c<PluginTreeItem&>)(
+          BLOOPER_TYPEID(visitor)),
+      "onGroup must be a Visitor of PluginTreeGroup& or PluginTreeItem&.");
 
-  static_assert(
-      meta::typeid_(onItem) ^
-          isVisitorOf ^
-          meta::type_c<PluginTreeItem&>,
-      "onItem must be a Visitor of PluginTreeItem&.");
-
-  detail::visit<Depth>(
-      this,
-      move(onGroup),
-      move(onItem));
+  detail::visit<Depth>(this, move(visitor));
 }
 
 
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "HidingNonVirtualFunction"
-#endif // __JETBRAINS_IDE__
-
-template<VisitDepth Depth,
-         typename TOnGroup,
-         typename TOnItem>
-[[maybe_unused]] inline void PluginTreeGroup::visit(
-    TOnGroup onGroup,
-    TOnItem  onItem)
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline void PluginTreeGroup::visitGroup(TVisitor visitor)
 {
   static_assert(
-      meta::typeid_(onGroup) ^
-          isVisitorOf ^
-          meta::type_c<PluginTreeGroup&>,
-      "onGroup must be a Visitor of PluginTreeGroup&.");
+      meta::satisfies_any(
+          isVisitorOf ^ meta::type_c<PluginTreeGroup&>,
+          isVisitorOf ^ meta::type_c<PluginTreeItem&>)(
+          BLOOPER_TYPEID(visitor)),
+      "onGroup must be a Visitor of PluginTreeGroup& or PluginTreeItem&.");
 
-  static_assert(
-      meta::typeid_(onItem) ^
-          isVisitorOf ^
-          meta::type_c<PluginTreeItem&>,
-      "onItem must be a Visitor of PluginTreeItem&.");
-
-  detail::visit<Depth>(
-      this,
-      move(onGroup),
-      move(onItem));
+  detail::visit<Depth>(this, move(visitor));
 }
-
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif // __JETBRAINS_IDE__
 
 BLOOPER_NAMESPACE_END
 
 BLOOPER_DETAIL_NAMESPACE_BEGIN
 
-template<VisitDepth Depth,
-         typename TOnGroup,
-         typename TOnItem>
-[[maybe_unused]] inline void visit(
-    PluginTreeBase* root,
-    TOnGroup        onGroup,
-    TOnItem         onItem)
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline void visit(PluginTreeBase* root, TVisitor visitor)
 {
   if (auto group = dynamic_cast<PluginTreeGroup*>(root))
-  {
-    bool shouldStop = false;
-    visit<Depth>(
-        group,
-        move(onGroup),
-        move(onItem),
-        shouldStop);
-  }
+    visit<Depth>(group, move(visitor));
 }
 
 #ifdef __JETBRAINS_IDE__
@@ -216,46 +154,29 @@ template<VisitDepth Depth,
   #pragma ide diagnostic   ignored "misc-no-recursion"
 #endif // __JETBRAINS_IDE__
 
-template<VisitDepth Depth,
-         typename TOnGroup,
-         typename TOnItem>
-[[maybe_unused]] inline void visit(
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline bool visit(
     PluginTreeGroup* root,
-    TOnGroup         onGroup,
-    TOnItem          onItem,
-    bool&            shouldStop)
+    TVisitor         visitor)
 {
   for (auto subNode : *root)
   {
     if (auto subItem = dynamic_cast<class PluginTreeItem*>(subNode))
-    {
-      if (!callVisitor(onItem, *subItem))
-      {
-        shouldStop = true;
-        return;
-      }
-    }
+      if (!callIfVisitor(visitor, *subItem))
+        return false;
 
     if (auto subGroup = dynamic_cast<class PluginTreeGroup*>(subNode))
     {
-      if (!callVisitor(onGroup, *subGroup))
-      {
-        shouldStop = true;
-        return;
-      }
+      if (!callIfVisitor(visitor, *subGroup))
+        return false;
 
       if constexpr (Depth == VisitDepth::deep)
-      {
-        visit<Depth>(
-            subGroup,
-            onGroup,
-            onItem,
-            shouldStop);
-
-        if (shouldStop) return;
-      }
+        if (!visit<Depth>(subGroup, visitor))
+          return false;
     }
   }
+
+  return true;
 }
 
 #ifdef __JETBRAINS_IDE__

@@ -2,7 +2,9 @@
 #define BLOOPER_EXT_CLIP_HPP
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/ext/take.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -150,6 +152,161 @@ isMidiClip(const te::Clip& clip)
   track.edit.createNewItemID().writeID(copyState, nullptr);
   return *track.insertClipWithState(move(copyState));
 }
+
+
+// Visit
+
+[[maybe_unused]] inline constexpr auto isWaveClipVisitor =
+    isVisitorOf ^ meta::type_c<te::ProjectItemID&>;
+
+[[maybe_unused]] inline constexpr auto isMidiClipVisitor =
+    isVisitorOf ^ meta::type_c<te::MidiList&>;
+
+[[maybe_unused]] inline constexpr auto isClipVisitor =
+    meta::satisfies_any(isWaveClipVisitor, isMidiClipVisitor);
+
+template<typename TVisitor>
+[[maybe_unused]] inline bool visit(
+    te::Clip& clip,
+    TVisitor  visitor,
+    bool      includeComps = false)
+{
+  [[maybe_unused]] constexpr auto visitorTypeid =
+      BLOOPER_TYPEID(visitor);
+
+  static_assert(
+      isClipVisitor(visitorTypeid),
+      "te::Clip visit requires a ClipVisitor");
+
+
+  if constexpr (visitorTypeid ^ isWaveClipVisitor)
+  {
+    if (auto waveClip =
+            dynamic_cast<te::WaveAudioClip*>(
+                std::addressof(clip));
+        waveClip->hasAnyTakes())
+    {
+      auto&      compManager = waveClip->getCompManager();
+      const auto takes = waveClip->getTakes();
+
+      for (int i = 0; compManager.getTotalNumTakes(); ++i)
+        if (implies(includeComps, compManager.isTakeComp(i)))
+          if (auto take = takes[i]; take.isValid())
+            if (!callVisitor(visitor, take))
+              return stopVisit;
+    }
+  }
+
+  // NOLINTNEXTLINE(readability-misleading-indentation)
+  if constexpr (visitorTypeid ^ isMidiClipVisitor)
+  {
+    if (auto midiClip =
+            dynamic_cast<te::MidiClip*>(
+                std::addressof(clip));
+        midiClip->hasAnyTakes())
+    {
+      auto& compManager = midiClip->getCompManager();
+
+      for (int i = 0; i < compManager.getTotalNumTakes(); ++i)
+        if (implies(includeComps, compManager.isTakeComp(i)))
+          if (auto take = midiClip->getTakeSequence(i))
+            if (!callVisitor(visitor, *take))
+              return stopVisit;
+    }
+  }
+
+  // NOLINTNEXTLINE(readability-misleading-indentation)
+  return continueVisit;
+}
+
+
+// Find
+
+[[maybe_unused]] inline constexpr auto isWaveClipPredicate =
+    isPredicateOf ^ meta::type_c<te::ProjectItemID&>;
+
+[[maybe_unused]] inline constexpr auto isMidiClipPredicate =
+    isPredicateOf ^ meta::type_c<te::MidiList&>;
+
+[[maybe_unused]] inline constexpr auto isClipPredicate =
+    meta::satisfies_some(isWaveClipPredicate, isMidiClipPredicate);
+
+template<typename TPredicate>
+[[maybe_unused]] inline auto find(
+    te::Clip&  clip,
+    TPredicate predicate,
+    bool       includeComps = false)
+{
+  [[maybe_unused]] constexpr auto predicateTypeid =
+      BLOOPER_TYPEID(predicate);
+
+  static_assert(
+      isClipPredicate(predicateTypeid),
+      "te::Clip find requires a ClipPredicate");
+
+
+  [[maybe_unused]] constexpr auto conditional =
+      meta::if_(
+          predicateTypeid ^ isWaveClipPredicate,
+          meta::make_tuple(
+              meta::type_c<te::ProjectItemID&>,
+              meta::type_c<te::ProjectItemID>,
+              [](te::ProjectItemID& item) { return item; }),
+          meta::make_tuple(
+              meta::type_c<te::MidiList&>,
+              meta::type_c<te::MidiList*>,
+              [](te::MidiList& node) { return std::addressof(node); }));
+
+  using takeType = decltype(meta::origin(
+      meta::at(conditional, meta::size_c<0>)));
+
+  using resultType = decltype(meta::origin(
+      meta::at(conditional, meta::size_c<1>)));
+
+  constexpr auto resultConstructor =
+      meta::at(conditional, meta::size_c<2>);
+
+
+  resultType result;
+
+  visit(
+      clip,
+      [&result,
+       predicate = move(predicate),
+       resultConstructor](takeType take) {
+        if (predicate(take))
+        {
+          result = resultConstructor(take);
+          return stopVisit;
+        }
+
+        return continueVisit;
+      },
+      includeComps);
+
+
+  return result;
+}
+
+BLOOPER_STATIC_ASSERT(
+    meta::traits::result_of(
+        meta::typeid_([] {
+          return find(
+              std::declval<te::Clip&>(),
+              [](te::ProjectItemID&) { return true; });
+        })) ^
+    meta::traits::is ^
+    meta::type_c<te::ProjectItemID>);
+
+BLOOPER_STATIC_ASSERT(
+    meta::traits::result_of(
+        meta::typeid_([] {
+          return find(
+              std::declval<te::Clip&>(),
+              [](te::MidiList&) { return true; });
+        })) ^
+    meta::traits::is ^
+    meta::type_c<te::MidiList*>);
 
 BLOOPER_EXT_NAMESPACE_END
 

@@ -13,6 +13,12 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   return {plugin.itemID.toString() + pluginIdSuffix};
 }
 
+
+// Visit
+
+[[maybe_unused]] inline constexpr auto isParameterVisitor =
+    isVisitorOf ^ meta::type_c<te::AutomatableParameter&>;
+
 BLOOPER_EXT_NAMESPACE_END
 
 #endif // BLOOPER_EXT_PLUGIN_HPP

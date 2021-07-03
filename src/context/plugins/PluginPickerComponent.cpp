@@ -17,26 +17,26 @@ PluginPickerComponent::PluginPickerComponent(
 class PluginPickerComponent::Popup : public juce::PopupMenu
 {
  public:
-  explicit Popup(PluginTreeBase& pluginTree);
+  explicit Popup(PluginTreeBase& root);
 };
 
-PluginPickerComponent::Popup::Popup(PluginTreeBase& pluginTree)
+PluginPickerComponent::Popup::Popup(PluginTreeBase& root)
 {
-  visitShallowly(
-      pluginTree,
-      [this](PluginTreeGroup& group) {
-        this->addSubMenu(
-            group.getName(),
-            PluginPickerComponent::Popup(group),
-            true);
-      },
-      [this](PluginTreeItem& item) {
-        this->addItem(
-            getId(item),
-            item.getName(),
-            true,
-            false);
-      });
+  root.visit<VisitDepth::shallow>(
+      meta::overload(
+          [this](PluginTreeGroup& group) {
+            this->addSubMenu(
+                group.getName(),
+                PluginPickerComponent::Popup(group),
+                true);
+          },
+          [this](PluginTreeItem& item) {
+            this->addItem(
+                getId(item),
+                item.getName(),
+                true,
+                false);
+          }));
 }
 
 JucePluginRef PluginPickerComponent::runPopup()
@@ -74,17 +74,16 @@ class PluginTreeItem* PluginPickerComponent::findIn(
 {
   PluginTreeItem* result = nullptr;
 
-  visitDeeply(
-      root,
-      [](PluginTreeGroup&) {},
-      [&result, id](PluginTreeItem& item) {
-        if (getId(item) == id)
-        {
-          result = std::addressof(item);
-          return false;
-        }
-        return true;
-      });
+  root.visit<VisitDepth::deep>(
+      meta::overload(
+          [&result, id](PluginTreeItem& item) {
+            if (getId(item) == id)
+            {
+              result = std::addressof(item);
+              return false;
+            }
+            return true;
+          }));
 
   return result;
 }

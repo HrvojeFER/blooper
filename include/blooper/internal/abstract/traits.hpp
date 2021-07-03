@@ -261,14 +261,10 @@ enum class VisitDepth
   shallow,
 };
 
-inline constexpr auto deepVisit =
-    meta::integral_c<VisitDepth, VisitDepth::deep>;
+inline constexpr auto defaultVisitDepth = VisitDepth::deep;
 
-inline constexpr auto shallowVisit =
-    meta::integral_c<VisitDepth, VisitDepth::shallow>;
-
-inline constexpr auto defaultVisitDepth =
-    deepVisit;
+inline constexpr auto continueVisit = true;
+inline constexpr auto stopVisit = false;
 
 
 [[maybe_unused]] inline constexpr auto isAnyStoppingVisitor =
@@ -321,7 +317,7 @@ BLOOPER_STATIC_ASSERT(
 
 
 [[maybe_unused]] inline constexpr auto isNonStoppingVisitor =
-    meta::reverse_partial(isConsumer);
+    isConsumer;
 
 [[maybe_unused]] inline constexpr auto isNonStoppingVisitorOf =
     meta::infix(isNonStoppingVisitor);
@@ -409,53 +405,41 @@ BLOOPER_STATIC_ASSERT(
 [[maybe_unused]] inline constexpr auto callVisitor =
     ([](auto&& visitor, auto&& item) {
       static_assert(
-          meta::typeid_(visitor) ^ isVisitorOf ^ meta::typeid_(item),
+          BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ BLOOPER_TYPEID(item),
           "callVisitor should receive a Visitor of the passed item");
 
-      if constexpr (isAnyStoppingVisitor(meta::typeid_(visitor)))
+      if constexpr (isAnyStoppingVisitor(BLOOPER_TYPEID(visitor)))
       {
-        return BLOOPER_FORWARD(visitor)(BLOOPER_FORWARD(item));
+        return (BLOOPER_FORWARD(visitor)(BLOOPER_FORWARD(item)));
       }
       else
       {
-        // formatting...
-        BLOOPER_FORWARD(visitor)
-        (BLOOPER_FORWARD(item));
-        return true;
+        (BLOOPER_FORWARD(visitor)(BLOOPER_FORWARD(item)));
+        return continueVisit;
       }
     });
 
-
-struct Visit
-{
-  template<typename TVisitDepth>
-  [[maybe_unused]] inline constexpr auto
-  operator()(TVisitDepth) const noexcept
-  {
-    return [](auto&& visited, auto&&... visitors) noexcept(noexcept(
-               BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
-                   BLOOPER_FORWARD(visitors)...)))
-               -> decltype(BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
-                   BLOOPER_FORWARD(visitors)...)) {
-      return BLOOPER_FORWARD(visited).template visit<TVisitDepth{}>(
-          BLOOPER_FORWARD(visitors)...);
-    };
-  }
-
-  template<typename TVisited, typename... TVisitors>
-  [[maybe_unused]] inline constexpr auto
-  operator()(TVisited&& visited, TVisitors&&... visitors) const noexcept(noexcept(
-      BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...)))
-      -> decltype(BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...))
-  {
-    return BLOOPER_FORWARD(visited).visit(BLOOPER_FORWARD(visitors)...);
-  }
-};
-
-[[maybe_unused]] inline constexpr Visit visit{};
-
-[[maybe_unused]] inline constexpr auto visitDeeply = visit(deepVisit);
-[[maybe_unused]] inline constexpr auto visitShallowly = visit(shallowVisit);
+[[maybe_unused]] inline constexpr auto callIfVisitor =
+    ([](auto&& visitor, auto&& item) {
+      if constexpr (BLOOPER_TYPEID(visitor) ^
+                    isVisitorOf ^
+                    BLOOPER_TYPEID(item))
+      {
+        if constexpr (isAnyStoppingVisitor(BLOOPER_TYPEID(visitor)))
+        {
+          return (BLOOPER_FORWARD(visitor)(BLOOPER_FORWARD(item)));
+        }
+        else
+        {
+          (BLOOPER_FORWARD(visitor)(BLOOPER_FORWARD(item)));
+          return continueVisit;
+        }
+      }
+      else
+      {
+        return continueVisit;
+      }
+    });
 
 BLOOPER_NAMESPACE_END
 

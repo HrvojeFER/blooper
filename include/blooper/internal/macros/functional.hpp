@@ -7,11 +7,11 @@
   #pragma ide diagnostic   ignored "OCUnusedMacroInspection"
 #endif // __JETBRAINS_IDE__
 
-#define BLOOPER_FORWARD(_var) std::forward<decltype(_var)>(_var)
-
-#define BLOOPER_DECL(_var) blooper::meta::decl(BLOOPER_FORWARD(_var))
+#define BLOOPER_FORWARD(_var) blooper::forward<decltype(_var)>(_var)
 
 #define BLOOPER_TYPEID(_var) blooper::meta::typeid_c<decltype(_var)>
+
+#define BLOOPER_DECLTYPE(_var) blooper::meta::type_c<decltype(_var)>
 
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic pop

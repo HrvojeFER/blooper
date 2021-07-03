@@ -5,18 +5,18 @@
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/const.hpp>
 
-BLOOPER_NAMESPACE_BEGIN
+BLOOPER_UTIL_NAMESPACE_BEGIN
 
 template<typename TCallback>
 [[maybe_unused]] void requestRuntimePermissions(TCallback callback)
 {
   static_assert(
-      isInvokable(meta::typeid_(callback), meta::type_c<bool>),
-      "requestRuntimePermissions requires an Invokable with a bool.");
+      BLOOPER_TYPEID(callback) ^ isConsumerOf ^ meta::typeid_c<bool>,
+      "requestRuntimePermissions requires a Consumer of bool");
 
 
   juce::RuntimePermissions::request(
-      juce::RuntimePermissions::recordAudio,
+      juce::RuntimePermissions::readExternalStorage,
       callback);
 
   juce::RuntimePermissions::request(
@@ -24,7 +24,7 @@ template<typename TCallback>
       callback);
 
   juce::RuntimePermissions::request(
-      juce::RuntimePermissions::readExternalStorage,
+      juce::RuntimePermissions::recordAudio,
       callback);
 }
 
@@ -41,6 +41,6 @@ template<typename TCallback>
       move(callback));
 }
 
-BLOOPER_NAMESPACE_END
+BLOOPER_UTIL_NAMESPACE_END
 
 #endif // BLOOPER_CALLBACKS_HPP

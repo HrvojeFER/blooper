@@ -7,170 +7,194 @@
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic push
-  #pragma ide diagnostic   ignored "misc-no-recursion"
-#endif // __JETBRAINS_IDE__
-
-template<VisitDepth Type = VisitDepth::deep,
-         typename TOnNode>
-[[maybe_unused]] inline void visit(
-    const JuceValueTree& root,
-    TOnNode              onNode)
+[[maybe_unused, nodiscard]] inline auto
+isInvalid(const juce::ValueTree& tree) noexcept(noexcept(!tree.isValid()))
+    -> decltype(!tree.isValid())
 {
-  static_assert(
-      meta::typeid_(onNode) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
-      "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
-
-
-  if (!root.isValid()) return;
-
-  if constexpr (isAnyStoppingVisitor(meta::typeid_(onNode)))
-  {
-    if (!onNode(root)) return;
-  }
-  else
-  {
-    onNode(root);
-  }
-
-  for (auto node : root) visit(node, onNode);
+  return !tree.isValid();
 }
 
-template<typename TOnNode>
-[[maybe_unused]] inline void visitAncestors(
-    const JuceValueTree& root,
-    TOnNode              onNode)
+
+template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+[[maybe_unused]] inline void
+visit(
+    const juce::ValueTree& root,
+    TVisitor               visitor)
 {
   static_assert(
-      meta::typeid_(onNode) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
       "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
 
-  if (!root.isValid()) return;
 
-  if constexpr (isAnyStoppingVisitor(meta::typeid_(onNode)))
-  {
-    if (!onNode(root)) return;
-  }
-  else
-  {
-    onNode(root);
-  }
+  // TODO: better
 
-  visitAncestors(root.getParent(), onNode);
+  constexpr auto _visit =
+      meta::fix([](auto                   visit,
+                   const juce::ValueTree& visited,
+                   auto                   visitor) {
+        for (auto node : visited)
+        {
+          if (isInvalid(node)) continue;
+
+          if (callVisitor(visitor, node) == stopVisit)
+            return stopVisit;
+
+          if (Depth == VisitDepth::deep)
+            if (visit(node, visitor) == stopVisit)
+              return stopVisit;
+        }
+
+        return continueVisit;
+      });
+
+  if (isInvalid(root)) return;
+
+  _visit(root, move(visitor));
+}
+
+template<typename TVisitor>
+[[maybe_unused]] inline void
+visitAncestors(
+    const juce::ValueTree& root,
+    TVisitor               visitor)
+{
+  static_assert(
+      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
+
+
+  if (isInvalid(root)) return;
+
+  if (callVisitor(visitor, root) == stopVisit) return;
+
+  visitAncestors(root.getParent(), move(visitor));
 }
 
 template<typename TPredicate>
-[[maybe_unused]] inline juce::ValueTree find(
-    const JuceValueTree& root,
-    TPredicate           predicate)
+[[maybe_unused]] inline juce::ValueTree
+find(
+    const juce::ValueTree& root,
+    TPredicate             predicate)
 {
   static_assert(
-      meta::typeid_(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
       "juce::ValueTree find requires a Predicate of juce::ValueTree.");
 
 
-  if (!root.isValid()) return {};
+  juce::ValueTree result;
 
-  if (predicate(root)) return root;
+  visit(
+      root,
+      [&result, predicate = move(predicate)](
+          const juce::ValueTree& node) {
+        if (predicate(node))
+        {
+          result = node;
+          return stopVisit;
+        }
 
-  for (auto node : root)
-    if (auto result = find(node, predicate); result.isValid())
-      return result;
+        return continueVisit;
+      });
 
-  return {};
+  return result;
 }
 
 template<typename TPredicate>
-[[maybe_unused]] inline juce::ValueTree findAncestor(
-    const JuceValueTree& root,
-    TPredicate           predicate)
+[[maybe_unused]] inline juce::ValueTree
+findAncestor(
+    const juce::ValueTree& root,
+    TPredicate             predicate)
 {
   static_assert(
-      meta::typeid_(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
       "juce::ValueTree findAncestor requires a Predicate of juce::ValueTree.");
 
 
-  if (!root.isValid()) return {};
+  juce::ValueTree result;
 
-  if (predicate(root)) return root;
+  visitAncestors(
+      root,
+      [&result, predicate = move(predicate)](
+          const juce::ValueTree& node) {
+        if (predicate(node))
+        {
+          result = node;
+          return stopVisit;
+        }
 
-  if (auto result = findAncestor(root.getParent(), predicate);
-      result.isValid())
-    return result;
+        return continueVisit;
+      });
 
-  return {};
+  return result;
 }
 
-#ifdef __JETBRAINS_IDE__
-  #pragma clang diagnostic pop
-#endif // __JETBRAINS_IDE__
 
-
-[[maybe_unused]] inline auto ensureAllItemsHaveUids(
-    const JuceValueTree& root)
+[[maybe_unused]] inline auto
+ensureAllItemsHaveUids(const juce::ValueTree& root)
 {
   visit(
       root,
-      [](JuceValueTree node) {
+      [](juce::ValueTree node) {
         if (node[te::IDs::uid].toString().isEmpty())
           node.setProperty(
               te::IDs::uid,
-              JuceString::toHexString(
+              juce::String::toHexString(
                   juce::Random().nextInt()),
               nullptr);
       });
 }
 
-[[maybe_unused]] inline auto findUid(
-    const JuceValueTree& root,
-    const JuceString&    id)
+[[maybe_unused]] inline auto
+findUid(
+    const juce::ValueTree& root,
+    const juce::String&    id)
 {
   return find(
       root,
-      [&id](const JuceValueTree& node) {
+      [&id](const juce::ValueTree& node) {
         return node[te::IDs::uid].toString() == id;
       });
 }
 
 
-[[maybe_unused]] inline std::unique_ptr<JuceFile> ensureExistingDirectory(
-    const JuceFile& file)
+[[maybe_unused]] inline std::unique_ptr<juce::File>
+ensureExistingDirectory(const juce::File& file)
 {
   if (!file.exists()) file.createDirectory();
 
-  return std::make_unique<JuceFile>(file);
+  return std::make_unique<juce::File>(file);
 }
 
-[[maybe_unused]] inline std::unique_ptr<JuceFile> ensureExistingFile(
-    const JuceFile& file)
+[[maybe_unused]] inline std::unique_ptr<juce::File>
+ensureExistingFile(const juce::File& file)
 {
   if (!file.existsAsFile()) file.create();
 
-  return std::make_unique<JuceFile>(file);
+  return std::make_unique<juce::File>(file);
 }
 
-[[maybe_unused]] inline std::unique_ptr<JuceXmlFile> ensureValidStateFile(
-    const JuceFile& file)
+[[maybe_unused]] inline std::unique_ptr<juce::PropertiesFile>
+ensureValidStateFile(const juce::File& file)
 {
-  JuceXmlFile::Options options;
+  juce::PropertiesFile::Options options;
   options.millisecondsBeforeSaving = 2000;
-  options.storageFormat = JuceXmlFile::storeAsXML;
+  options.storageFormat = juce::PropertiesFile::storeAsXML;
   options.commonToAllUsers = false;
 
   // If not valid, just delete it and it will create a new one when needed.
-  if (!JuceXmlFile(file, options).isValidFile())
+  if (!juce::PropertiesFile(file, options).isValidFile())
     file.deleteFile();
 
-  return std::make_unique<JuceXmlFile>(file, options);
+  return std::make_unique<juce::PropertiesFile>(file, options);
 }
 
-[[maybe_unused]] inline JuceState ensureValidState(
-    JuceXmlFile&               file,
-    const JuceString&          key,
-    const JuceStateIdentifier& id)
+[[maybe_unused]] inline juce::ValueTree
+ensureValidState(
+    juce::PropertiesFile&   file,
+    const juce::String&     key,
+    const juce::Identifier& id)
 {
-  JuceState state{};
+  juce::ValueTree state{};
 
   auto xml = file.getXmlValue(key);
 
@@ -183,7 +207,7 @@ template<typename TPredicate>
   }
   else
   {
-    state = JuceState::fromXml(*xml);
+    state = juce::ValueTree::fromXml(*xml);
   }
 
 
@@ -197,7 +221,8 @@ template<typename TPredicate>
 }
 
 template<typename T, typename TDef = T>
-[[maybe_unused]] inline auto referTo(
+[[maybe_unused]] inline auto
+referTo(
     juce::CachedValue<T>&  value,
     juce::ValueTree&       tree,
     const juce::Identifier id,

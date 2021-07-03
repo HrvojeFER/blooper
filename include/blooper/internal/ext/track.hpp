@@ -4,8 +4,11 @@
 
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/abstract/time.hpp>
+#include <blooper/internal/ext/clip.hpp>
+#include <blooper/internal/ext/plugin.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -281,11 +284,119 @@ class ToggleTrackArmedAction final : public juce::UndoableAction
 }
 
 
-// "Transport"
+// Transport
 
 [[maybe_unused]] void prepareForPlaying(te::Track& track);
 
 [[maybe_unused]] void unpackRecordedTakes(te::Track& track);
+
+
+// Visit
+
+[[maybe_unused]] inline constexpr auto isTrackVisitor =
+    isVisitorOf ^ meta::type_c<te::Track&>;
+
+[[maybe_unused]] inline constexpr auto isPluginVisitor =
+    isVisitorOf ^ meta::type_c<te::Plugin&>;
+
+template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+[[maybe_unused]] inline bool visit(te::Track& track, TVisitor visitor)
+{
+  static_assert(
+      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      "te::Track visit requires a Visitor of te::Track&");
+
+
+  if (const auto subTracks = track.getSubTrackList())
+  {
+    for (const auto subTrack : *subTracks)
+    {
+      if (subTrack)
+      {
+        if (!callVisitor(visitor, *subTrack))
+          return stopVisit;
+
+        if constexpr (Depth == VisitDepth::deep)
+          if (!visit<Depth>(*subTrack, visitor))
+            return stopVisit;
+      }
+    }
+  }
+
+  return continueVisit;
+}
+
+template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
+[[maybe_unused]] inline te::Track* find(te::Track& track, TPredicate predicate)
+{
+  static_assert(
+      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      "te::Track find requires a Predicate of te::Track&");
+
+
+  te::Track* result;
+
+  visit<Depth>(
+      track,
+      [&result, predicate = move(predicate)](
+          te::Track& track) {
+        if (predicate(track))
+        {
+          result = std::addressof(track);
+          return stopVisit;
+        }
+
+        return continueVisit;
+      });
+
+  return result;
+}
+
+template<typename TVisitor>
+[[maybe_unused]] inline bool visitAncestors(te::Track& track, TVisitor visitor)
+{
+  static_assert(
+      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      "te::Track visitAncestors requires a Visitor of te::Track&");
+
+
+  if (const auto parentTrack = track.getParentTrack())
+  {
+    if (!callVisitor(visitor, *parentTrack)) return stopVisit;
+
+    visitAncestors(track, move(visitor));
+  }
+
+  return continueVisit;
+}
+
+template<typename TPredicate>
+[[maybe_unused]] inline te::Track* findAncestor(
+    te::Track& track,
+    TPredicate predicate)
+{
+  static_assert(
+      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      "te::Track findAncestor requires a Predicate of te::Track&");
+
+
+  te::Track* result;
+
+  visitAncestors(
+      track,
+      [&result, predicate = move(predicate)](
+          te::Track& track) {
+        if (predicate(track))
+        {
+          result = std::addressof(track);
+          return stopVisit;
+        }
+
+        return continueVisit;
+      });
+
+  return result;
+}
 
 BLOOPER_EXT_NAMESPACE_END
 

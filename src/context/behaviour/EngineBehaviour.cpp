@@ -83,7 +83,7 @@ void EngineBehaviour::saveCustomPluginProperties(
 
 bool EngineBehaviour::canScanPluginsOutOfProcess()
 {
-  return te::EngineBehaviour::canScanPluginsOutOfProcess();
+  return true;
 }
 
 
