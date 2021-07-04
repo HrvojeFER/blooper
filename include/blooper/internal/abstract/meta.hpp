@@ -4,23 +4,6 @@
 
 #include <blooper/internal/macros/macros.hpp>
 
-BLOOPER_STD_NAMESPACE_BEGIN
-
-#if ENV_CPP < 20
-
-template<typename T>
-struct remove_cvref
-{
-  using type = std::remove_reference_t<std::remove_cv_t<T>>;
-};
-
-template<typename T>
-using remove_cvref_t [[maybe_unused]] = typename remove_cvref<T>::type;
-
-#endif // ENV_CPP < 20
-
-BLOOPER_STD_NAMESPACE_END
-
 BLOOPER_NAMESPACE_BEGIN
 
 // ignores any maybe unused value warning
@@ -85,7 +68,7 @@ implies(T1&& v1, T2&& v2) noexcept(noexcept(
   const auto b1 = static_cast<bool>(BLOOPER_FORWARD(v1));
   const auto b2 = static_cast<bool>(BLOOPER_FORWARD(v2));
 
-  return (b1 && b2) || !b1;
+  return !(b1 && !b2);
 }
 
 BLOOPER_NAMESPACE_END
@@ -96,6 +79,8 @@ BLOOPER_META_NAMESPACE_BEGIN
 
 struct anything
 {
+  anything() = default;
+
   template<typename T>
   // NOLINTNEXTLINE(google-explicit-constructor,bugprone-forwarding-reference-overload)
   anything(T&&)
@@ -106,6 +91,30 @@ struct anything
   operator T()
   { }
 };
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool operator==(T&&, anything) noexcept
+{
+  return true;
+}
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool operator==(anything, T&&) noexcept
+{
+  return true;
+}
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool operator!=(T&&, anything) noexcept
+{
+  return false;
+}
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool operator!=(anything, T&&) noexcept
+{
+  return false;
+}
 
 [[maybe_unused]] inline constexpr auto consume =
     [](auto&&...) {};
@@ -126,9 +135,61 @@ BLOOPER_STATIC_ASSERT(is_type(type_c<bool>));
 BLOOPER_STATIC_ASSERT(not_(is_type(1)));
 BLOOPER_STATIC_ASSERT(and_(is_type(type_c<bool>), is_type(type_c<int>)));
 
+
+[[maybe_unused]] inline constexpr auto tag_of_ =
+    ([](auto&& t) -> type<tag_of_t<std::remove_reference_t<decltype(t)>>> {
+      return {};
+    });
+
+template<typename T>
+[[maybe_unused]] inline constexpr auto tag_of_c =
+    type_c<tag_of_t<std::remove_reference_t<T>>>;
+
 template<typename T>
 [[maybe_unused]] inline constexpr auto typeid_c =
-    type_c<std::remove_const_t<T>>;
+    type_c<std::remove_cv_t<std::remove_reference_t<T>>>;
+
+BLOOPER_STATIC_ASSERT(
+    equal(tag_of_(make_tuple()),
+          type_c<tuple_tag>));
+
+BLOOPER_STATIC_ASSERT(
+    equal(tag_of_(int_c<1>),
+          type_c<integral_constant_tag<int>>));
+
+
+// Concepts
+
+template<template<typename> class Concept>
+struct concept_applicator
+{
+  template<typename T>
+  using apply = Concept<T>;
+};
+
+template<template<typename> class Concept>
+[[maybe_unused]] inline constexpr auto concept_applicator_c =
+    concept_applicator<Concept>{};
+
+[[maybe_unused]] inline constexpr auto is_concept_applicator =
+    is_valid([](auto&& a)
+                 -> typename std::remove_reference_t<decltype(a)>::
+                     template apply<anything> {});
+
+[[maybe_unused]] inline constexpr auto models_concept =
+    ([](auto&& concept_applicator, auto&& type) {
+      static_assert(
+          decltype(is_concept_applicator(type)){},
+          "models_concept requires a concept_applicator");
+
+      static_assert(
+          decltype(is_type(type)){},
+          "models_concept requires a type");
+
+      return
+          typename std::remove_reference_t<decltype(concept_applicator)>::
+              template apply<type>{};
+    });
 
 
 // Checks
@@ -343,15 +404,15 @@ BLOOPER_STATIC_ASSERT(
 [[maybe_unused]] inline constexpr auto mediate =
     ([](auto&& callee, auto&& mediator) {
       auto construct =
-          meta::demux(BLOOPER_FORWARD(mediator))(
-              meta::make_tuple);
+          demux(BLOOPER_FORWARD(mediator))(
+              make_tuple);
 
-      auto unpack =
-          meta::reverse_partial(
-              meta::unpack,
+      auto call =
+          reverse_partial(
+              unpack,
               BLOOPER_FORWARD(callee));
 
-      return meta::demux(unpack)(construct);
+      return demux(call)(construct);
     });
 
 BLOOPER_STATIC_ASSERT(
@@ -361,6 +422,224 @@ BLOOPER_STATIC_ASSERT(
             [](auto, auto) { return false; }),
         reverse_partial(drop_front, int_c<1>))(1, 2));
 
-BLOOPER_META_NAMESPACE_END
 
+[[maybe_unused]] inline constexpr auto just_flat =
+    ([](auto&& o) {
+      if constexpr (decltype(equal(
+                        BLOOPER_TAG_OF(o),
+                        type_c<optional_tag>)){})
+        return BLOOPER_FORWARD(o);
+      else
+        return just(o);
+    });
+
+[[maybe_unused]] inline constexpr auto matcher_compose =
+    ([](auto&& first, auto&& second) -> decltype(auto) {
+      [[maybe_unused]] constexpr auto is_constexpr_matcher =
+          ([](auto&& matcher) -> decltype(auto) {
+            return equal(
+                type_c<optional_tag>,
+                BLOOPER_TAG_OF(matcher(anything{})));
+          });
+
+      if constexpr (decltype(is_constexpr_matcher(first)){})
+      {
+        return [second = BLOOPER_FORWARD(second)](auto&& object) {
+          using first_result_type = decltype(first(BLOOPER_FORWARD(object)));
+          constexpr first_result_type first_result{};
+
+          if constexpr (equal(first_result, nothing))
+            return second(BLOOPER_FORWARD(object));
+          else
+            return first_result;
+        };
+      }
+      else
+      {
+        return [first = BLOOPER_FORWARD(first),
+                second = BLOOPER_FORWARD(second)](auto&& object) {
+          auto&& first_result = first(BLOOPER_FORWARD(object));
+
+          if (first_result == std::nullopt)
+            return second(BLOOPER_FORWARD(object));
+          else
+            return BLOOPER_FORWARD(first_result);
+        };
+      }
+    });
+
+[[maybe_unused]] inline constexpr auto matcher_fold =
+    ([](auto&& first, auto&&... rest) -> decltype(auto) {
+      return fold_left(
+          make_tuple(BLOOPER_FORWARD(rest)...),
+          BLOOPER_FORWARD(first),
+          matcher_compose);
+    });
+
+[[maybe_unused]] inline constexpr auto make_inferred_matcher =
+    ([](auto&& f) -> decltype(auto) {
+      return [f = BLOOPER_FORWARD(f)](auto&& object) {
+        [[maybe_unused]] constexpr auto enable_callable_with_object =
+            [](auto&& c, auto&& o) -> decltype(c(BLOOPER_FORWARD(o))) {};
+        [[maybe_unused]] constexpr auto check_matched =
+            is_valid(enable_callable_with_object);
+        using matched = decltype(check_matched(f, BLOOPER_FORWARD(object)));
+
+        if constexpr (matched{})
+          return just_flat(f(BLOOPER_FORWARD(object)));
+        else
+          return nothing;
+      };
+    });
+
+
+[[maybe_unused]] inline constexpr auto make_concept_matcher =
+    ([](auto&& concept_applicator, auto&& f) -> decltype(auto) {
+      return make_inferred_matcher(
+          [f = BLOOPER_FORWARD(f)](auto&& object) {
+            if constexpr (decltype(models_concept(
+                              BLOOPER_FORWARD(concept_applicator),
+                              BLOOPER_FORWARD(object))){})
+              return just_flat(f(BLOOPER_FORWARD(object)));
+            else
+              return nothing;
+          });
+    });
+
+[[maybe_unused]] inline constexpr auto make_tag_matcher =
+    ([](auto&& tag, auto&& f) -> decltype(auto) {
+      return make_inferred_matcher(
+          [f = BLOOPER_FORWARD(f)](auto&& object) {
+            if constexpr (decltype(equal(
+                              BLOOPER_FORWARD(tag),
+                              BLOOPER_TAG_OF(object))){})
+              return just_flat(f(BLOOPER_FORWARD(object)));
+            else
+              return nothing;
+          });
+    });
+
+[[maybe_unused]] inline constexpr auto make_type_matcher =
+    overload(
+        ([](auto&& type, auto&& f) {
+          return make_inferred_matcher(
+              [f = BLOOPER_FORWARD(f)](auto&& object) {
+                if constexpr (decltype(equal(
+                                  BLOOPER_FORWARD(type),
+                                  BLOOPER_TYPEID(object))){})
+                  return just_flat(f(BLOOPER_FORWARD(object)));
+                else
+                  return nothing;
+              });
+        }),
+        make_inferred_matcher);
+
+
+[[maybe_unused]] inline constexpr auto make_value_matcher =
+    ([](auto&& value, auto&& f) -> decltype(auto) {
+      return make_inferred_matcher(
+          [value = BLOOPER_FORWARD(value),
+           f = BLOOPER_FORWARD(f)](auto&& object) -> decltype(auto) {
+            [[maybe_unused]] constexpr auto optional_typeid =
+                BLOOPER_TYPEID(f(BLOOPER_FORWARD(object)));
+            using optional_type [[maybe_unused]] =
+                typename decltype(optional_typeid)::type;
+
+            if (value == BLOOPER_FORWARD(object))
+              return std::optional<optional_type>{f(BLOOPER_FORWARD(object))};
+            else
+              return std::optional<optional_type>{std::nullopt};
+          });
+    });
+
+[[maybe_unused]] inline constexpr auto make_dynamic_matcher =
+    ([](auto&& type, auto&& f) -> decltype(auto) {
+      return make_inferred_matcher(
+          [f = BLOOPER_FORWARD(f)](auto&& object) -> decltype(auto) {
+            [[maybe_unused]] constexpr auto optional_typeid =
+                BLOOPER_TYPEID(f(std::declval<decltype(origin(type))>()));
+            using optional_type [[maybe_unused]] =
+                typename decltype(optional_typeid)::type;
+
+            if (auto&& casted =
+                    dynamic_cast<decltype(origin(type))>(
+                        BLOOPER_FORWARD(object)))
+              return std::optional<optional_type>{f(BLOOPER_FORWARD(casted))};
+            else
+              return std::optional<optional_type>{std::nullopt};
+          });
+    });
+
+[[maybe_unused]] inline constexpr auto make_static_matcher =
+    ([](auto&& type, auto&& f) -> decltype(auto) {
+      return make_inferred_matcher(
+          [f = BLOOPER_FORWARD(f)](auto&& object) -> decltype(auto) {
+            [[maybe_unused]] constexpr auto optional_typeid =
+                BLOOPER_TYPEID(f(std::declval<decltype(origin(type))>()));
+            using optional_type [[maybe_unused]] =
+                typename decltype(optional_typeid)::type;
+
+            if (auto&& casted =
+                    static_cast<decltype(origin(type))>(
+                        BLOOPER_FORWARD(object)))
+              return std::optional<optional_type>{f(BLOOPER_FORWARD(casted))};
+            else
+              return std::optional<optional_type>{std::nullopt};
+          });
+    });
+
+
+BLOOPER_STATIC_ASSERT(
+    equal(
+        matcher_compose(
+            make_type_matcher(
+                typeid_(int_c<1>),
+                [](auto&&) { return true_c; }),
+            make_type_matcher(
+                typeid_(int_c<2>),
+                [](auto&&) { return false_c; }))(int_c<1>),
+        just(true_c)));
+
+BLOOPER_STATIC_ASSERT(
+    equal(
+        matcher_fold(
+            make_type_matcher(
+                typeid_(int_c<1>),
+                [](auto&&) { return true_c; }),
+            make_type_matcher(
+                typeid_(int_c<2>),
+                [](auto&&) { return false_c; }))(int_c<2>),
+        just(false_c)));
+
+BLOOPER_STATIC_ASSERT(
+    equal(
+        matcher_fold(
+            make_tag_matcher(
+                type_c<integral_constant_tag<int>>,
+                [](auto&&) { return true_c; }),
+            make_type_matcher(
+                typeid_(int_c<2>),
+                [](auto&&) { return false_c; }))(int_c<2>),
+        just(true_c)));
+
+BLOOPER_STATIC_ASSERT(
+    equal(
+        matcher_fold(
+            make_value_matcher(
+                int_c<2>,
+                [](auto&&) { return true_c; }),
+            make_type_matcher(
+                typeid_(int_c<2>),
+                [](auto&&) { return false_c; }))(int_c<2>),
+        just(std::make_optional(true_c))));
+
+BLOOPER_STATIC_ASSERT(
+    equal(
+        matcher_fold(
+            make_type_matcher(
+                typeid_(int_c<1>),
+                [](auto&&) { return false; }))(int_c<2>),
+        nothing));
+
+BLOOPER_META_NAMESPACE_END
 #endif //BLOOPER_META_HPP
