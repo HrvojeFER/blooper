@@ -6,6 +6,7 @@
 
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/const.hpp>
+#include "traits.hpp"
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -54,7 +55,7 @@ template<typename TOnClose>
 void App::closeAllModalComponentsAsync(TOnClose onClose)
 {
   static_assert(
-      isCallback(meta::typeid_(onClose)),
+      meta::traits::is_callback(meta::typeid_(onClose)),
       "onClose passed to closeAllModalComponentsAsync has to "
       "satisfy Callback.");
 

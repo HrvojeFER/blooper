@@ -142,13 +142,13 @@ getAsset(TId                       id,
 {
   static_assert(
       BLOOPER_TYPEID(id) ^
-          meta::traits::is_statically_castable_into ^
+          meta::traits::is_statically_convertible_to ^
           meta::type_c<ResourceIndex>,
       "Id passed to getAsset needs to be "
       "statically castable into a ResourceIndex.");
 
   static_assert(
-      isInvokable(
+      meta::traits::is_invokable(
           meta::type_c<TConstructor>,
           meta::type_c<Resource>,
           meta::type_c<ResourceSize>),

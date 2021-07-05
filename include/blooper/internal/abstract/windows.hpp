@@ -6,6 +6,7 @@
 
 #include <blooper/internal/abstract/id.hpp>
 
+#include <blooper/internal/abstract/prelude.hpp>
 #include <blooper/internal/abstract/meta.hpp>
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>

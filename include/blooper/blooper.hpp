@@ -2,6 +2,7 @@
 #define BLOOPER_INCLUDED
 #pragma once
 
+#include <blooper/pch.hpp>
 #include <blooper/internal/abstract/abstract.hpp>
 #include <blooper/internal/internal.hpp>
 #include <blooper/components/components.hpp>

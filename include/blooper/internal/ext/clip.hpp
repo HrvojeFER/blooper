@@ -2,9 +2,11 @@
 #define BLOOPER_EXT_CLIP_HPP
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/take.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 

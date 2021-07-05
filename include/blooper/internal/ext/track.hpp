@@ -4,11 +4,13 @@
 
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/meta.hpp>
-#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/abstract/time.hpp>
 #include <blooper/internal/ext/clip.hpp>
 #include <blooper/internal/ext/plugin.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -303,7 +305,9 @@ template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
 [[maybe_unused]] inline bool visit(te::Track& track, TVisitor visitor)
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<te::Track&>,
       "te::Track visit requires a Visitor of te::Track&");
 
 
@@ -330,7 +334,9 @@ template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
 [[maybe_unused]] inline te::Track* find(te::Track& track, TPredicate predicate)
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<te::Track&>,
       "te::Track find requires a Predicate of te::Track&");
 
 
@@ -356,7 +362,9 @@ template<typename TVisitor>
 [[maybe_unused]] inline bool visitAncestors(te::Track& track, TVisitor visitor)
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<te::Track&>,
       "te::Track visitAncestors requires a Visitor of te::Track&");
 
 
@@ -376,7 +384,9 @@ template<typename TPredicate>
     TPredicate predicate)
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<te::Track&>,
       "te::Track findAncestor requires a Predicate of te::Track&");
 
 

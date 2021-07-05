@@ -4,6 +4,7 @@
 
 #include <blooper/internal/macros/macros.hpp>
 
+#include <blooper/internal/abstract/prelude.hpp>
 #include <blooper/internal/abstract/meta.hpp>
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>

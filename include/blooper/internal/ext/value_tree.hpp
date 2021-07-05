@@ -3,7 +3,9 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -22,7 +24,9 @@ visit(
     TVisitor               visitor)
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::ValueTree>,
       "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
 
 
@@ -59,7 +63,9 @@ visitAncestors(
     TVisitor               visitor)
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::ValueTree>,
       "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
 
 
@@ -77,7 +83,9 @@ find(
     TPredicate             predicate)
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::ValueTree>,
       "juce::ValueTree find requires a Predicate of juce::ValueTree.");
 
 
@@ -106,7 +114,9 @@ findAncestor(
     TPredicate             predicate)
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::ValueTree>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::ValueTree>,
       "juce::ValueTree findAncestor requires a Predicate of juce::ValueTree.");
 
 

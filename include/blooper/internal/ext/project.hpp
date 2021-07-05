@@ -3,6 +3,8 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 

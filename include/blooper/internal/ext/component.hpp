@@ -3,7 +3,9 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -23,7 +25,9 @@ visit(const juce::Component& component, TVisitor visitor) noexcept(noexcept(
     visitor(std::declval<juce::Component&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::Component&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::Component&>,
       "juce::Component visit requires a Visitor of juce::Component&");
 
 
@@ -51,7 +55,9 @@ visitAncestors(const juce::Component& component, TVisitor visitor) noexcept(noex
     visitor(std::declval<juce::Component&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::Component&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::Component&>,
       "juce::Component visitAncestors requires a Visitor of juce::Component&");
 
 
@@ -71,7 +77,9 @@ find(const juce::Component& component, TPredicate predicate) noexcept(noexcept(
     predicate(std::declval<juce::Component&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::Component&>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::Component&>,
       "juce::Component find requires a Predicate of juce::Component&");
 
 
@@ -99,7 +107,9 @@ findAncestor(const juce::Component& component, TPredicate predicate) noexcept(no
     predicate(std::declval<juce::Component&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::Component&>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::Component&>,
       "juce::Component findAncestor requires a Predicate of juce::Component&");
 
 

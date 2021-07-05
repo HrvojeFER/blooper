@@ -109,7 +109,23 @@ env_add_dep(env env_export)
 
 
 # -----------------------------------------------------------------------------
-# Targets
+# Env Targets
+
+env_project_targets(
+        DEPS
+        blooper::env
+        blooper::audio
+        blooper::assets
+
+        TEST_DEPS
+        env::test
+
+        BENCH_DEPS
+        env::bench)
+
+
+# -----------------------------------------------------------------------------
+# Audio Targets
 
 file(GLOB_RECURSE
      __blooper_binaries
@@ -170,23 +186,14 @@ if (BLOOPER_BUILD_STANDALONE)
             PRIVATE
             blooper::env
             blooper::audio
-            blooper::assets)
-
-    env_target_precompile(
-            standalone
-            PRIVATE
-            "${PROJECT_SOURCE_DIR}/pch/pch.hpp")
+            blooper::assets
+            blooper::pch)
 
     env_target_sources(
             standalone
             PRIVATE
             "${PROJECT_SOURCE_DIR}/audio/standalone.cpp"
             ${__blooper_sources})
-
-    env_target_include(
-            standalone
-            PRIVATE
-            "${PROJECT_SOURCE_DIR}/include")
 
     env_target_definitions(
             standalone

@@ -4,6 +4,7 @@
 
 #include <blooper/internal/macros/macros.hpp>
 #include <blooper/internal/abstract/const.hpp>
+#include "traits.hpp"
 
 BLOOPER_UTIL_NAMESPACE_BEGIN
 
@@ -11,7 +12,7 @@ template<typename TCallback>
 [[maybe_unused]] void requestRuntimePermissions(TCallback callback)
 {
   static_assert(
-      BLOOPER_TYPEID(callback) ^ isConsumerOf ^ meta::typeid_c<bool>,
+      BLOOPER_TYPEID(callback) ^ meta::traits::is_consumer_of ^ meta::typeid_c<bool>,
       "requestRuntimePermissions requires a Consumer of bool");
 
 
@@ -33,7 +34,7 @@ template<typename TCallback>
 [[maybe_unused]] void callDelayed(TCallback callback)
 {
   static_assert(
-      isCallback(meta::typeid_(callback)),
+      meta::traits::is_callback(meta::typeid_(callback)),
       "callDelayed requires a Callback.");
 
   juce::Timer::callAfterDelay(

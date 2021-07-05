@@ -2,6 +2,9 @@
 #define BLOOPER_PARAMETER_HPP
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -38,7 +41,9 @@ template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
     TVisitor                  visitor)
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<te::Track&>,
       "te::Edit visit requires a Visitor of te::Track&");
 
   for (auto track : edit.getTrackList().objects)
@@ -61,7 +66,9 @@ template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
 [[maybe_unused]] inline te::Track* find(te::Edit& edit, TPredicate predicate)
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<te::Track&>,
+      BLOOPER_TYPEID(predicate) ^
+          is_predicate_of ^
+          meta::type_c<te::Track&>,
       "te::Edit visit requires a Visitor of te::Track&");
 
 

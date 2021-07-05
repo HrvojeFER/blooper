@@ -3,7 +3,9 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
-#include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/predicates.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
+
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -13,7 +15,9 @@ visitWindows(TVisitor visitor) noexcept(noexcept(
     visitor(std::declval<juce::TopLevelWindow&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(visitor) ^ isVisitorOf ^ meta::type_c<juce::TopLevelWindow&>,
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::TopLevelWindow&>,
       "visitWindows requires a Visitor of juce::TopLevelWindow&");
 
 
@@ -31,7 +35,9 @@ findWindow(TPredicate predicate) noexcept(noexcept(
     predicate(std::declval<juce::TopLevelWindow&>())))
 {
   static_assert(
-      BLOOPER_TYPEID(predicate) ^ isPredicateOf ^ meta::type_c<juce::TopLevelWindow&>,
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::TopLevelWindow&>,
       "findWindow requires a Predicate of juce::TopLevelWindow&");
 
 
