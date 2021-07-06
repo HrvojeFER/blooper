@@ -65,6 +65,9 @@ enum class VisitDepth
 [[maybe_unused]] inline constexpr auto isVisitorOf =
     meta::infix(isVisitor);
 
+[[maybe_unused]] inline constexpr auto isAnyVisitor =
+    isVisitorOf ^ meta::type_c<meta::anything>;
+
 
 // Call
 

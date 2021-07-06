@@ -2,8 +2,36 @@
 
 #include <blooper/internal/abstract/matchers.hpp>
 
-BLOOPER_NAMESPACE_BEGIN
+BLOOPER_TEST_NAMESPACE_BEGIN
 ENV_MSVC_SUPPRESS_PUSH(6326); // constant comparison
+
+struct base
+{
+  virtual bool is_base() noexcept
+  {
+    return true;
+  }
+
+  virtual bool is_sub() noexcept
+  {
+    return false;
+  }
+};
+
+struct sub : base
+{
+  bool is_base() noexcept override
+  {
+    return false;
+  }
+
+  bool is_sub() noexcept override
+  {
+    return true;
+  }
+} static _sub;
+
+static base* sub_ptr = std::addressof(_sub);
 
 
 ENV_TEST_CASE(matchers, constexpr_predicate_matchers)
@@ -133,7 +161,12 @@ ENV_TEST_CASE(matchers, pipe_matchers)
               [](auto&& o) { return BLOOPER_FORWARD(o); })(1.0),
           std::make_optional(1)));
 
-  // TODO: dynamic matcher assert?
+  EXPECT_TRUE(
+      meta::equal(
+          makeDynamicMatcher(
+              meta::type_c<sub*>,
+              [](base* p) { return p->is_sub(); })(sub_ptr),
+          std::make_optional(true)));
 }
 
 ENV_TEST_CASE(matchers, void_predicate_matchers)
@@ -251,10 +284,129 @@ ENV_TEST_CASE(matchers, void_pipe_matchers)
           }(),
           1));
 
-  // TODO: dynamic matcher assert?
+  EXPECT_TRUE(
+      meta::equal(
+          [] {
+            auto res = false;
+            makeVoidDynamicMatcher(
+                meta::type_c<sub*>,
+                [&res](sub* p) { res = p->is_sub(); })(sub_ptr);
+            return res;
+          }(),
+          true));
 }
 
-ENV_TEST_CASE(matchers, matcherConstexprFold)
+ENV_TEST_CASE(matchers, constexpr_function_matchers)
+{
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionPredicateMatcher(
+              [](auto&& o) { return !meta::traits::is_pointer(meta::typeid_(o)); },
+              [] { return meta::true_c; })(meta::int_c<1>)
+              .value()(),
+          meta::true_c));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionConceptMatcher(
+              meta::concept_c<meta::IntegralConstant>,
+              []() { return meta::true_c; })(meta::int_c<1>)
+              .value()(),
+          meta::true_c));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionTagMatcher(
+              meta::type_c<meta::integral_constant_tag<int>>,
+              [] { return meta::true_c; })(meta::int_c<1>)
+              .value()(),
+          meta::true_c));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionTagMatcher(
+              meta::type_c<meta::tuple_tag>,
+              [] { return meta::true_c; })(meta::int_c<1>),
+          meta::nothing));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionTypeMatcher(
+              meta::type_c<meta::int_<1>>,
+              [] { return meta::true_c; })(meta::int_c<1>)
+              .value()(),
+          meta::true_c));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeConstexprFunctionTypeMatcher(
+              meta::type_c<meta::int_<2>>,
+              [] { return meta::true_c; })(meta::int_c<1>),
+          meta::nothing));
+}
+
+ENV_TEST_CASE(matchers, function_matchers)
+{
+  EXPECT_TRUE(
+      meta::equal(
+          makeFunctionPredicateMatcher(
+              [](auto&& o) { return BLOOPER_FORWARD(o) == 1; },
+              [] { return true; })(meta::int_c<1>)
+              .value()(),
+          true));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeFunctionValueMatcher(
+              1,
+              [] { return true; })(1)
+              .value()(),
+          true));
+
+  EXPECT_TRUE(
+      makeFunctionValueMatcher(
+          2,
+          [] { return true; })(1) ==
+      std::nullopt);
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeFunctionConceptMatcher(
+              meta::concept_c<meta::IntegralConstant>,
+              [] { return true; })(meta::int_c<1>)
+              .value()(),
+          true));
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeFunctionTagMatcher(
+              meta::type_c<meta::integral_constant_tag<int>>,
+              [] { return true; })(meta::int_c<1>)
+              .value()(),
+          true));
+
+  EXPECT_TRUE(
+      makeFunctionTagMatcher(
+          meta::type_c<meta::tuple_tag>,
+          [] { return true; })(meta::int_c<1>) ==
+      std::nullopt);
+
+  EXPECT_TRUE(
+      meta::equal(
+          makeFunctionTypeMatcher(
+              meta::type_c<meta::int_<1>>,
+              [] { return true; })(meta::int_c<1>)
+              .value()(),
+          true));
+
+  EXPECT_TRUE(
+      makeFunctionTypeMatcher(
+          meta::type_c<meta::int_<2>>,
+          [](auto&&) { return true; })(meta::int_c<1>) ==
+      std::nullopt);
+}
+
+ENV_TEST_CASE(matchers, matcher_constexpr_fold)
 {
   EXPECT_TRUE(
       meta::equal(
@@ -318,7 +470,7 @@ ENV_TEST_CASE(matchers, matcherConstexprFold)
           meta::just(meta::true_c)));
 }
 
-ENV_TEST_CASE(matchers, matcherFold)
+ENV_TEST_CASE(matchers, matcher_fold)
 {
   EXPECT_TRUE(
       meta::equal(
@@ -396,10 +548,17 @@ ENV_TEST_CASE(matchers, matcherFold)
           std::optional<bool>(std::nullopt)));
 }
 
-ENV_TEST_CASE(matchers, matcherVoidFold)
+ENV_TEST_CASE(matchers, matcher_void_fold)
 {
 }
 
+ENV_TEST_CASE(matchers, constexpr_matcher_function_fold)
+{
+}
+
+ENV_TEST_CASE(matchers, matcher_function_fold)
+{
+}
 
 ENV_MSVC_SUPPRESS_POP;
-BLOOPER_NAMESPACE_END
+BLOOPER_TEST_NAMESPACE_END

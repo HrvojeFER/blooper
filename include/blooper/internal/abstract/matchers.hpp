@@ -18,6 +18,8 @@ BLOOPER_NAMESPACE_BEGIN
 
       return
           [f = BLOOPER_FORWARD(f)](auto&& o) {
+            maybeUnused(f);
+
             if constexpr (decltype(BLOOPER_FORWARD(p)(BLOOPER_FORWARD(o))){})
               return meta::just_flat(f(BLOOPER_FORWARD(o)));
             else
@@ -84,6 +86,38 @@ BLOOPER_NAMESPACE_BEGIN
     });
 
 
+[[maybe_unused]] inline constexpr auto makeConstexprFunctionPredicateMatcher =
+    ([](auto&& p, auto&& f) {
+      maybeUnused(BLOOPER_FORWARD(p));
+
+      return
+          [f = BLOOPER_FORWARD(f)](auto&& o) {
+            maybeUnused(f);
+
+            if constexpr (decltype(BLOOPER_FORWARD(p)(BLOOPER_FORWARD(o))){})
+              return meta::just_flat(move(f));
+            else
+              return meta::nothing;
+          };
+    });
+
+[[maybe_unused]] inline constexpr auto makeFunctionPredicateMatcher =
+    ([](auto&& p, auto&& f) {
+      maybeUnused(BLOOPER_FORWARD(p));
+
+      return
+          [p = BLOOPER_FORWARD(p),
+           f = BLOOPER_FORWARD(f)](auto&& o) {
+            using ot = std::decay_t<decltype(f)>;
+
+            if (p(BLOOPER_FORWARD(o)))
+              return std::optional<ot>{move(f)};
+            else
+              return std::optional<ot>{std::nullopt};
+          };
+    });
+
+
 // Concrete matchers
 
 [[maybe_unused]] inline constexpr auto makeConstexprArgumentMatcher =
@@ -143,6 +177,48 @@ BLOOPER_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline constexpr auto makeVoidDynamicMatcher =
     meta::compose(makeVoidPipeMatcher, makeDynamicPipe);
+
+
+[[maybe_unused]] inline constexpr auto makeConstexprFunctionArgumentMatcher =
+    meta::demux(makeConstexprFunctionPredicateMatcher)(
+        makeArgumentPredicate,
+        meta::id);
+
+[[maybe_unused]] inline constexpr auto makeConstexprFunctionConceptMatcher =
+    meta::compose(
+        makeConstexprFunctionPredicateMatcher,
+        makeConceptPredicate);
+
+[[maybe_unused]] inline constexpr auto makeConstexprFunctionTagMatcher =
+    meta::compose(
+        makeConstexprFunctionPredicateMatcher,
+        makeTagPredicate);
+
+[[maybe_unused]] inline constexpr auto makeConstexprFunctionTypeMatcher =
+    meta::compose(
+        makeConstexprFunctionPredicateMatcher,
+        makeTypePredicate);
+
+
+[[maybe_unused]] inline constexpr auto makeFunctionConceptMatcher =
+    meta::compose(
+        makeFunctionPredicateMatcher,
+        makeConceptPredicate);
+
+[[maybe_unused]] inline constexpr auto makeFunctionTagMatcher =
+    meta::compose(
+        makeFunctionPredicateMatcher,
+        makeTagPredicate);
+
+[[maybe_unused]] inline constexpr auto makeFunctionTypeMatcher =
+    meta::compose(
+        makeFunctionPredicateMatcher,
+        makeTypePredicate);
+
+[[maybe_unused]] inline constexpr auto makeFunctionValueMatcher =
+    meta::compose(
+        makeFunctionPredicateMatcher,
+        meta::reverse_partial(makeValuePredicate, meta::equal));
 
 
 // Composition

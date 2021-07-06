@@ -1,5 +1,5 @@
-#ifndef BLOOPER_APP_HPP
-#define BLOOPER_APP_HPP
+#ifndef BLOOPER_TEST_APP_HPP
+#define BLOOPER_TEST_APP_HPP
 #pragma once
 
 #include <blooper/internal/macros/namespaces.hpp>
@@ -7,7 +7,7 @@
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/const.hpp>
 
-BLOOPER_NAMESPACE_BEGIN
+BLOOPER_TEST_NAMESPACE_BEGIN
 
 class App : public juce::JUCEApplication
 {
@@ -75,6 +75,6 @@ void App::closeAllModalComponentsAsync(TOnClose onClose)
   }
 }
 
-BLOOPER_NAMESPACE_END
+BLOOPER_TEST_NAMESPACE_END
 
-#endif // BLOOPER_APP_HPP
+#endif // BLOOPER_TEST_APP_HPP

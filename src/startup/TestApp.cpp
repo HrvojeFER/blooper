@@ -1,13 +1,13 @@
-#include <blooper/startup/App.hpp>
+#include <blooper/startup/TestApp.hpp>
 
 #include <blooper/internal/ext/window.hpp>
 #include <blooper/internal/utils/callbacks.hpp>
 
-#include <blooper/context/ContextClass.hpp>
+#include <blooper/context/TestContextClass.hpp>
 
-#include <blooper/body/BodyWindow.hpp>
+#include <blooper/body/TestBodyWindow.hpp>
 
-BLOOPER_NAMESPACE_BEGIN
+BLOOPER_TEST_NAMESPACE_BEGIN
 
 App::App() = default;
 
@@ -153,7 +153,6 @@ void App::initialise(const juce::String& commandLine)
   this->context->startAsync();
 }
 
-// TODO
 void App::anotherInstanceStarted(const juce::String&)
 {
 }
@@ -171,4 +170,4 @@ void App::shutdown()
   this->context.reset();
 }
 
-BLOOPER_NAMESPACE_END
+BLOOPER_TEST_NAMESPACE_END

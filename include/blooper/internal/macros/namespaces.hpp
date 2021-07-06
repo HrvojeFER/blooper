@@ -66,6 +66,15 @@ BLOOPER_UTIL_NAMESPACE_END
 BLOOPER_DETAIL_NAMESPACE_BEGIN
 BLOOPER_DETAIL_NAMESPACE_END
 
+#define BLOOPER_TEST_NAMESPACE_BEGIN \
+  namespace blooper::test            \
+  {
+#define BLOOPER_TEST_NAMESPACE_END \
+  } /* namespace blooper::test */
+
+BLOOPER_TEST_NAMESPACE_BEGIN
+BLOOPER_TEST_NAMESPACE_END
+
 
 #define BLOOPER_ASSETS_NAMESPACE_BEGIN \
   namespace blooper::assets            \
