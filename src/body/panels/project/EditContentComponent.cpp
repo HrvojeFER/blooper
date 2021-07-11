@@ -4,6 +4,7 @@
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/value_tree.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/edit.hpp>
 #include <blooper/internal/utils/gui.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 
@@ -48,16 +49,16 @@ EditContentComponent::EditContentComponent(
 
   this->updateTracks();
 
-  this->getContext().getSettings().addListener(this);
-  this->getContext().getEditManager().addListener(this);
   this->getContext().registerCommandTarget(this);
+  this->appearanceSettings.addListener(this);
+  this->edit->state.addListener(this);
 }
 
 EditContentComponent::~EditContentComponent()
 {
+  this->edit->state.removeListener(this);
+  this->appearanceSettings.removeListener(this);
   this->getContext().unregisterCommandTarget(this);
-  this->getContext().getEditManager().removeListener(this);
-  this->getContext().getSettings().removeListener(this);
 }
 
 
@@ -77,17 +78,17 @@ void EditContentComponent::resizeTracks()
 [[maybe_unused]] void EditContentComponent::updateTracks()
 {
   for (int i = 0; i < this->getChildren().size(); ++i)
-  {
     if (dynamic_cast<TrackComponent*>(this->getChildComponent(i)))
-    {
       this->removeChildComponent(i);
-    }
-  }
 
   this->trackComponents.clear();
 
-  this->edit->visitAllTopLevelTracks(
+
+  ext::visit<VisitDepth::shallow>(
+      *this->edit,
       [this](JuceTrack& track) {
+        if (!track.isAudioTrack()) return;
+
         TrackComponent::Options componentOptions{};
 
         auto trackChild =
@@ -118,14 +119,11 @@ void EditContentComponent::resizeTracks()
                 move(componentOptions));
 
         this->trackComponents.add(trackComponent);
-
-        return true;
       });
 
   for (auto trackComponent : this->trackComponents)
-  {
     ext::addAndMakeVisible(*this, *trackComponent);
-  }
+
 
   this->resizeTracks();
 }
@@ -135,15 +133,17 @@ void EditContentComponent::resizeTracks()
 
 void EditContentComponent::resized()
 {
+  const auto numTrackComponents = this->trackComponents.size();
+  if (numTrackComponents <= 0) return;
+
   auto availableArea = util::pad(this->getLocalBounds(), 2);
-  auto trackWidth = availableArea.getWidth() / this->trackComponents.size();
+  auto trackWidth = availableArea.getWidth() / numTrackComponents;
 
   for (auto component : this->trackComponents)
   {
     component->setBounds(
         util::pad(
-            availableArea
-                .removeFromLeft(trackWidth),
+            availableArea.removeFromLeft(trackWidth),
             2));
   }
 }
@@ -168,9 +168,9 @@ void EditContentComponent::valueTreeChildAdded(
     juce::ValueTree& tree,
     juce::ValueTree& child)
 {
-  if (tree == this->getContext().getEditManager().getState())
+  if (tree == this->edit->state)
   {
-    if (child.hasType(id::edit))
+    if (child.hasType(te::IDs::TRACK))
     {
       this->markAndUpdate(this->trackUpdate);
     }
@@ -182,9 +182,9 @@ void EditContentComponent::valueTreeChildRemoved(
     juce::ValueTree& child,
     int)
 {
-  if (tree == this->getContext().getEditManager().getState())
+  if (tree == this->edit->state)
   {
-    if (child.hasType(id::edit))
+    if (child.hasType(te::IDs::TRACK))
     {
       this->markAndUpdate(this->trackUpdate);
     }
@@ -196,10 +196,10 @@ void EditContentComponent::valueTreeChildOrderChanged(
     int              childAIndex,
     int              childBIndex)
 {
-  if (tree == this->getContext().getEditManager().getState())
+  if (tree == this->edit->state)
   {
-    if (tree.getChild(childAIndex).hasType(id::edit) &&
-        tree.getChild(childBIndex).hasType(id::edit))
+    if (tree.getChild(childAIndex).hasType(te::IDs::TRACK) ||
+        tree.getChild(childBIndex).hasType(te::IDs::TRACK))
     {
       this->markAndUpdate(this->trackUpdate);
     }
@@ -254,10 +254,10 @@ bool EditContentComponent::perform(
               .getCurrentlyFocusedSelectionManager())
   {
     selectionManager->deselectAll();
-    this->edit->visitAllTopLevelTracks(
+    ext::visit<VisitDepth::shallow>(
+        *this->edit,
         [selectionManager](JuceTrack& track) {
           selectionManager->select(track, true);
-          return true;
         });
   }
 

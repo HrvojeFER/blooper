@@ -2,10 +2,10 @@
 
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/value_tree.hpp>
-#include <blooper/internal/ext/engine.hpp>
-#include <blooper/internal/ext/edit.hpp>
-#include <blooper/internal/ext/track.hpp>
 #include <blooper/internal/ext/parameter.hpp>
+#include <blooper/internal/ext/track.hpp>
+#include <blooper/internal/ext/edit.hpp>
+#include <blooper/internal/ext/engine.hpp>
 #include <blooper/internal/utils/ContextCommands.hpp>
 
 #include <blooper/context/behaviour/behaviour.hpp>
@@ -18,7 +18,7 @@
 #include <blooper/context/plugins/PluginPickerComponent.hpp>
 
 // TODO
-#include <blooper/context/plugins/PluginsMenuWindow.hpp>
+// #include <blooper/context/plugins/PluginsMenuWindow.hpp>
 
 #include <blooper/components/help/HelpWindow.hpp>
 #include <blooper/components/help/InfoWindow.hpp>
@@ -28,6 +28,9 @@ BLOOPER_NAMESPACE_BEGIN
 
 Context::Context(ContextOptions options)
     : options(move(options)),
+
+      focusedUndoManager(nullptr),
+      focusedSelectionManager(nullptr),
 
       loaded(false),
       loadedEngine(false),
@@ -55,14 +58,6 @@ void Context::removeExpiredCommandTargets()
       });
 }
 
-void Context::popExpiredSelectionManagers()
-{
-  for (auto currentTop = this->focusedSelectionManagerStack.top();
-       currentTop.expired();
-       currentTop = this->focusedSelectionManagerStack.top())
-    this->focusedSelectionManagerStack.pop();
-}
-
 
 // Context
 
@@ -86,7 +81,12 @@ JuceEditRef Context::getFocusedEdit()
 
 JuceEditRef Context::setFocusedEdit(JuceEditRef edit)
 {
-  return this->getEditManager().setFocusedEdit(*edit);
+  auto focusedEdit = this->getEditManager().setFocusedEdit(*edit);
+
+  this->setFocusedUndoManager(
+      std::addressof(focusedEdit->getUndoManager()));
+
+  return std::move(focusedEdit);
 }
 
 
@@ -676,22 +676,30 @@ void Context::loadUnsafe()
                      "development team if necessary."});
   JuceLogger::setCurrentLogger(this->logger.get());
 
-  this->undoManager = std::make_unique<JuceUndoManager>();
-
   this->commandManager = std::make_unique<JuceCommandManager>();
   this->commandTargets.clear();
   this->commandManager->registerAllCommandsForTarget(this);
   this->commandManager->setFirstCommandTarget(this);
+  this->lastCommandId.referTo(
+      this->getState(),
+      id::lastCommandId,
+      nullptr,
+      CommandId::none);
+
+  this->undoManager =
+      std::make_unique<JuceUndoManager>();
+  this->focusedUndoManager = this->undoManager.get();
 
   this->selectionManager =
-      std::make_shared<JuceSelectionManager>(
+      std::make_unique<JuceSelectionManager>(
           this->getEngine());
-
-  this->focusedSelectionManagerStack.push(this->selectionManager);
+  this->focusedSelectionManager = this->selectionManager.get();
 }
 
 void Context::unloadUnsafe()
 {
+  State invalidState{};
+
   {
     auto stateXml = this->getState().createXml();
     this->stateFile->setValue(
@@ -704,11 +712,15 @@ void Context::unloadUnsafe()
 
   this->selectionManager.reset();
 
+  this->undoManager.reset();
+
+  this->lastCommandId.referTo(
+      invalidState,
+      {},
+      nullptr);
   this->commandTargets.clear();
   this->commandManager->setFirstCommandTarget(nullptr);
   this->commandManager.reset();
-
-  this->undoManager.reset();
 
   JuceLogger::setCurrentLogger(nullptr);
   this->logger.reset();
@@ -799,15 +811,11 @@ void Context::unloadEngineUnsafe()
   State invalidState{};
 
   this->openProjectFilePath.referTo(
-      // it has to be an lvalue for some reason
-      // even though it is used for copying..
       invalidState,
       {},
       nullptr);
 
   this->monitored.referTo(
-      // it has to be an lvalue for some reason
-      // even though it is used for copying..
       invalidState,
       {},
       nullptr);
@@ -928,18 +936,19 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
           Context::stateId);
 
 
-  this->synchronizer =
-      std::make_unique<Synchronizer>(
-          *this,
-          this->projectState.getOrCreateChildWithName(
-              Synchronizer::stateId,
-              nullptr));
-
   this->editManager =
       std::make_unique<EditManager>(
           *this,
           this->projectState.getOrCreateChildWithName(
               EditManager::stateId,
+              nullptr));
+  this->setFocusedEdit(this->editManager->getFocusedEdit());
+
+  this->synchronizer =
+      std::make_unique<Synchronizer>(
+          *this,
+          this->projectState.getOrCreateChildWithName(
+              Synchronizer::stateId,
               nullptr));
 
 
@@ -974,9 +983,9 @@ void Context::unloadProjectUnsafe()
   this->projectStateFile->save();
 
 
-  this->editManager.reset();
-
   this->synchronizer.reset();
+
+  this->editManager.reset();
 
 
   this->projectState = {};
@@ -1093,7 +1102,9 @@ void Context::getAllCommands(juce::Array<JuceCommandId>& commands)
       target->getAllCommands(commands);
 }
 
-void Context::getCommandInfo(JuceCommandId commandID, JuceCommandInfo& result)
+void Context::getCommandInfo(
+    JuceCommandId    commandID,
+    JuceCommandInfo& result)
 {
   fillCommandInfo(
       result,
@@ -1103,7 +1114,8 @@ void Context::getCommandInfo(JuceCommandId commandID, JuceCommandInfo& result)
 
   for (const auto& target : this->commandTargets)
     if (!target.wasObjectDeleted())
-      target->getCommandInfo(commandID, result);
+      if (auto performer = target->getTargetForCommand(commandID))
+        performer->getCommandInfo(commandID, result);
 }
 
 bool Context::perform(const JuceCommand& command)
@@ -1123,13 +1135,12 @@ bool Context::perform(const JuceCommand& command)
 
     case CommandId::saveEdit:
       if (auto edit = this->getFocusedEdit())
-      {
         te::EditFileOperations{*edit}
             .save(
                 true,
                 false,
                 false);
-      }
+
       return true;
 
     case CommandId::saveAll:
@@ -1209,273 +1220,172 @@ bool Context::perform(const JuceCommand& command)
       // Engine
 
     case CommandId::toggleMonitoring:
-      {
-        ext::toggleMonitoring(this->getEngine());
-        return true;
-      }
+      ext::toggleMonitoring(this->getEngine());
+
+      return true;
 
 
       // Edit
 
     case CommandId::del:
-      if (auto focusedSelection =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager())
-      {
+      if (auto focusedSelection = this->getFocusedSelectionManager())
         focusedSelection->deleteSelected();
-      }
-      else
-      {
-        this->getSelectionManager().deleteSelected();
-      }
+
       return true;
 
     case CommandId::cut:
-      if (auto focusedSelection =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager())
-      {
+      if (auto focusedSelection = this->getFocusedSelectionManager())
         focusedSelection->cutSelected();
-      }
-      else
-      {
-        this->getSelectionManager().cutSelected();
-      }
+
       return true;
 
     case CommandId::copy:
-      if (auto focusedSelection =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager())
-      {
+      if (auto focusedSelection = this->getFocusedSelectionManager())
         focusedSelection->copySelected();
-      }
-      else
-      {
-        this->getSelectionManager().copySelected();
-      }
+
       return true;
 
     case CommandId::paste:
-      if (auto focusedSelection =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager())
-      {
+      if (auto focusedSelection = this->getFocusedSelectionManager())
         focusedSelection->pasteSelected();
-      }
-      else
-      {
-        this->getSelectionManager().pasteSelected();
-      }
+
       return true;
 
 
       // TODO: better
 
     case CommandId::addEdit:
-      {
-        this->setFocusedEdit(this->getEditManager().add());
-      }
+      this->setFocusedEdit(this->getEditManager().add());
       return true;
 
     case CommandId::addTrack:
-      if (auto edit =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedEdit())
+      if (auto edit = this->getFocusedEdit())
       {
         edit->insertNewAudioTrack(
             {nullptr, nullptr},
-            nullptr);
+            this->getEngine()
+                .getUIBehaviour()
+                .getCurrentlyFocusedSelectionManager());
       }
       return true;
 
     case CommandId::addPlugin:
-      if (this->getEngine()
-              .getUIBehaviour()
-              .getCurrentlyFocusedSelectionManager()
-              ->getFirstItemOfType<te::Track>())
+      if (auto focusedSelection = this->getFocusedSelectionManager())
       {
-        PluginPickerComponent::Options pluginPickerOptions{};
-
-        auto plugin = pickPlugin(*this, move(pluginPickerOptions));
-
-        for (auto track :
-             this->getEngine()
-                 .getUIBehaviour()
-                 .getCurrentlyFocusedSelectionManager()
-                 ->getItemsOfType<EditTrack>())
+        if (focusedSelection->getFirstItemOfType<te::Track>())
         {
-          auto& list = track->getAudio().pluginList;
-          list.insertPlugin(
-              plugin,
-              list.size(),
-              nullptr);
+          PluginPickerComponent::Options pluginPickerOptions{};
+
+          auto plugin = pickPlugin(*this, move(pluginPickerOptions));
+
+          for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          {
+            track->pluginList.insertPlugin(
+                plugin,
+                -1,
+                focusedSelection);
+          }
         }
       }
       return true;
 
 
     case CommandId::undo:
-      if (auto edit =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedEdit())
-      {
-        edit->getUndoManager().undo();
-      }
-      else
-      {
-        this->getUndoManager().undo();
-      }
+      if (auto focusedUndo = this->getFocusedUndoManager())
+        focusedUndo->undo();
+
       return true;
 
     case CommandId::redo:
-      if (auto edit =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedEdit())
-      {
-        edit->getUndoManager().redo();
-      }
-      else
-      {
-        this->getUndoManager().redo();
-      }
+      if (auto focusedUndo = this->getFocusedUndoManager())
+        focusedUndo->redo();
+
       return true;
 
 
     case CommandId::deselectAll:
-      if (auto focusedSelection =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedSelectionManager())
-      {
+      if (auto focusedSelection = this->getFocusedSelectionManager())
         focusedSelection->deselectAll();
-      }
+
       return true;
 
 
       // Transport
 
     case CommandId::togglePlaying:
-      if (auto edit =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedEdit())
-      {
+      if (auto edit = this->getFocusedEdit())
         ext::togglePlaying(*edit);
-      }
+
       return true;
 
     case CommandId::toggleRecording:
-      if (auto edit =
-              this->getEngine()
-                  .getUIBehaviour()
-                  .getCurrentlyFocusedEdit())
-      {
+      if (auto edit = this->getFocusedEdit())
         ext::toggleRecording(*edit);
-      }
+
       return true;
 
 
       // Track
 
     case CommandId::toggleMuted:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::toggleMuted(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::toggleMuted(*track);
       return true;
 
     case CommandId::toggleSoloed:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::toggleSoloed(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::toggleSoloed(*track);
       return true;
 
     case CommandId::toggleArmed:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::toggleArmed(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::toggleArmed(*track);
+
       return true;
 
 
     case CommandId::cycleTrackMode:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::cycleTrackMode(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::cycleTrackMode(*track);
+
       return true;
 
     case CommandId::cycleTrackInterval:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::cycleTrackInterval(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::cycleTrackInterval(*track);
+
       return true;
 
 
     case CommandId::clearTrack:
-      for (auto track :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<JuceTrack>())
-      {
-        ext::clear(*track);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto track : focusedSelection->getItemsOfType<te::Track>())
+          ext::clear(*track);
+
       return true;
 
 
       // Parameter
 
     case CommandId::nudgeUp:
-      for (auto parameter :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<te::AutomatableParameter>())
-      {
-        ext::nudgeParameterUp(*parameter);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto parameter :
+             focusedSelection->getItemsOfType<te::AutomatableParameter>())
+          ext::nudgeParameterUp(*parameter);
+
       return true;
 
     case CommandId::nudgeDown:
-      for (auto parameter :
-           this->getEngine()
-               .getUIBehaviour()
-               .getCurrentlyFocusedSelectionManager()
-               ->getItemsOfType<te::AutomatableParameter>())
-      {
-        ext::nudgeParameterDown(*parameter);
-      }
+      if (auto focusedSelection = this->getFocusedSelectionManager())
+        for (auto parameter :
+             focusedSelection->getItemsOfType<te::AutomatableParameter>())
+          ext::nudgeParameterDown(*parameter);
+
       return true;
 
 
@@ -1488,13 +1398,16 @@ bool Context::perform(const JuceCommand& command)
 
   for (const auto& target : this->commandTargets)
   {
-    if (target.wasObjectDeleted()) continue;
-
-    if (auto targetPerformer = target->getTargetForCommand(command.commandID);
-        targetPerformer->perform(command))
+    if (!target.wasObjectDeleted())
     {
-      actionPerformed = true;
-      break;
+      if (auto performer = target->getTargetForCommand(command.commandID))
+      {
+        if (performer->perform(command))
+        {
+          actionPerformed = true;
+          break;
+        }
+      }
     }
   }
 
@@ -1502,6 +1415,19 @@ bool Context::perform(const JuceCommand& command)
 
 
   return actionPerformed;
+}
+
+
+// ApplicationCommandManagerListener
+
+void Context::applicationCommandInvoked(
+    JuceCommand const& command)
+{
+  this->lastCommandId = command.commandID;
+}
+
+void Context::applicationCommandListChanged()
+{
 }
 
 BLOOPER_NAMESPACE_END

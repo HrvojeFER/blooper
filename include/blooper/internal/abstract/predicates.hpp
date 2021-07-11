@@ -15,12 +15,10 @@ BLOOPER_NAMESPACE_BEGIN
     meta::attribute(
         [](auto&& f, auto&& a)
             -> decltype(meta::typeid_(BLOOPER_FORWARD(f)(BLOOPER_FORWARD(a))) ^
-                        meta::traits::is ^
+                        meta::traits::is_convertible_to ^
                         meta::type_c<bool>) {}) ^
     meta::after ^
-    meta::check(
-        [](auto&& f, auto&& a)
-            -> decltype(BLOOPER_FORWARD(f)(BLOOPER_FORWARD(a))) {});
+    meta::traits::has_result;
 
 [[maybe_unused]] inline constexpr auto isPredicateOf =
     meta::infix(isPredicate);

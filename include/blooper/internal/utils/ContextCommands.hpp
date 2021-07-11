@@ -123,7 +123,7 @@ template<typename... TCommandIds>
   static_assert(
       meta::and_(
           meta::true_c,
-          meta::traits::is_castable(
+          meta::traits::is_statically_convertible(
               meta::typeid_(ids),
               meta::type_c<JuceCommandId>)...),
       "Ids passed to addCommands must be castable to JuceCommandId.");
@@ -406,6 +406,15 @@ template<typename... TCommandIds>
     default:
       break;
   }
+}
+
+[[maybe_unused]] inline JuceCommandInfo getCommandInfo(JuceCommandId id)
+{
+  JuceCommandInfo info{id};
+
+  fillCommandInfo(info, id);
+
+  return move(info);
 }
 
 BLOOPER_NAMESPACE_END

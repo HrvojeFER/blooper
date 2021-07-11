@@ -24,6 +24,15 @@ class FooterComponent : public ComponentBase
   ~FooterComponent() override;
 
 
+ private:
+  std::unique_ptr<class CommandStatusComponent>   commandStatus;
+  std::unique_ptr<class SelectionStatusComponent> selectionStatus;
+  std::unique_ptr<class UndoStatusComponent>      undoStatus;
+
+  std::unique_ptr<class CPUStatusComponent>       cpuStatus;
+  std::unique_ptr<class TransportStatusComponent> transportStatus;
+
+
   // Component
 
  public:

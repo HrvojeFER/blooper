@@ -4,6 +4,8 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+// Base
+
 PluginTreeBase::PluginTreeBase(AbstractContext& context)
     : ContextualBase(context)
 {
@@ -12,6 +14,8 @@ PluginTreeBase::PluginTreeBase(AbstractContext& context)
 PluginTreeBase::~PluginTreeBase() = default;
 
 
+// Group
+
 PluginTreeGroup::PluginTreeGroup(AbstractContext& context)
     : PluginTreeBase(context),
       name("Plugins")
@@ -19,16 +23,18 @@ PluginTreeGroup::PluginTreeGroup(AbstractContext& context)
   addOwned(createBuiltinsGroup(context));
   addOwned(createRacksGroup(context));
 
-  auto tree =
-      juce::KnownPluginList::createTree(
-          getContext()
-              .getEngine()
-              .getPluginManager()
-              .knownPluginList
-              .getTypes(),
-          juce::KnownPluginList::sortByManufacturer);
+  {
+    auto tree =
+        juce::KnownPluginList::createTree(
+            getContext()
+                .getEngine()
+                .getPluginManager()
+                .knownPluginList
+                .getTypes(),
+            juce::KnownPluginList::sortByManufacturer);
 
-  populateFrom(*tree);
+    populateFrom(*tree);
+  }
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -59,8 +65,9 @@ PluginTreeGroup::PluginTreeGroup(AbstractContext& context, juce::String name)
     : PluginTreeBase(context),
       name(move(name))
 {
-  jassert(name.isNotEmpty());
+  BLOOPER_ASSERT(this->name.isNotEmpty());
 }
+
 
 size_t PluginTreeGroup::size() const noexcept
 {
@@ -91,6 +98,7 @@ juce::String PluginTreeGroup::getName() const
 {
   return name;
 }
+
 
 PluginTreeGroup* PluginTreeGroup::createBuiltinsGroup(AbstractContext& context)
 {
@@ -157,6 +165,7 @@ PluginTreeGroup* PluginTreeGroup::createBuiltinsGroup(AbstractContext& context)
   return builtinsFolder;
 }
 
+
 PluginTreeGroup* PluginTreeGroup::createRacksGroup(AbstractContext& context)
 {
   auto racksFolder =
@@ -199,6 +208,8 @@ PluginTreeGroup* PluginTreeGroup::createRacksGroup(AbstractContext& context)
   return racksFolder;
 }
 
+
+// Item
 
 PluginTreeItem::PluginTreeItem(
     AbstractContext&               context,

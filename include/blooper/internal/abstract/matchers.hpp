@@ -221,7 +221,7 @@ BLOOPER_NAMESPACE_BEGIN
         meta::reverse_partial(makeValuePredicate, meta::equal));
 
 
-// Composition
+// Compose
 
 [[maybe_unused]] inline constexpr auto matcherConstexprCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
@@ -243,15 +243,6 @@ BLOOPER_NAMESPACE_BEGIN
         }
       };
     });
-
-[[maybe_unused]] inline constexpr auto matcherConstexprFold =
-    ([](auto&& first, auto&&... rest) -> decltype(auto) {
-      return meta::fold_left(
-          meta::make_tuple(BLOOPER_FORWARD(rest)...),
-          BLOOPER_FORWARD(first),
-          matcherConstexprCompose);
-    });
-
 
 [[maybe_unused]] inline constexpr auto matcherCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
@@ -284,15 +275,6 @@ BLOOPER_NAMESPACE_BEGIN
       };
     });
 
-[[maybe_unused]] inline constexpr auto matcherFold =
-    ([](auto&& first, auto&&... rest) -> decltype(auto) {
-      return meta::fold_left(
-          meta::make_tuple(BLOOPER_FORWARD(rest)...),
-          BLOOPER_FORWARD(first),
-          matcherCompose);
-    });
-
-
 [[maybe_unused]] inline constexpr auto matcherVoidCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
       return [first = BLOOPER_FORWARD(first),
@@ -300,6 +282,25 @@ BLOOPER_NAMESPACE_BEGIN
         first(BLOOPER_FORWARD(object));
         second(BLOOPER_FORWARD(object));
       };
+    });
+
+
+// Fold
+
+[[maybe_unused]] inline constexpr auto matcherConstexprFold =
+    ([](auto&& first, auto&&... rest) -> decltype(auto) {
+      return meta::fold_left(
+          meta::make_tuple(BLOOPER_FORWARD(rest)...),
+          BLOOPER_FORWARD(first),
+          matcherConstexprCompose);
+    });
+
+[[maybe_unused]] inline constexpr auto matcherFold =
+    ([](auto&& first, auto&&... rest) -> decltype(auto) {
+      return meta::fold_left(
+          meta::make_tuple(BLOOPER_FORWARD(rest)...),
+          BLOOPER_FORWARD(first),
+          matcherCompose);
     });
 
 [[maybe_unused]] inline constexpr auto matcherVoidFold =

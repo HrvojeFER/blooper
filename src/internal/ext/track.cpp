@@ -124,12 +124,12 @@ inline te::Clip* fixCandidateClip(te::ClipTrack& track)
 }
 
 inline void repeatCandidateClip(
-    te::ClipTrack& track,
-    te::Clip&      candidate,
-    double         beats)
+    te::ClipTrack&,
+    te::Clip& candidate,
+    double    beats)
 {
   beats = std::max(beats, loopEndBeat);
-  auto& tempo = track.edit.tempoSequence;
+
   moveToLoopStart(candidate, beats);
   auto lastEnd = beats;
 
@@ -184,18 +184,19 @@ Interval setTrackInterval(
             *candidate,
             getBeats(interval));
 
-    if (auto subTracks = track.getSubTrackList())
-      subTracks->visitAllTopLevel(
-          [interval](te::Track& subTrack) {
-            setTrackInterval(subTrack, interval);
-            return true; // continue
-          });
+    visit<VisitDepth::shallow>(
+        track,
+        [interval](te::Track& subTrack) {
+          setTrackInterval(subTrack, interval);
+        });
   }
 
   track.state.setProperty(
       id::mode,
       Converter::toVar(interval),
       nullptr);
+
+  return interval;
 }
 
 
@@ -227,24 +228,25 @@ TrackMode setTrackMode(
           break;
       }
 
-  if (auto subTracks = track.getSubTrackList())
-    subTracks->visitAllTopLevel(
-        [mode](te::Track& subTrack) {
-          setTrackMode(subTrack, mode);
-          return true; // continue
-        });
+  visit<VisitDepth::shallow>(
+      track,
+      [mode](te::Track& subTrack) {
+        setTrackMode(subTrack, mode);
+      });
 
   track.state.setProperty(
       id::mode,
       Converter::toVar(mode),
       nullptr);
+
+  return mode;
 }
 
 
 // "Transport"
 
 
-void preparePlay(te::Track& track)
+void prepareForPlaying(te::Track& track)
 {
   if (getTrackMode(track) == TrackMode::oneShot)
     if (auto clipTrack = isClipTrack(track))

@@ -2,6 +2,7 @@
 #define BLOOPER_PLUGIN_TREE_HPP
 
 #include <blooper/internal/abstract/contextual.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -105,6 +106,23 @@ class PluginTreeItem : public PluginTreeBase
   JUCE_LEAK_DETECTOR(PluginTreeItem)
 };
 
+BLOOPER_NAMESPACE_END
+
+BLOOPER_DETAIL_NAMESPACE_BEGIN
+
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline void visit(
+    PluginTreeBase* root,
+    TVisitor        visitor);
+
+template<VisitDepth Depth, typename TVisitor>
+[[maybe_unused]] inline bool visit(
+    PluginTreeGroup* root,
+    TVisitor         visitor);
+
+BLOOPER_DETAIL_NAMESPACE_END
+
+BLOOPER_NAMESPACE_BEGIN
 
 [[nodiscard]] inline int PluginTreeBase::getId() const
 {

@@ -18,7 +18,7 @@ BLOOPER_NAMESPACE_BEGIN
 
   ext::visitAncestors(
       manager.getFolderItemFor(project),
-      [&result](const auto& node) mutable {
+      [&result](const juce::ValueTree& node) mutable {
         if (node.hasType(te::IDs::FOLDER))
         {
           result.add(node.getProperty(te::IDs::name));

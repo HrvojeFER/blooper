@@ -11,6 +11,12 @@ ENV_MSVC_SUPPRESS_PUSH(6326); // constant comparison
 ENV_TEST_CASE(traits, type_equality)
 {
   EXPECT_TRUE(
+      not_(type_c<int> ^ is_convertible_to ^ type_c<void>));
+
+  EXPECT_TRUE(
+      not_(type_c<void> ^ is_convertible_to ^ type_c<int>));
+
+  EXPECT_TRUE(
       type_c<int> ^ is_statically_convertible_to ^ type_c<char>);
 
   EXPECT_TRUE(
@@ -97,10 +103,17 @@ ENV_TEST_CASE(traits, invokable)
 
 
   EXPECT_TRUE(
+      not_(is_delegate(
+          typeid_([](int) {}),
+          type_c<int>,
+          type_c<int>)));
+
+  EXPECT_TRUE(
       is_delegate(
-          typeid_([](int) { return true; }),
+          typeid_([](int, char) { return true; }),
           type_c<bool>,
-          type_c<int>));
+          type_c<int>,
+          type_c<char>));
 
   EXPECT_TRUE(
       not_(is_delegate(

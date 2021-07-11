@@ -74,11 +74,11 @@ enum class VisitDepth
 [[maybe_unused]] inline constexpr auto callVisitor =
     ([](auto&& v, auto&& i) {
       static_assert(
-          BLOOPER_TYPEID(v) ^ isVisitorOf ^ BLOOPER_TYPEID(i),
+          BLOOPER_DECLTYPE(v) ^ isVisitorOf ^ BLOOPER_DECLTYPE(i),
           "callVisitor should receive a Visitor of the passed item");
 
       if constexpr (
-          BLOOPER_TYPEID(v) ^ isAnyStoppingVisitor)
+          BLOOPER_DECLTYPE(v) ^ isAnyStoppingVisitor)
       {
         return (BLOOPER_FORWARD(v)(BLOOPER_FORWARD(i)));
       }
@@ -92,7 +92,7 @@ enum class VisitDepth
 [[maybe_unused]] inline constexpr auto callIfVisitor =
     ([](auto&& v, auto&& i) {
       if constexpr (
-          BLOOPER_TYPEID(v) ^ isVisitorOf ^ BLOOPER_TYPEID(i))
+          BLOOPER_DECLTYPE(v) ^ isVisitorOf ^ BLOOPER_DECLTYPE(i))
       {
         return callVisitor(BLOOPER_FORWARD(v), BLOOPER_FORWARD(i));
       }

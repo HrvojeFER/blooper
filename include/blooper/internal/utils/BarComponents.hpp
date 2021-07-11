@@ -33,9 +33,9 @@ struct BarBuilder
       TComponents&... components) &&
   {
     static_assert(
-        decltype(meta::and_(
+        meta::and_(
             meta::true_c,
-            isJuceComponent(meta::typeid_(components))...)){},
+            isJuceComponent(BLOOPER_TYPEID(components))...),
         "All lvalues passed to BarBuilder must be components.");
 
     (this->addComponentLeft(components), ...);
@@ -48,9 +48,9 @@ struct BarBuilder
       TComponents&... components) &&
   {
     static_assert(
-        decltype(meta::and_(
+        meta::and_(
             meta::true_c,
-            isJuceComponent(meta::typeid_(components))...)){},
+            isJuceComponent(BLOOPER_TYPEID(components))...),
         "All lvalues passed to BarBuilder must be components.");
 
     (this->addComponentRight(components), ...);
@@ -58,7 +58,7 @@ struct BarBuilder
     return *this;
   }
 
-  [[maybe_unused, nodiscard]] inline auto finish() &&
+  [[maybe_unused]] inline auto finish() &&
   {
     return unusedArea;
   }
@@ -109,7 +109,8 @@ struct BarBuilder
     this->addComponent(
         component,
         availableArea.removeFromLeft(
-            this->getComponentWidth(component)));
+            this->getComponentWidth(component) +
+            this->options.padding * 2));
   }
 
   template<typename TComponent>
@@ -117,20 +118,22 @@ struct BarBuilder
   {
     if constexpr (std::is_same_v<TComponent, juce::TextButton>)
     {
-      return lookAndFeel.getTextButtonWidthToFitText(
-          component,
-          availableArea.getHeight());
+      return lookAndFeel
+          .getTextButtonWidthToFitText(
+              component,
+              availableArea.getHeight());
     }
     else if constexpr (std::is_same_v<TComponent, juce::ToggleButton>)
     {
       lookAndFeel.changeToggleButtonWidthToFitText(component);
+
       return component.getWidth();
     }
     else if constexpr (std::is_same_v<TComponent, juce::Label>)
     {
-      return lookAndFeel.getLabelFont(component)
-                 .getStringWidth(component.getText()) +
-             availableArea.getHeight();
+      return lookAndFeel
+          .getLabelFont(component)
+          .getStringWidth(component.getText());
     }
     else
     {

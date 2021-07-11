@@ -132,21 +132,14 @@ BLOOPER_TRAITS_NAMESPACE_BEGIN
 
 [[maybe_unused]] inline constexpr auto is_delegate =
     attribute(
-        [](auto&& f, auto&& r, auto&& af, auto&&... ar)
-            -> decltype(and_(
-                typeid_(BLOOPER_FORWARD(f)(
-                    BLOOPER_FORWARD(af),
-                    BLOOPER_FORWARD(ar)...)) ^
-                    is_convertible_to ^ typeid_(r),
-
-                typeid_(r) ^ is_not ^ type_c<void>)) {}) ^
+        [](auto&& f, auto&& r, auto&&... a)
+            -> decltype(typeid_(BLOOPER_FORWARD(f)(BLOOPER_FORWARD(a)...)) ^
+                        is_convertible_to ^
+                        typeid_(r)) {}) ^
     after ^
     check(
-        [](auto&& f, auto&& r, auto&& af, auto&&... ar)
-            -> decltype(consume(
-                BLOOPER_FORWARD(f)(
-                    BLOOPER_FORWARD(af),
-                    BLOOPER_FORWARD(ar)...))) {});
+        [](auto&& f, auto&& r, auto&&... a)
+            -> decltype(consume(BLOOPER_FORWARD(f)(BLOOPER_FORWARD(a)...))) {});
 
 BLOOPER_TRAITS_NAMESPACE_END
 

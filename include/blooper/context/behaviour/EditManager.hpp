@@ -4,6 +4,7 @@
 
 #include <blooper/internal/macros/namespaces.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>
+#include <blooper/internal/abstract/visitors.hpp>
 #include <blooper/internal/abstract/stateful.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
 #include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>

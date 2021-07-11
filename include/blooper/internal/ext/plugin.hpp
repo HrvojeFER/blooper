@@ -16,10 +16,10 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 }
 
 
-// Visit
-
-[[maybe_unused]] inline constexpr auto isParameterVisitor =
-    isVisitorOf ^ meta::type_c<te::AutomatableParameter&>;
+//// Visit
+//
+//[[maybe_unused]] inline constexpr auto isParameterVisitor =
+//    isVisitorOf ^ meta::type_c<te::AutomatableParameter&>;
 
 BLOOPER_EXT_NAMESPACE_END
 

@@ -58,11 +58,14 @@ ProjectsMenuWindow::ProjectsMenuWindow(
     AbstractCoreContext&        context,
     ProjectsMenuWindow::Options options)
 {
-  ext::visitWindows([](auto window) {
-    // idk why this warning
-    if (auto projectsWindow = dynamic_cast<ProjectsMenuWindow*>(window))
-      delete projectsWindow;
-  });
+  ext::visitWindows(
+      [](juce::TopLevelWindow& window) {
+        // NOLINTNEXTLINE(readability-delete-null-pointer)
+        if (auto projectsWindow =
+                dynamic_cast<ProjectsMenuWindow*>(
+                    std::addressof(window)))
+          delete projectsWindow;
+      });
 
   auto window =
       new ProjectsMenuWindow(

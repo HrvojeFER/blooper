@@ -94,13 +94,13 @@ bool UIBehaviour::closeAllEditsBelongingToProject(te::Project& project)
 
 te::SelectionManager* UIBehaviour::getCurrentlyFocusedSelectionManager()
 {
-  return this->getContext().getFocusedSelectionManager().get();
+  return this->getContext().getFocusedSelectionManager();
 }
 
 te::SelectionManager* UIBehaviour::getSelectionManagerForRack(
     const te::RackType&)
 {
-  return this->getContext().getFocusedSelectionManager().get();
+  return this->getContext().getFocusedSelectionManager();
 }
 
 
@@ -161,8 +161,10 @@ bool UIBehaviour::perform(
           dynamic_cast<juce::ApplicationCommandTarget*>(
               std::addressof(this->getContext())))
   {
-    commandContext->perform(info);
+    return commandContext->perform(info);
   }
+
+  return false;
 }
 
 

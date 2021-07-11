@@ -303,6 +303,123 @@ BLOOPER_STATIC_ASSERT(
     "Component must satisfy ComponentBase.");
 
 
+// Children
+
+template<
+    typename TChild,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+makeJuceChild(
+    TParent& parent,
+    TArgs&&... args)
+{
+  static_assert(
+      meta::and_(
+          isAnyComponent(BLOOPER_TYPEID(parent)),
+          isJuceComponent(meta::type_c<TChild>)),
+      "makeChild requires a parent component and "
+      "a child component");
+
+  return std::make_unique<TChild>(
+      BLOOPER_FORWARD(args)...);
+}
+
+template<
+    typename TChild,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+makeChild(
+    TParent& parent,
+    TArgs&&... args)
+{
+  static_assert(
+      isAnyComponent(meta::type_c<TChild>),
+      "makeChild requires a parent component and "
+      "a child component");
+
+  return makeJuceChild<TChild>(
+      parent,
+      parent.getContext(),
+      parent.getState()
+          .getOrCreateChildWithName(
+              TChild::stateId,
+              nullptr),
+      BLOOPER_FORWARD(args)...);
+}
+
+template<
+    typename TChild,
+    typename TOptions,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+makeChild(
+    TParent&   parent,
+    TOptions&& options,
+    TArgs&&... args)
+{
+  return makeChild<TChild>(
+      parent,
+      BLOOPER_FORWARD(args)...,
+      BLOOPER_FORWARD(options));
+}
+
+template<
+    typename TChild,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+addJuceChild(
+    TParent& parent,
+    TArgs&&... args)
+{
+  auto child =
+      makeJuceChild<TChild>(
+          parent,
+          BLOOPER_FORWARD(args)...);
+  parent.addAndMakeVisible(*child);
+
+  return std::move(child);
+}
+
+template<
+    typename TChild,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+addChild(
+    TParent& parent,
+    TArgs&&... args)
+{
+  auto child =
+      makeChild<TChild>(
+          parent,
+          BLOOPER_FORWARD(args)...);
+  parent.addAndMakeVisible(*child);
+
+  return std::move(child);
+}
+
+template<
+    typename TChild,
+    typename TOptions,
+    typename TParent,
+    typename... TArgs>
+[[maybe_unused, nodiscard]] inline auto
+addChild(
+    TParent&   parent,
+    TOptions&& options,
+    TArgs&&... args)
+{
+  return addChild<TChild>(
+      parent,
+      BLOOPER_FORWARD(args)...,
+      BLOOPER_FORWARD(options));
+}
+
+
 // Explicit instantiation
 
 extern template class AnyAbstractComponent<CoreComponentTraits>;

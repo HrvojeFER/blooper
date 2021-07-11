@@ -30,7 +30,9 @@ struct ContextOptions
 };
 
 class Context :
-    public virtual AbstractContext
+    public virtual AbstractContext,
+
+    private juce::ApplicationCommandManagerListener
 {
  public:
   BLOOPER_STATE_ID(Context);
@@ -39,6 +41,8 @@ class Context :
   explicit Context(ContextOptions options = {});
 
   ~Context() override;
+
+  ContextOptions options;
 
 
   // Stateful
@@ -91,19 +95,6 @@ class Context :
   log(const juce::String& message) final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceUndoManager&
-  getUndoManager() const noexcept final;
-
-  [[maybe_unused, nodiscard]] inline JuceUndoManager&
-  getUndoManager() noexcept final;
-
-  [[maybe_unused, nodiscard]] inline const JuceUndoManager*
-  getUndoManagerPtr() const noexcept final;
-
-  [[maybe_unused, nodiscard]] inline JuceUndoManager*
-  getUndoManagerPtr() noexcept final;
-
-
   [[maybe_unused, nodiscard]] inline const JuceCommandManager&
   getCommandManager() const noexcept final;
 
@@ -117,11 +108,23 @@ class Context :
   unregisterCommandTarget(JuceCommandTarget* target) final;
 
 
-  [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
-  getLookAndFeel() const noexcept final;
+  [[maybe_unused, nodiscard]] inline const JuceUndoManager&
+  getUndoManager() const noexcept final;
 
-  [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
-  getLookAndFeel() noexcept final;
+  [[maybe_unused, nodiscard]] inline JuceUndoManager&
+  getUndoManager() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline const JuceUndoManager*
+  getUndoManagerPtr() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceUndoManager*
+  getUndoManagerPtr() noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceUndoManagerRef
+  getFocusedUndoManager() final;
+
+  [[maybe_unused]] inline JuceUndoManagerRef
+      setFocusedUndoManager(JuceUndoManagerRef) final;
 
 
   [[maybe_unused, nodiscard]] inline const JuceSelectionManager&
@@ -141,6 +144,13 @@ class Context :
 
   [[maybe_unused]] inline JuceSelectionManagerRef
       setFocusedSelectionManager(JuceSelectionManagerRef) final;
+
+
+  [[maybe_unused, nodiscard]] inline const JuceLookAndFeel&
+  getLookAndFeel() const noexcept final;
+
+  [[maybe_unused, nodiscard]] inline JuceLookAndFeel&
+  getLookAndFeel() noexcept final;
 
 
   [[maybe_unused, nodiscard]] inline const class AssetManager&
@@ -267,9 +277,6 @@ class Context :
   [[maybe_unused]] bool didLoadProject() const;
 
 
-  ContextOptions options;
-
-
  private:
   using Lock = juce::SpinLock;
   using ScopedLock = Lock::ScopedLockType;
@@ -289,13 +296,15 @@ class Context :
   std::unique_ptr<JuceFile>         logFile;
   std::unique_ptr<juce::FileLogger> logger;
 
-  std::unique_ptr<JuceUndoManager> undoManager;
-
   std::unique_ptr<JuceCommandManager>                 commandManager;
   juce::Array<juce::WeakReference<JuceCommandTarget>> commandTargets;
+  JuceCached<JuceCommandId>                           lastCommandId;
 
-  std::shared_ptr<JuceSelectionManager>   selectionManager;
-  std::stack<JuceSelectionManagerWeakRef> focusedSelectionManagerStack;
+  std::unique_ptr<JuceUndoManager> undoManager;
+  JuceUndoManagerRef               focusedUndoManager;
+
+  std::unique_ptr<JuceSelectionManager> selectionManager;
+  JuceSelectionManagerRef               focusedSelectionManager;
 
   bool loaded;
 
@@ -329,16 +338,14 @@ class Context :
   std::unique_ptr<JuceXmlFile>        projectStateFile;
   JuceState                           projectState;
 
-  std::unique_ptr<class Synchronizer> synchronizer;
-
   std::unique_ptr<class EditManager> editManager;
+
+  std::unique_ptr<class Synchronizer> synchronizer;
 
   bool loadedProject;
 
 
   [[maybe_unused]] void removeExpiredCommandTargets();
-
-  [[maybe_unused]] void popExpiredSelectionManagers();
 
 
   // Special, Async
@@ -380,6 +387,17 @@ class Context :
   bool perform(const JuceCommand& command) override;
 
 
+  // ApplicationCommandManagerListener
+
+ private:
+  void applicationCommandInvoked(JuceCommand const& command) override;
+
+  void applicationCommandListChanged() override;
+
+
+  // Declarations
+
+ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Context)
   JUCE_DECLARE_WEAK_REFERENCEABLE(Context)
 };
@@ -460,27 +478,6 @@ void Context::log(const JuceString& message)
 }
 
 
-const JuceUndoManager& Context::getUndoManager() const noexcept
-{
-  return *this->undoManager;
-}
-
-JuceUndoManager& Context::getUndoManager() noexcept
-{
-  return *this->undoManager;
-}
-
-const JuceUndoManager* Context::getUndoManagerPtr() const noexcept
-{
-  return this->undoManager.get();
-}
-
-JuceUndoManager* Context::getUndoManagerPtr() noexcept
-{
-  return this->undoManager.get();
-}
-
-
 const JuceCommandManager& Context::getCommandManager() const noexcept
 {
   return *this->commandManager;
@@ -508,14 +505,42 @@ void Context::unregisterCommandTarget(JuceCommandTarget* target)
 }
 
 
-const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
+const JuceUndoManager& Context::getUndoManager() const noexcept
 {
-  return *this->lookAndFeel;
+  return *this->undoManager;
 }
 
-JuceLookAndFeel& Context::getLookAndFeel() noexcept
+JuceUndoManager& Context::getUndoManager() noexcept
 {
-  return *this->lookAndFeel;
+  return *this->undoManager;
+}
+
+const JuceUndoManager* Context::getUndoManagerPtr() const noexcept
+{
+  return this->undoManager.get();
+}
+
+JuceUndoManager* Context::getUndoManagerPtr() noexcept
+{
+  return this->undoManager.get();
+}
+
+JuceUndoManagerRef
+Context::getFocusedUndoManager()
+{
+  return this->focusedUndoManager;
+}
+
+JuceUndoManagerRef
+Context::setFocusedUndoManager(JuceUndoManagerRef toFocus)
+{
+  if (!toFocus) toFocus = this->undoManager.get();
+  if (toFocus == this->focusedUndoManager) return toFocus;
+
+  this->focusedUndoManager = toFocus;
+  this->sendChangeMessage();
+
+  return toFocus;
 }
 
 
@@ -542,15 +567,30 @@ JuceSelectionManager* Context::getSelectionManagerPtr() noexcept
 JuceSelectionManagerRef
 Context::getFocusedSelectionManager()
 {
-  this->popExpiredSelectionManagers();
-  return this->focusedSelectionManagerStack.top().lock();
+  return this->focusedSelectionManager;
 }
 
 JuceSelectionManagerRef
 Context::setFocusedSelectionManager(JuceSelectionManagerRef toFocus)
 {
-  this->focusedSelectionManagerStack.push(toFocus);
-  return std::move(toFocus);
+  if (!toFocus) toFocus = this->selectionManager.get();
+  if (toFocus == this->focusedSelectionManager) return toFocus;
+
+  this->focusedSelectionManager = toFocus;
+  this->sendChangeMessage();
+
+  return toFocus;
+}
+
+
+const JuceLookAndFeel& Context::getLookAndFeel() const noexcept
+{
+  return *this->lookAndFeel;
+}
+
+JuceLookAndFeel& Context::getLookAndFeel() noexcept
+{
+  return *this->lookAndFeel;
 }
 
 

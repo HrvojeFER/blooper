@@ -295,12 +295,6 @@ class ToggleTrackArmedAction final : public juce::UndoableAction
 
 // Visit
 
-[[maybe_unused]] inline constexpr auto isTrackVisitor =
-    isVisitorOf ^ meta::type_c<te::Track&>;
-
-[[maybe_unused]] inline constexpr auto isPluginVisitor =
-    isVisitorOf ^ meta::type_c<te::Plugin&>;
-
 template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
 [[maybe_unused]] inline bool visit(te::Track& track, TVisitor visitor)
 {

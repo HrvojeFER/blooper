@@ -37,8 +37,8 @@ struct anything
 // Types
 
 [[maybe_unused]] inline constexpr auto origin =
-    ([](auto&& t) -> typename std::remove_reference_t<decltype(t)>::type {
-      return {};
+    ([](auto&& t)
+         -> typename std::remove_reference_t<decltype(t)>::type&& {
     });
 
 [[maybe_unused]] inline constexpr auto is_type =
@@ -48,8 +48,8 @@ struct anything
 // Tags
 
 [[maybe_unused]] inline constexpr auto tag_of_ =
-    ([](auto&& t) -> type<tag_of_t<std::remove_reference_t<decltype(t)>>> {
-      return {};
+    ([](auto&& t)
+         -> type<tag_of_t<std::remove_reference_t<decltype(t)>>> {
     });
 
 template<typename T>

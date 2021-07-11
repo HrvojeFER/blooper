@@ -1,23 +1,6 @@
 #include <blooper/internal/ext/edit.hpp>
-#include <blooper/internal/ext/track.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
-
-// Armed
-
-[[maybe_unused]] inline juce::Array<te::Track*> getArmedTracks(
-    te::Edit& edit)
-{
-  juce::Array<te::Track*> armedTracks{};
-
-  edit.visitAllTopLevelTracks([&armedTracks](te::Track& track) {
-    if (isArmed(track)) armedTracks.add(std::addressof(track));
-    return true; // continue
-  });
-
-  return move(armedTracks);
-}
-
 
 // Transport
 
@@ -33,10 +16,11 @@ void togglePlaying(te::Edit& edit)
   }
   else
   {
-    edit.visitAllTopLevelTracks([](te::Track& track) {
-      prepareForPlaying(track);
-      return true; // continue
-    });
+    visit<VisitDepth::shallow>(
+        edit,
+        [](te::Track& track) {
+          prepareForPlaying(track);
+        });
 
     transport.play(
         false);
@@ -55,8 +39,12 @@ void toggleRecording(te::Edit& edit)
         false,
         false);
 
-    for (const auto track : getArmedTracks(edit))
-      unpackRecordedTakes(*track);
+    visit<VisitDepth::shallow>(
+        edit,
+        [](te::Track& track) {
+          if (isArmed(track))
+            unpackRecordedTakes(track);
+        });
 
     if (wasPlaying)
       transport.play(

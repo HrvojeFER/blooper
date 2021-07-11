@@ -3,7 +3,6 @@
 #include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/ext/track.hpp>
-#include <blooper/internal/ext/clip.hpp>
 
 #include <blooper/context/behaviour/AssetManager.hpp>
 #include <blooper/context/behaviour/EditManager.hpp>
@@ -36,12 +35,29 @@ class TrackButtonComponent::Pimpl final :
   {
     auto& parentTrack = *this->parent->track;
 
-    parentTrack.setMute(!parentTrack.isMuted(false));
+    ext::toggleMuted(parentTrack);
   }
 
-  void clicked(const juce::ModifierKeys&) final
+  void clicked(const juce::ModifierKeys& mods) final
   {
     auto& parentTrack = *this->parent->track;
+
+    if (mods.isCommandDown())
+    {
+      ext::clear(parentTrack);
+    }
+    else if (mods.isAltDown())
+    {
+      ext::toggleArmed(parentTrack);
+    }
+    else if (mods.isShiftDown())
+    {
+      ext::toggleSoloed(parentTrack);
+    }
+    else if (!mods.isAnyModifierKeyDown())
+    {
+      this->clicked();
+    }
   }
 };
 
@@ -83,6 +99,27 @@ TrackButtonComponent::~TrackButtonComponent()
 
 void TrackButtonComponent::updateImages()
 {
+  auto& assets = this->getContext().getAssetManager();
+
+
+  assets::IconAssetId iconId;
+  assets::IconAssetId iconOverId;
+
+  if (ext::isMuted(*this->track))
+  {
+    iconId = assets::IconAssetId::pause;
+    iconOverId = assets::IconAssetId::play;
+  }
+  else
+  {
+    iconId = assets::IconAssetId::play;
+    iconOverId = assets::IconAssetId::pause;
+  }
+
+
+  this->pimpl->setImages(
+      assets.getIconView(iconId),
+      assets.getIconView(iconOverId));
 }
 
 
@@ -99,11 +136,15 @@ void TrackButtonComponent::resized()
 // ValueTreeListener
 
 void TrackButtonComponent::valueTreePropertyChanged(
-    juce::ValueTree& tree,
-    const juce::Identifier&)
+    juce::ValueTree&        tree,
+    const juce::Identifier& id)
 {
   if (tree == this->track->state)
   {
+    if (id == te::IDs::mute)
+    {
+      this->markAndUpdate(this->imageUpdate);
+    }
   }
 }
 
@@ -112,7 +153,7 @@ void TrackButtonComponent::valueTreePropertyChanged(
 
 void TrackButtonComponent::handleAsyncUpdate()
 {
-  if (util::FlaggedAsyncUpdater::compareAndReset(imageUpdate))
+  if (util::FlaggedAsyncUpdater::compareAndReset(this->imageUpdate))
   {
     this->updateImages();
   }

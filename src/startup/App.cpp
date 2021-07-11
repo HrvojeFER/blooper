@@ -45,7 +45,8 @@ void App::initialise(const juce::String& commandLine)
         {
           if (!te::PluginManager::startChildProcessPluginScan(commandLine))
           {
-            app->systemRequestedQuit();
+            // TODO
+            //  app->systemRequestedQuit();
           }
         }
       });

@@ -96,8 +96,8 @@ void EditManager::remove(int id)
 
 void EditManager::ensureMasterEdit()
 {
-  auto& context = this->getContext();
-  auto& project = context.getProject();
+  auto& _context = this->getContext();
+  auto& project = _context.getProject();
 
   auto masterEditChild =
       this->getState()
@@ -117,7 +117,7 @@ void EditManager::ensureMasterEdit()
     this->getState().addChild(
         move(masterEditChild),
         -1,
-        context.getUndoManagerPtr());
+        _context.getUndoManagerPtr());
   }
   else
   {
@@ -130,7 +130,7 @@ void EditManager::ensureMasterEdit()
 
   this->masterEdit =
       ext::loadEditFromItem(
-          context.getEngine(),
+          _context.getEngine(),
           *masterEditItem);
 
   this->masterTransport = std::addressof(this->masterEdit->getTransport());
@@ -178,7 +178,8 @@ void EditManager::updateInputs() const
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 void EditManager::updateInputs(JuceEdit& edit) const
 {
-  edit.visitAllTopLevelTracks(
+  ext::visit<VisitDepth::shallow>(
+      edit,
       [&edit, index = 0](JuceTrack& track) mutable {
         if (auto* audioTrack =
                 dynamic_cast<te::AudioTrack*>(
@@ -202,7 +203,6 @@ void EditManager::updateInputs(JuceEdit& edit) const
         }
 
         index++;
-        return true; // continue to other tracks
       });
 }
 

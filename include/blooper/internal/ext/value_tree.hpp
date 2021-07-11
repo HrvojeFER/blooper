@@ -27,7 +27,7 @@ visit(
       BLOOPER_TYPEID(visitor) ^
           isVisitorOf ^
           meta::type_c<juce::ValueTree>,
-      "juce::ValueTree visitor requires a Visitor of juce::ValueTree.");
+      "juce::ValueTree visitor requires a Visitor of juce::ValueTree&.");
 
 
   // TODO: better
@@ -43,7 +43,7 @@ visit(
           if (callVisitor(visitor, node) == stopVisit)
             return stopVisit;
 
-          if (Depth == VisitDepth::deep)
+          if constexpr (Depth == VisitDepth::deep)
             if (visit(node, visitor) == stopVisit)
               return stopVisit;
         }

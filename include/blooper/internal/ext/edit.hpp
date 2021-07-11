@@ -86,11 +86,6 @@ template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
 }
 
 
-// Armed
-
-[[maybe_unused]] inline juce::Array<te::Track*> getArmedTracks(te::Edit& edit);
-
-
 // Transport
 
 [[maybe_unused]] inline bool isPlaying(te::Edit& edit)
@@ -98,7 +93,7 @@ template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
   return edit.getTransport().isPlaying();
 }
 
-[[maybe_unused]] inline void togglePlaying(te::Edit& edit);
+[[maybe_unused]] void togglePlaying(te::Edit& edit);
 
 
 [[maybe_unused]] inline bool isRecording(te::Edit& edit)

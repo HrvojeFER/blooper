@@ -1,5 +1,6 @@
 #include <blooper/components/tracks/TrackComponent.hpp>
 
+#include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
 #include <blooper/internal/ext/track.hpp>
 #include <blooper/internal/utils/gui.hpp>
@@ -11,7 +12,6 @@
 #include <blooper/components/tracks/TrackButtonComponent.hpp>
 #include <blooper/components/tracks/TrackPluginsComponent.hpp>
 #include <blooper/components/tracks/TrackClipsComponent.hpp>
-#include <blooper/internal/abstract/id.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -109,7 +109,7 @@ TrackComponent::TrackComponent(
           te::IDs::solo,
           std::addressof(this->track->edit.getUndoManager())));
 
-  if (track->isAudioTrack())
+  if (this->track->isAudioTrack())
   {
     this->armButton =
         std::make_unique<juce::DrawableButton>(
@@ -200,7 +200,7 @@ TrackComponent::TrackComponent(
 
   // Footer
 
-  if (auto clipTrack = dynamic_cast<te::ClipTrack*>(this->track.get()))
+  if (auto clipTrack = ext::isClipTrack(this->track))
   {
     TrackClipsOptions clipsOptions{};
 
@@ -448,7 +448,7 @@ void TrackComponent::comboBoxChanged(
   else if (comboBoxThatHasChanged == this->intervalDropdown.get())
   {
     this->track->state.setProperty(
-        id::mode,
+        id::interval,
         this->intervalDropdown->getSelectedId(),
         std::addressof(this->track->edit.getUndoManager()));
   }

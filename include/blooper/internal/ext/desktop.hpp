@@ -12,42 +12,13 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
 [[maybe_unused]] inline bool
-visitComponents(TVisitor visitor) noexcept(noexcept(
-    visitor(std::declval<juce::Component&>())))
-{
-  static_assert(
-      BLOOPER_TYPEID(visitor) ^
-          isVisitorOf ^
-          meta::type_c<juce::Component&>,
-      "visitComponents requires a Visitor of juce::Component&");
-
-  return visit<Depth>(juce::Desktop::getInstance(), move(visitor));
-}
-
-template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
-[[maybe_unused, nodiscard]] inline juce::Component*
-findComponent(TPredicate predicate) noexcept(noexcept(
-    predicate(std::declval<juce::Component&>())))
-{
-  static_assert(
-      BLOOPER_TYPEID(predicate) ^
-          isPredicateOf ^
-          meta::type_c<juce::Component&>,
-      "findComponent requires a Predicate of juce::Component&");
-
-  return find<Depth>(juce::Desktop::getInstance(), move(predicate));
-}
-
-
-template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
-[[maybe_unused]] inline bool
 visit(const juce::Desktop& desktop, TVisitor visitor) noexcept(noexcept(
     visitor(std::declval<juce::Component&>())))
 {
   static_assert(
       BLOOPER_TYPEID(visitor) ^
-          isVisitorOf ^
-          meta::type_c<juce::Component&>,
+      isVisitorOf ^
+      meta::type_c<juce::Component&>,
       "juce::Desktop visit requires a Visitor of juce::Component&");
 
 
@@ -74,8 +45,8 @@ find(const juce::Desktop& desktop, TPredicate predicate) noexcept(noexcept(
 {
   static_assert(
       BLOOPER_TYPEID(predicate) ^
-          isPredicateOf ^
-          meta::type_c<juce::Component&>,
+      isPredicateOf ^
+      meta::type_c<juce::Component&>,
       "juce::Desktop find requires a Predicate of juce::Component&");
 
 
@@ -95,6 +66,35 @@ find(const juce::Desktop& desktop, TPredicate predicate) noexcept(noexcept(
       });
 
   return result;
+}
+
+
+template<VisitDepth Depth = defaultVisitDepth, typename TVisitor>
+[[maybe_unused]] inline bool
+visitComponents(TVisitor visitor) noexcept(noexcept(
+    visitor(std::declval<juce::Component&>())))
+{
+  static_assert(
+      BLOOPER_TYPEID(visitor) ^
+          isVisitorOf ^
+          meta::type_c<juce::Component&>,
+      "visitComponents requires a Visitor of juce::Component&");
+
+  return visit<Depth>(juce::Desktop::getInstance(), move(visitor));
+}
+
+template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
+[[maybe_unused, nodiscard]] inline juce::Component*
+findComponent(TPredicate predicate) noexcept(noexcept(
+    predicate(std::declval<juce::Component&>())))
+{
+  static_assert(
+      BLOOPER_TYPEID(predicate) ^
+          isPredicateOf ^
+          meta::type_c<juce::Component&>,
+      "findComponent requires a Predicate of juce::Component&");
+
+  return find<Depth>(juce::Desktop::getInstance(), move(predicate));
 }
 
 BLOOPER_EXT_NAMESPACE_END

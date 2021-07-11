@@ -21,6 +21,8 @@ BLOOPER_ID(windowState);
 BLOOPER_ID(openProject);
 BLOOPER_ID(monitored);
 
+BLOOPER_ID(lastCommandId);
+
 
 // Settings
 

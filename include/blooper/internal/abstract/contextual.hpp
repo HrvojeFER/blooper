@@ -22,6 +22,7 @@ BLOOPER_NAMESPACE_BEGIN
         isAnyStateful,
         isAnyContext,
         isJuceCommandTarget,
+        isJuceChangeBroadcaster,
         meta::attribute(
             [](auto&& toCheck)
                 -> decltype(meta::and_(
@@ -43,9 +44,11 @@ BLOOPER_NAMESPACE_BEGIN
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getLogger()),
                         meta::type_c<JuceLogger>),
+
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getAssetManager()),
-                        meta::type_c<class AssetManager>),
+                        meta::typeid_(toCheck.getCommandManager()),
+                        meta::type_c<JuceCommandManager>),
+
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getUndoManager()),
                         meta::type_c<JuceUndoManager>),
@@ -53,8 +56,12 @@ BLOOPER_NAMESPACE_BEGIN
                         meta::typeid_(toCheck.getUndoManagerPtr()),
                         meta::type_c<JuceUndoManager*>),
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getCommandManager()),
-                        meta::type_c<JuceCommandManager>),
+                        meta::typeid_(toCheck.getFocusedUndoManager()),
+                        meta::type_c<JuceUndoManagerRef>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.setFocusedUndoManager(
+                            std::declval<JuceUndoManagerRef>())),
+                        meta::type_c<JuceUndoManagerRef>),
 
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getSelectionManager()),
@@ -73,6 +80,9 @@ BLOOPER_NAMESPACE_BEGIN
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getLookAndFeel()),
                         meta::type_c<JuceLookAndFeel>),
+                    meta::traits::is_same(
+                        meta::typeid_(toCheck.getAssetManager()),
+                        meta::type_c<class AssetManager>),
 
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getEngine()),
@@ -91,15 +101,17 @@ BLOOPER_NAMESPACE_BEGIN
                                 toCheck.getLogger(),
                                 toCheck.log(std::declval<juce::String>()),
 
-                                toCheck.getAssetManager(),
-                                toCheck.getUndoManager(),
-                                toCheck.getUndoManagerPtr(),
-
                                 toCheck.getCommandManager(),
                                 toCheck.registerCommandTarget(
                                     std::declval<JuceCommandTarget*>()),
                                 toCheck.unregisterCommandTarget(
                                     std::declval<JuceCommandTarget*>()),
+
+                                toCheck.getUndoManager(),
+                                toCheck.getUndoManagerPtr(),
+                                toCheck.getFocusedUndoManager(),
+                                toCheck.setFocusedUndoManager(
+                                    std::declval<JuceUndoManagerRef>()),
 
                                 toCheck.getSelectionManager(),
                                 toCheck.getSelectionManagerPtr(),
@@ -108,6 +120,7 @@ BLOOPER_NAMESPACE_BEGIN
                                     std::declval<JuceSelectionManagerRef>()),
 
                                 toCheck.getLookAndFeel(),
+                                toCheck.getAssetManager(),
 
                                 toCheck.getEngine()) {}));
 
@@ -137,11 +150,10 @@ BLOOPER_NAMESPACE_BEGIN
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getFocusedEdit()),
                         meta::type_c<JuceEditRef>),
-
                     meta::traits::is_same(
-                        meta::typeid_(toCheck.getEditManager()),
-                        meta::type_c<class EditManager>),
-
+                        meta::typeid_(toCheck.setFocusedEdit(
+                            std::declval<JuceEditRef>())),
+                        meta::type_c<JuceEditRef>),
 
                     meta::traits::is_same(
                         meta::typeid_(toCheck.getSynchronizer()),
@@ -165,7 +177,8 @@ BLOOPER_NAMESPACE_BEGIN
 template<typename TStatefulTraits>
 class [[maybe_unused]] AnyAbstractCoreContext :
     public virtual TStatefulTraits::abstractType,
-    public virtual juce::ApplicationCommandTarget
+    public virtual juce::ApplicationCommandTarget,
+    public virtual juce::ChangeBroadcaster
 {
   using stateType [[maybe_unused]] =
       typename TStatefulTraits::stateType;
@@ -227,11 +240,17 @@ class [[maybe_unused]] AnyAbstractCoreContext :
   log(const JuceString& message) = 0;
 
 
-  [[maybe_unused, nodiscard]] virtual inline const class AssetManager&
-  getAssetManager() const noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline const JuceCommandManager&
+  getCommandManager() const noexcept = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline class AssetManager&
-  getAssetManager() noexcept = 0;
+  [[maybe_unused, nodiscard]] virtual inline JuceCommandManager&
+  getCommandManager() noexcept = 0;
+
+  [[maybe_unused]] virtual void
+  registerCommandTarget(JuceCommandTarget* target) = 0;
+
+  [[maybe_unused]] virtual void
+  unregisterCommandTarget(JuceCommandTarget* target) = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceUndoManager&
@@ -246,18 +265,11 @@ class [[maybe_unused]] AnyAbstractCoreContext :
   [[maybe_unused, nodiscard]] virtual inline JuceUndoManager*
   getUndoManagerPtr() noexcept = 0;
 
+  [[maybe_unused, nodiscard]] virtual inline JuceUndoManagerRef
+  getFocusedUndoManager() = 0;
 
-  [[maybe_unused, nodiscard]] virtual inline const JuceCommandManager&
-  getCommandManager() const noexcept = 0;
-
-  [[maybe_unused, nodiscard]] virtual inline JuceCommandManager&
-  getCommandManager() noexcept = 0;
-
-  [[maybe_unused]] virtual void
-  registerCommandTarget(JuceCommandTarget* target) = 0;
-
-  [[maybe_unused]] virtual void
-  unregisterCommandTarget(JuceCommandTarget* target) = 0;
+  [[maybe_unused]] virtual inline JuceUndoManagerRef
+      setFocusedUndoManager(JuceUndoManagerRef) = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceSelectionManager&
@@ -284,6 +296,13 @@ class [[maybe_unused]] AnyAbstractCoreContext :
 
   [[maybe_unused, nodiscard]] virtual inline JuceLookAndFeel&
   getLookAndFeel() noexcept = 0;
+
+
+  [[maybe_unused, nodiscard]] virtual inline const class AssetManager&
+  getAssetManager() const noexcept = 0;
+
+  [[maybe_unused, nodiscard]] virtual inline class AssetManager&
+  getAssetManager() noexcept = 0;
 
 
   [[maybe_unused, nodiscard]] virtual inline const JuceEngine&

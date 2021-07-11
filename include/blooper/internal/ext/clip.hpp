@@ -7,7 +7,6 @@
 #include <blooper/internal/abstract/const.hpp>
 #include <blooper/internal/ext/take.hpp>
 
-
 BLOOPER_EXT_NAMESPACE_BEGIN
 
 // Types
@@ -114,7 +113,7 @@ isMidiClip(const te::Clip& clip)
 }
 
 
-[[maybe_unused]] void setPosition(
+[[maybe_unused]] inline void setPosition(
     te::Clip& clip,
     double    start,
     double    end,
@@ -126,7 +125,7 @@ isMidiClip(const te::Clip& clip)
        offset});
 }
 
-[[maybe_unused]] void setPositionBeats(
+[[maybe_unused]] inline void setPositionBeats(
     te::Clip& clip,
     double    startBeat,
     double    endBeat,
@@ -145,7 +144,7 @@ isMidiClip(const te::Clip& clip)
 
 // TODO: optimize?
 
-[[maybe_unused]] te::Clip& copy(te::Clip& clip)
+[[maybe_unused]] inline te::Clip& copy(te::Clip& clip)
 {
   auto& track = *clip.getClipTrack();
 
@@ -159,10 +158,10 @@ isMidiClip(const te::Clip& clip)
 // Visit
 
 [[maybe_unused]] inline constexpr auto isWaveClipVisitor =
-    isVisitorOf ^ meta::type_c<te::ProjectItemID&>;
+    isVisitorOf ^ meta::type_c<WaveAudioTakeRef>;
 
 [[maybe_unused]] inline constexpr auto isMidiClipVisitor =
-    isVisitorOf ^ meta::type_c<te::MidiList&>;
+    isVisitorOf ^ meta::type_c<MidiTakeRef>;
 
 [[maybe_unused]] inline constexpr auto isClipVisitor =
     meta::satisfies_any(isWaveClipVisitor, isMidiClipVisitor);
@@ -194,7 +193,9 @@ template<typename TVisitor>
       for (int i = 0; compManager.getTotalNumTakes(); ++i)
         if (implies(includeComps, compManager.isTakeComp(i)))
           if (auto take = takes[i]; take.isValid())
-            if (!callVisitor(visitor, take))
+            if (!callVisitor(
+                    visitor,
+                    WaveAudioTakeRef(waveClip, i, move(take))))
               return stopVisit;
     }
   }
@@ -212,7 +213,9 @@ template<typename TVisitor>
       for (int i = 0; i < compManager.getTotalNumTakes(); ++i)
         if (implies(includeComps, compManager.isTakeComp(i)))
           if (auto take = midiClip->getTakeSequence(i))
-            if (!callVisitor(visitor, *take))
+            if (!callVisitor(
+                    visitor,
+                    MidiTakeRef(midiClip, i, move(take))))
               return stopVisit;
     }
   }
@@ -225,10 +228,10 @@ template<typename TVisitor>
 // Find
 
 [[maybe_unused]] inline constexpr auto isWaveClipPredicate =
-    isPredicateOf ^ meta::type_c<te::ProjectItemID&>;
+    isPredicateOf ^ meta::type_c<WaveAudioTakeRef>;
 
 [[maybe_unused]] inline constexpr auto isMidiClipPredicate =
-    isPredicateOf ^ meta::type_c<te::MidiList&>;
+    isPredicateOf ^ meta::type_c<MidiTakeRef>;
 
 [[maybe_unused]] inline constexpr auto isClipPredicate =
     meta::satisfies_some(isWaveClipPredicate, isMidiClipPredicate);
@@ -246,39 +249,24 @@ template<typename TPredicate>
       isClipPredicate(predicateTypeid),
       "te::Clip find requires a ClipPredicate");
 
-
-  [[maybe_unused]] constexpr auto conditional =
-      meta::if_(
-          predicateTypeid ^ isWaveClipPredicate,
-          meta::make_tuple(
-              meta::type_c<te::ProjectItemID&>,
-              meta::type_c<te::ProjectItemID>,
-              [](te::ProjectItemID& item) { return item; }),
-          meta::make_tuple(
-              meta::type_c<te::MidiList&>,
-              meta::type_c<te::MidiList*>,
-              [](te::MidiList& node) { return std::addressof(node); }));
-
-  using takeType = decltype(meta::origin(
-      meta::at(conditional, meta::size_c<0>)));
-
-  using resultType = decltype(meta::origin(
-      meta::at(conditional, meta::size_c<1>)));
-
-  constexpr auto resultConstructor =
-      meta::at(conditional, meta::size_c<2>);
+  using takeType =
+      decltype(meta::origin(
+          meta::if_(
+              predicateTypeid ^ isWaveClipPredicate,
+              meta::type_c<WaveAudioTakeRef>,
+              meta::type_c<MidiTakeRef>)));
 
 
-  resultType result;
+  takeType result{};
 
   visit(
       clip,
       [&result,
-       predicate = move(predicate),
-       resultConstructor](takeType take) {
+       predicate = move(predicate)](
+          const takeType& take) {
         if (predicate(take))
         {
-          result = resultConstructor(take);
+          result = take;
           return stopVisit;
         }
 
@@ -290,25 +278,25 @@ template<typename TPredicate>
   return result;
 }
 
-BLOOPER_STATIC_ASSERT(
-    meta::traits::result_of(
-        meta::typeid_([] {
-          return find(
-              std::declval<te::Clip&>(),
-              [](te::ProjectItemID&) { return true; });
-        })) ^
-    meta::traits::is ^
-    meta::type_c<te::ProjectItemID>);
-
-BLOOPER_STATIC_ASSERT(
-    meta::traits::result_of(
-        meta::typeid_([] {
-          return find(
-              std::declval<te::Clip&>(),
-              [](te::MidiList&) { return true; });
-        })) ^
-    meta::traits::is ^
-    meta::type_c<te::MidiList*>);
+//BLOOPER_STATIC_ASSERT(
+//    meta::traits::result_of(
+//        meta::typeid_([] {
+//          return find(
+//              std::declval<te::Clip&>(),
+//              [](const WaveAudioTakeRef&) { return true; });
+//        })) ^
+//    meta::traits::is ^
+//    meta::type_c<WaveAudioTakeRef>);
+//
+//BLOOPER_STATIC_ASSERT(
+//    meta::traits::result_of(
+//        meta::typeid_([] {
+//          return find(
+//              std::declval<te::Clip&>(),
+//              [](const MidiTakeRef&) { return true; });
+//        })) ^
+//    meta::traits::is ^
+//    meta::type_c<MidiTakeRef>);
 
 BLOOPER_EXT_NAMESPACE_END
 
