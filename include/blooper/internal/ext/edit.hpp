@@ -88,20 +88,96 @@ template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
 
 // Transport
 
-[[maybe_unused]] inline bool isPlaying(te::Edit& edit)
+[[maybe_unused]] inline auto
+getPosition(const te::TransportControl& transport)
+{
+  return transport.getCurrentPosition();
+}
+
+[[maybe_unused]] inline auto
+getPosition(const te::Edit& edit)
+{
+  return edit.getTransport().getCurrentPosition();
+}
+
+[[maybe_unused]] inline auto
+getPositionBeats(const te::TransportControl& transport)
+{
+  return transport.edit.tempoSequence.timeToBeats(
+      transport.getCurrentPosition());
+}
+
+[[maybe_unused]] inline auto
+getPositionBeats(const te::Edit& edit)
+{
+  return edit.tempoSequence.timeToBeats(
+      edit.getTransport().getCurrentPosition());
+}
+
+
+[[maybe_unused]] inline auto
+setPosition(te::TransportControl& transport, double time)
+{
+  return transport.setCurrentPosition(time);
+}
+
+[[maybe_unused]] inline auto
+setPosition(const te::Edit& edit, double time)
+{
+  return edit.getTransport().setCurrentPosition(time);
+}
+
+[[maybe_unused]] inline auto
+setPositionBeats(te::TransportControl& transport, double beats)
+{
+  return transport.setCurrentPosition(
+      transport.edit.tempoSequence.beatsToTime(beats));
+}
+
+[[maybe_unused]] inline auto
+setPositionBeats(const te::Edit& edit, double beats)
+{
+  return edit.getTransport().setCurrentPosition(
+      edit.tempoSequence.beatsToTime(beats));
+}
+
+
+[[maybe_unused]] inline bool isPlaying(const te::Edit& edit)
 {
   return edit.getTransport().isPlaying();
 }
 
-[[maybe_unused]] void togglePlaying(te::Edit& edit);
+[[maybe_unused]] void togglePlaying(
+    te::Edit& edit,
+    te::Edit* master = nullptr);
 
 
-[[maybe_unused]] inline bool isRecording(te::Edit& edit)
+[[maybe_unused]] inline bool isRecording(const te::Edit& edit)
 {
   return edit.getTransport().isRecording();
 }
 
-[[maybe_unused]] void toggleRecording(te::Edit& edit);
+[[maybe_unused]] void toggleRecording(
+    te::Edit& edit,
+    te::Edit* master = nullptr);
+
+
+// Tracks
+
+[[maybe_unused]] inline te::AudioTrack::Ptr addAudioTrack(
+    te::Edit&             edit,
+    te::SelectionManager* selection = nullptr)
+{
+  auto audioTrack =
+      edit.insertNewAudioTrack(
+          {nullptr,
+           nullptr},
+          selection);
+
+  init(*audioTrack);
+
+  return move(audioTrack);
+}
 
 BLOOPER_EXT_NAMESPACE_END
 

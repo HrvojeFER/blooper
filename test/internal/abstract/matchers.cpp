@@ -5,8 +5,9 @@
 BLOOPER_TEST_NAMESPACE_BEGIN
 ENV_MSVC_SUPPRESS_PUSH(6326); // constant comparison
 
-struct base
+class base
 {
+ public:
   virtual bool is_base() noexcept
   {
     return true;
@@ -18,8 +19,9 @@ struct base
   }
 };
 
-struct sub : base
+class sub : public base
 {
+ public:
   bool is_base() noexcept override
   {
     return false;

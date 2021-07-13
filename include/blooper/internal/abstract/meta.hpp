@@ -34,11 +34,16 @@ struct anything
     [](auto...) {};
 
 
-// Types
+// Types - don't use these in evaluated contexts!
 
 [[maybe_unused]] inline constexpr auto origin =
     ([](auto&& t)
          -> typename std::remove_reference_t<decltype(t)>::type&& {
+    });
+
+[[maybe_unused]] inline constexpr auto source =
+    ([](auto&& t)
+         -> typename std::remove_reference_t<decltype(t)>::type {
     });
 
 [[maybe_unused]] inline constexpr auto is_type =
@@ -50,6 +55,7 @@ struct anything
 [[maybe_unused]] inline constexpr auto tag_of_ =
     ([](auto&& t)
          -> type<tag_of_t<std::remove_reference_t<decltype(t)>>> {
+      return {};
     });
 
 template<typename T>

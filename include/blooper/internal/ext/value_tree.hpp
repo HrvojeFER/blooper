@@ -3,6 +3,7 @@
 #pragma once
 
 #include <blooper/internal/macros/macros.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/predicates.hpp>
 #include <blooper/internal/abstract/visitors.hpp>
 
@@ -76,7 +77,7 @@ visitAncestors(
   visitAncestors(root.getParent(), move(visitor));
 }
 
-template<typename TPredicate>
+template<VisitDepth Depth = defaultVisitDepth, typename TPredicate>
 [[maybe_unused]] inline juce::ValueTree
 find(
     const juce::ValueTree& root,
@@ -91,7 +92,7 @@ find(
 
   juce::ValueTree result;
 
-  visit(
+  visit<Depth>(
       root,
       [&result, predicate = move(predicate)](
           const juce::ValueTree& node) {
@@ -136,6 +137,28 @@ findAncestor(
       });
 
   return result;
+}
+
+template<VisitDepth Depth = defaultVisitDepth,
+         typename TPredicate,
+         typename TProducer>
+[[maybe_unused]] inline auto findOrCreate(
+    juce::ValueTree& root,
+    TPredicate       predicate,
+    TProducer        producer)
+{
+  static_assert(
+      BLOOPER_TYPEID(producer) ^
+          meta::traits::is_producer_of ^
+          meta::type_c<juce::ValueTree>,
+      "juce::ValueTree findOrCreate requires a producer of juce::ValueTree");
+
+  auto child = find<Depth>(root, move(predicate));
+
+  if (isInvalid(child))
+    child = producer();
+
+  return move(child);
 }
 
 

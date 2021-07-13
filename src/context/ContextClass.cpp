@@ -936,23 +936,10 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
           Context::stateId);
 
 
-  this->editManager =
-      std::make_unique<EditManager>(
-          *this,
-          this->projectState.getOrCreateChildWithName(
-              EditManager::stateId,
-              nullptr));
-  this->setFocusedEdit(this->editManager->getFocusedEdit());
-
-  this->synchronizer =
-      std::make_unique<Synchronizer>(
-          *this,
-          this->projectState.getOrCreateChildWithName(
-              Synchronizer::stateId,
-              nullptr));
-
-
   // TODO: manage this a bit more elegantly
+  // before edit manager because it stops the master Edit
+  // also, don't touch this too much, because I tried and it gives me access
+  // violations for doing it in one loop - maybe some lock somewhere?
   auto& deviceManager = this->getEngine().getDeviceManager();
   for (int i = 0; i < deviceManager.getNumWaveInDevices(); i++)
   {
@@ -969,6 +956,21 @@ void Context::loadProjectUnsafe(JuceProjectRef ref)
       input->setEnabled(true);
     }
   }
+
+
+  this->editManager =
+      std::make_unique<EditManager>(
+          *this,
+          this->projectState.getOrCreateChildWithName(
+              EditManager::stateId,
+              nullptr));
+
+  this->synchronizer =
+      std::make_unique<Synchronizer>(
+          *this,
+          this->projectState.getOrCreateChildWithName(
+              Synchronizer::stateId,
+              nullptr));
 }
 
 void Context::unloadProjectUnsafe()
@@ -1255,18 +1257,16 @@ bool Context::perform(const JuceCommand& command)
       // TODO: better
 
     case CommandId::addEdit:
-      this->setFocusedEdit(this->getEditManager().add());
+      this->getEditManager().add();
+
       return true;
 
     case CommandId::addTrack:
       if (auto edit = this->getFocusedEdit())
-      {
-        edit->insertNewAudioTrack(
-            {nullptr, nullptr},
-            this->getEngine()
-                .getUIBehaviour()
-                .getCurrentlyFocusedSelectionManager());
-      }
+        ext::addAudioTrack(
+            *edit,
+            this->getFocusedSelectionManager());
+
       return true;
 
     case CommandId::addPlugin:
@@ -1274,17 +1274,10 @@ bool Context::perform(const JuceCommand& command)
       {
         if (focusedSelection->getFirstItemOfType<te::Track>())
         {
-          PluginPickerComponent::Options pluginPickerOptions{};
-
-          auto plugin = pickPlugin(*this, move(pluginPickerOptions));
+          auto plugin = pickPlugin(*this);
 
           for (auto track : focusedSelection->getItemsOfType<te::Track>())
-          {
-            track->pluginList.insertPlugin(
-                plugin,
-                -1,
-                focusedSelection);
-          }
+            ext::addPlugin(*track, plugin, focusedSelection);
         }
       }
       return true;
@@ -1314,13 +1307,21 @@ bool Context::perform(const JuceCommand& command)
 
     case CommandId::togglePlaying:
       if (auto edit = this->getFocusedEdit())
-        ext::togglePlaying(*edit);
+        ext::togglePlaying(
+            *edit,
+            std::addressof(
+                this->getEditManager()
+                    .getMasterEdit()));
 
       return true;
 
     case CommandId::toggleRecording:
       if (auto edit = this->getFocusedEdit())
-        ext::toggleRecording(*edit);
+        ext::toggleRecording(
+            *edit,
+            std::addressof(
+                this->getEditManager()
+                    .getMasterEdit()));
 
       return true;
 

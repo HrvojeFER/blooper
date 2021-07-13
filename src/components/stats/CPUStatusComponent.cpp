@@ -28,7 +28,7 @@ CPUStatusComponent::CPUStatusComponent(
       .getDeviceManager()
       .addCPUUsageListener(this);
 
-  this->startTimerHz(20);
+  this->startTimerHz(defaultGuiTimerHz);
 }
 
 CPUStatusComponent::~CPUStatusComponent()

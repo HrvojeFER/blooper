@@ -230,9 +230,11 @@ BLOOPER_NAMESPACE_BEGIN
         constexpr auto first_result_type =
             BLOOPER_TYPEID(first(BLOOPER_FORWARD(object)));
 
-        if constexpr (meta::is_optional(first_result_type))
+        if constexpr (
+            meta::is_optional(first_result_type))
         {
-          if constexpr (meta::is_nothing(meta::origin(first_result_type)))
+          if constexpr (
+              decltype(meta::is_nothing(meta::origin(first_result_type))){})
             return second(BLOOPER_FORWARD(object));
           else
             return first(BLOOPER_FORWARD(object));

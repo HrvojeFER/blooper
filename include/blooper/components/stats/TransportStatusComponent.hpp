@@ -2,6 +2,7 @@
 #define BLOOPER_TRANSPORT_STATUS_COMPONENT_HPP
 
 #include <blooper/internal/abstract/components.hpp>
+#include <blooper/internal/utils/FlaggedAsyncUpdater.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -12,7 +13,9 @@ struct TransportStatusOptions
 };
 
 class TransportStatusComponent final :
-    public ComponentBase
+    public ComponentBase,
+
+    private juce::Timer
 {
  public:
   BLOOPER_STATE_ID(TransportStatusComponent);
@@ -29,9 +32,12 @@ class TransportStatusComponent final :
 
 
  private:
-  JuceCached<bool> playing;
+  JuceTransportRef transport;
 
   std::unique_ptr<juce::Label> label;
+
+
+  void updateFocus();
 
 
   void updateLabel();
@@ -51,6 +57,12 @@ class TransportStatusComponent final :
   void valueTreePropertyChanged(
       juce::ValueTree&        tree,
       const juce::Identifier& identifier) override;
+
+
+  // Timer
+
+ private:
+  void timerCallback() override;
 
 
   // Declarations

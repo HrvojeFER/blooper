@@ -81,8 +81,8 @@ class EditManager :
   [[maybe_unused, nodiscard]] JuceEditConstRef get(int id) const;
 
 
-  template<typename TOnEditTrack>
-  [[maybe_unused]] inline void visit(TOnEditTrack onEditTrack) const;
+  template<typename TOnEdit>
+  [[maybe_unused]] inline void visit(TOnEdit onEditTrack) const;
 
 
   JuceEditRef add();
@@ -117,6 +117,9 @@ class EditManager :
   [[nodiscard]] bool isMasterEdit(int id) const;
 
 
+  void ensureAtLeastOneEdit();
+
+
   bool inputsUpdate;
 
   void updateInputs() const;
@@ -124,7 +127,7 @@ class EditManager :
   void updateInputs(JuceEdit& edit) const;
 
 
-  bool bpmUpdate{};
+  bool bpmUpdate;
 
   void updateBpm() const;
 
@@ -248,8 +251,8 @@ JuceEditConstRef EditManager::operator[](int id) const
 }
 
 
-template<typename TOnEditTrack>
-void EditManager::visit(TOnEditTrack onEditTrack) const
+template<typename TOnEdit>
+void EditManager::visit(TOnEdit onEditTrack) const
 {
   constexpr auto visitorOf =
       meta::typeid_(onEditTrack) ^ isVisitorOf;

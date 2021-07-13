@@ -186,6 +186,60 @@ void TrackSelectableClass::selectOtherObjects(
 }
 
 
+// Clip
+
+bool ClipSelectableClass::canObjectsBeSelectedAtTheSameTime(
+    te::Selectable& object1,
+    te::Selectable& object2)
+{
+  auto clip1 = dynamic_cast<JuceClip*>(std::addressof(object1));
+  auto clip2 = dynamic_cast<JuceClip*>(std::addressof(object2));
+
+  if (!clip1 || !clip2) return false;
+
+  return clip1->getTrack() ==
+         clip2->getTrack();
+}
+
+
+void ClipSelectableClass::deleteSelected(
+    const te::SelectableList& list,
+    bool)
+{
+  for (auto selectable : list)
+  {
+    if (auto clip = dynamic_cast<JuceClip*>(selectable))
+    {
+      clip->removeFromParentTrack();
+    }
+  }
+}
+
+
+void ClipSelectableClass::addClipboardEntriesFor(
+    te::SelectableClass::AddClipboardEntryParams&)
+{
+}
+
+bool ClipSelectableClass::pasteClipboard(
+    const te::SelectableList&,
+    int)
+{
+  return false;
+}
+
+bool ClipSelectableClass::canCutSelected(
+    const te::SelectableList&)
+{
+  return false;
+}
+
+
+void ClipSelectableClass::selectOtherObjects(
+    const te::SelectableClass::SelectOtherObjectsParams&)
+{
+}
+
 // Plugin
 
 bool PluginSelectableClass::canObjectsBeSelectedAtTheSameTime(
@@ -294,6 +348,7 @@ void ParameterSelectableClass::selectOtherObjects(
 BLOOPER_DECLARE_SELECTABLE_CLASS(ProjectSelectableClass, JuceProject);
 BLOOPER_DECLARE_SELECTABLE_CLASS(EditSelectableClass, JuceEdit);
 BLOOPER_DECLARE_SELECTABLE_CLASS(TrackSelectableClass, JuceTrack);
+BLOOPER_DECLARE_SELECTABLE_CLASS(ClipSelectableClass, JuceClip);
 BLOOPER_DECLARE_SELECTABLE_CLASS(PluginSelectableClass, JucePlugin);
 BLOOPER_DECLARE_SELECTABLE_CLASS(ParameterSelectableClass, JuceParameter);
 

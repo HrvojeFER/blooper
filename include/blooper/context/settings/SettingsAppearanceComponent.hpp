@@ -45,7 +45,8 @@ class SettingsAppearanceComponent : public CoreComponentBase
 
   JuceCached<double>
       trackSize,
-      trackClipsSize;
+      trackClipsSize,
+      clipSize;
 
 
   std::unique_ptr<juce::PropertyPanel> panel;

@@ -87,6 +87,33 @@ class TrackSelectableClass final : public te::SelectableClass
       const SelectOtherObjectsParams& params) final;
 };
 
+class ClipSelectableClass final : public te::SelectableClass
+{
+ public:
+  bool canObjectsBeSelectedAtTheSameTime(
+      te::Selectable& object1,
+      te::Selectable& object2) final;
+
+
+  void addClipboardEntriesFor(
+      AddClipboardEntryParams& params) final;
+
+  void deleteSelected(
+      const te::SelectableList& list,
+      bool                      partOfCutOperation) final;
+
+  bool pasteClipboard(
+      const te::SelectableList& currentlySelectedItems,
+      int                       editViewID) final;
+
+  bool canCutSelected(
+      const te::SelectableList& selectedObjects) final;
+
+
+  void selectOtherObjects(
+      const SelectOtherObjectsParams& params) final;
+};
+
 class PluginSelectableClass final : public te::SelectableClass
 {
  public:

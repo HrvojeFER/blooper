@@ -4,14 +4,13 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 
 // Transport
 
-void togglePlaying(te::Edit& edit)
+void togglePlaying(te::Edit& edit, te::Edit* master)
 {
   auto& transport = edit.getTransport();
-
   if (transport.isPlaying())
   {
     transport.stop(
-        true,
+        transport.isRecording(),
         false);
   }
   else
@@ -24,10 +23,15 @@ void togglePlaying(te::Edit& edit)
 
     transport.play(
         false);
+
+    if (master)
+      transport.syncToEdit(
+          master,
+          false);
   }
 }
 
-void toggleRecording(te::Edit& edit)
+void toggleRecording(te::Edit& edit, te::Edit* master)
 {
   auto& transport = edit.getTransport();
 
@@ -47,13 +51,40 @@ void toggleRecording(te::Edit& edit)
         });
 
     if (wasPlaying)
+    {
+      if (master)
+        transport.syncToEdit(
+            master,
+            false);
+
       transport.play(
           false);
+    }
   }
   else
   {
+    const auto wasPlaying = transport.isPlaying();
+
+    if (wasPlaying)
+    {
+      transport.stop(
+          true,
+          false);
+    }
+
+    if (master)
+      transport.syncToEdit(
+          master,
+          false);
+
     transport.record(
         false);
+
+    if (wasPlaying)
+    {
+      transport.play(
+          false);
+    }
   }
 }
 

@@ -1,0 +1,4 @@
+#ifndef BLOOPER_TAKES_HPP
+#define BLOOPER_TAKES_HPP
+
+#endif // BLOOPER_TAKES_HPP

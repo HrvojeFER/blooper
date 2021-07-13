@@ -70,6 +70,13 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
       undoManager,
       100);
 
+  ext::referTo(
+      this->clipSize,
+      this->settingsRoot,
+      id::clipSize,
+      undoManager,
+      50);
+
 
   this->panel = std::make_unique<juce::PropertyPanel>("Appearance");
 
@@ -110,6 +117,12 @@ SettingsAppearanceComponent::SettingsAppearanceComponent(
            "Track clips size",
            50,
            500,
+           1),
+       new juce::SliderPropertyComponent(
+           this->clipSize.getPropertyAsValue(),
+           "Clip size",
+           20,
+           200,
            1)},
       true,
       -1,

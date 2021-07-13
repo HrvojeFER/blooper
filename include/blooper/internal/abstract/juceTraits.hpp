@@ -232,9 +232,49 @@ using JuceAudioTrackConstRef [[maybe_unused]] = JuceConstRef<JuceAudioTrack>;
 [[maybe_unused]] inline constexpr auto isJuceTrack =
     meta::traits::is_convertible_to ^ meta::type_c<te::Track&&>;
 
+// Clip
+
+using JuceClip [[maybe_unused]] =
+    te::Clip;
+
+using JuceClipRef [[maybe_unused]] =
+    JuceRef<JuceClip>;
+
+using JuceClipConstRef [[maybe_unused]] =
+    JuceConstRef<JuceClip>;
+
+
+using JuceWaveAudioClip [[maybe_unused]] =
+    te::WaveAudioClip;
+
+using JuceWaveAudioClipRef [[maybe_unused]] =
+    JuceRef<JuceWaveAudioClip>;
+
+using JuceWaveAudioClipConstRef [[maybe_unused]] =
+    JuceConstRef<JuceWaveAudioClip>;
+
+using JuceWaveAudioTakeRef [[maybe_unused]] =
+    te::ProjectItemID;
+
+
+using JuceMidiClip [[maybe_unused]] =
+    te::MidiClip;
+
+using JuceMidiClipRef [[maybe_unused]] =
+    JuceRef<JuceMidiClip>;
+
+using JuceMidiClipConstRef [[maybe_unused]] =
+    JuceConstRef<JuceMidiClip>;
+
+using JuceMidiTakeRef [[maybe_unused]] =
+    te::MidiList*;
+
+
+[[maybe_unused]] inline constexpr auto isJuceClip =
+    meta::traits::is_convertible_to ^ meta::type_c<te::Clip&&>;
+
 
 // Plugin
-
 
 using JucePlugin [[maybe_unused]] =
     te::Plugin;

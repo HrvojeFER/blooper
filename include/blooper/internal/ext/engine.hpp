@@ -11,9 +11,9 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   auto& manager = engine.getDeviceManager();
 
   for (int i = 0; i < manager.getNumInputDevices(); ++i)
-    if (auto device = manager.getInputDevice(i);
-        device->isEndToEndEnabled())
-      return true;
+    if (auto device = manager.getInputDevice(i))
+      if (device->isEndToEndEnabled())
+        return true;
 
   return false;
 }

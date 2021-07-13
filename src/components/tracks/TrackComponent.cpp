@@ -104,6 +104,8 @@ TrackComponent::TrackComponent(
   this->soloButton->setImages(
       assets.getIconView(assets::IconAssetId::soloTrack));
 
+  this->soloButton->setClickingTogglesState(true);
+
   this->soloButton->getToggleStateValue().referTo(
       this->track->state.getPropertyAsValue(
           te::IDs::solo,
@@ -119,12 +121,17 @@ TrackComponent::TrackComponent(
     this->armButton->setImages(
         assets.getIconView(assets::IconAssetId::armTrack));
 
-    this->armButton->setClickingTogglesState(true);
+    this->armButton->onClick = [this] {
+      ext::toggleArmed(*this->track);
 
-    this->armButton->getToggleStateValue().referTo(
-        this->track->state.getPropertyAsValue(
-            id::armed,
-            std::addressof(this->track->edit.getUndoManager())));
+      this->armButton->setToggleState(
+          ext::isArmed(*this->track),
+          juce::dontSendNotification);
+    };
+
+    this->armButton->setToggleState(
+        ext::isArmed(*this->track),
+        juce::dontSendNotification);
   }
 
 
@@ -145,7 +152,7 @@ TrackComponent::TrackComponent(
       static_cast<int>(TrackMode::free));
 
   this->modeDropdown->setSelectedId(
-      static_cast<int>(this->track->state[id::mode]),
+      static_cast<int>(ext::getTrackMode(*this->track)),
       juce::dontSendNotification);
 
 
@@ -180,7 +187,7 @@ TrackComponent::TrackComponent(
       static_cast<int>(Interval::sixteenBeats));
 
   this->intervalDropdown->setSelectedId(
-      static_cast<int>(this->track->state[id::interval]),
+      static_cast<int>(ext::getTrackInterval(*this->track)),
       juce::dontSendNotification);
 
 
@@ -440,17 +447,17 @@ void TrackComponent::comboBoxChanged(
 {
   if (comboBoxThatHasChanged == this->modeDropdown.get())
   {
-    this->track->state.setProperty(
-        id::mode,
-        this->modeDropdown->getSelectedId(),
-        std::addressof(this->track->edit.getUndoManager()));
+    ext::setTrackMode(
+        *this->track,
+        static_cast<TrackMode>(
+            this->modeDropdown->getSelectedId()));
   }
   else if (comboBoxThatHasChanged == this->intervalDropdown.get())
   {
-    this->track->state.setProperty(
-        id::interval,
-        this->intervalDropdown->getSelectedId(),
-        std::addressof(this->track->edit.getUndoManager()));
+    ext::setTrackInterval(
+        *this->track,
+        static_cast<Interval>(
+            this->intervalDropdown->getSelectedId()));
   }
 }
 

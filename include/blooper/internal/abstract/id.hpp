@@ -39,6 +39,7 @@ BLOOPER_ID(themePath);
 
 BLOOPER_ID(trackSize);
 BLOOPER_ID(trackClipsSize);
+BLOOPER_ID(clipSize);
 
 BLOOPER_ID(masterTrackPanelSize);
 BLOOPER_ID(controlSurfacePanelSize);

@@ -5,7 +5,6 @@
 #include <blooper/components/stats/CommandStatusComponent.hpp>
 #include <blooper/components/stats/SelectionStatusComponent.hpp>
 #include <blooper/components/stats/UndoStatusComponent.hpp>
-
 #include <blooper/components/stats/CPUStatusComponent.hpp>
 #include <blooper/components/stats/TransportStatusComponent.hpp>
 
@@ -36,7 +35,6 @@ void FooterComponent::resized()
 {
   auto availableArea = this->getLocalBounds();
 
-
   util::BarBuilderOptions barOptions{};
   barOptions.height = availableArea.getHeight();
 
@@ -50,8 +48,8 @@ void FooterComponent::resized()
               *this->selectionStatus,
               *this->undoStatus)
           .addComponentsRight(
-              *this->transportStatus,
-              *this->cpuStatus)
+              *this->cpuStatus,
+              *this->transportStatus)
           .finish();
 }
 

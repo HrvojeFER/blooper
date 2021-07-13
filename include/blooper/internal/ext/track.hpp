@@ -17,30 +17,55 @@ BLOOPER_EXT_NAMESPACE_BEGIN
 // TODO: make actions properly undoable
 
 
-// ClipTrack
+// Types
 
-[[maybe_unused, nodiscard]] inline const te::ClipTrack* isClipTrack(
-    const te::Track* track)
+[[maybe_unused, nodiscard]] inline const te::ClipTrack*
+isClipTrack(const te::Track* track)
 {
   return dynamic_cast<const te::ClipTrack*>(track);
 }
 
-[[maybe_unused, nodiscard]] inline te::ClipTrack* isClipTrack(
-    te::Track* track)
+[[maybe_unused, nodiscard]] inline te::ClipTrack*
+isClipTrack(te::Track* track)
 {
   return dynamic_cast<te::ClipTrack*>(track);
 }
 
-[[maybe_unused, nodiscard]] inline const te::ClipTrack* isClipTrack(
-    const te::Track& track)
+[[maybe_unused, nodiscard]] inline const te::ClipTrack*
+isClipTrack(const te::Track& track)
 {
   return dynamic_cast<const te::ClipTrack*>(std::addressof(track));
 }
 
-[[maybe_unused, nodiscard]] inline te::ClipTrack* isClipTrack(
-    te::Track& track)
+[[maybe_unused, nodiscard]] inline te::ClipTrack*
+isClipTrack(te::Track& track)
 {
   return dynamic_cast<te::ClipTrack*>(std::addressof(track));
+}
+
+
+[[maybe_unused, nodiscard]] inline const te::AudioTrack*
+isAudioTrack(const te::Track* track)
+{
+  return dynamic_cast<const te::AudioTrack*>(track);
+}
+
+[[maybe_unused, nodiscard]] inline te::AudioTrack*
+isAudioTrack(te::Track* track)
+{
+  return dynamic_cast<te::AudioTrack*>(track);
+}
+
+[[maybe_unused, nodiscard]] inline const te::AudioTrack*
+isAudioTrack(const te::Track& track)
+{
+  return dynamic_cast<const te::AudioTrack*>(std::addressof(track));
+}
+
+[[maybe_unused, nodiscard]] inline te::AudioTrack*
+isAudioTrack(te::Track& track)
+{
+  return dynamic_cast<te::AudioTrack*>(std::addressof(track));
 }
 
 
@@ -137,6 +162,22 @@ BLOOPER_EXT_NAMESPACE_BEGIN
   auto& tempo = track.edit.tempoSequence;
 
   track.splitAt(tempo.beatsToTime(beat));
+}
+
+
+// Plugins
+
+[[maybe_unused]] inline void
+addPlugin(
+    te::Track&            track,
+    te::Plugin::Ptr       plugin,
+    te::SelectionManager* selection)
+{
+  track.pluginList
+      .insertPlugin(
+          plugin,
+          -1,
+          selection);
 }
 
 
@@ -286,11 +327,37 @@ class ToggleTrackArmedAction final : public juce::UndoableAction
 }
 
 
+// Lifetime
+
+[[maybe_unused]] inline void
+init(te::AudioTrack& audioTrack)
+{
+  for (auto inputInstance : audioTrack.edit.getAllInputDevices())
+  {
+    if (inputInstance->getInputDevice().getDeviceType() ==
+        te::InputDevice::waveDevice)
+    {
+      inputInstance->setTargetTrack(
+          audioTrack,
+          // idk what this index thing is
+          0,
+          false);
+
+      inputInstance->setRecordingEnabled(
+          audioTrack,
+          isArmed(audioTrack));
+    }
+  }
+}
+
+
 // Transport
 
 [[maybe_unused]] void prepareForPlaying(te::Track& track);
 
 [[maybe_unused]] void unpackRecordedTakes(te::Track& track);
+
+[[maybe_unused]] double getProgress(te::Track& track);
 
 
 // Visit

@@ -71,8 +71,11 @@ void EditContentComponent::resizeTracks()
 {
   ext::setWidth(
       *this,
-      this->trackSize *
-          this->trackComponents.size());
+      this->trackSize * this->trackComponents.size() +
+          // padding in between tracks
+          padding * 2 * (this->trackComponents.size() - 1) +
+          // padding around all tracks
+          padding * 2);
 }
 
 [[maybe_unused]] void EditContentComponent::updateTracks()
@@ -136,7 +139,7 @@ void EditContentComponent::resized()
   const auto numTrackComponents = this->trackComponents.size();
   if (numTrackComponents <= 0) return;
 
-  auto availableArea = util::pad(this->getLocalBounds(), 2);
+  auto availableArea = util::pad(this->getLocalBounds());
   auto trackWidth = availableArea.getWidth() / numTrackComponents;
 
   for (auto component : this->trackComponents)

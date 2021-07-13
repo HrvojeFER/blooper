@@ -45,6 +45,7 @@ CommandStatusComponent::~CommandStatusComponent()
 
 void CommandStatusComponent::updateLabel()
 {
+  this->lastCommandId.forceUpdateOfCachedValue();
   if (this->lastCommandId == CommandId::none)
   {
     this->label->setText(
@@ -109,7 +110,6 @@ void CommandStatusComponent::valueTreePropertyChanged(
   {
     if (identifier == id::lastCommandId)
     {
-      this->lastCommandId.forceUpdateOfCachedValue();
       this->updateLabel();
     }
   }

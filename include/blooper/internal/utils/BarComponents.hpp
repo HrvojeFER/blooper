@@ -100,7 +100,8 @@ struct BarBuilder
     this->addComponent(
         component,
         availableArea.removeFromRight(
-            this->getComponentWidth(component)));
+            this->getComponentWidth(component) +
+            this->options.padding * 2));
   }
 
   template<typename TComponent>

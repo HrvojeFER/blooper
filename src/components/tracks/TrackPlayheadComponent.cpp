@@ -1,6 +1,7 @@
 #include <blooper/components/tracks/TrackPlayheadComponent.hpp>
 
 #include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/ext/track.hpp>
 #include <blooper/internal/utils/style.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
@@ -32,21 +33,16 @@ TrackPlayheadComponent::~TrackPlayheadComponent()
 
 void TrackPlayheadComponent::paint(JuceGraphics& g)
 {
-  g.fillAll(
-      this->findColour(
-          ColourId::foreground));
-
   g.setColour(
       this->findColour(this->colourId));
 
-  // TODO: fix
-  //  g.drawRect(
-  //      static_cast<int>(
-  //          this->track->getProgress() *
-  //          this->getWidth()),
-  //      0,
-  //      2,
-  //      this->getHeight());
+  g.drawRect(
+      static_cast<int>(
+          ext::getProgress(*this->track) *
+          this->getWidth()),
+      0,
+      2,
+      this->getHeight());
 }
 
 
@@ -54,6 +50,25 @@ void TrackPlayheadComponent::paint(JuceGraphics& g)
 
 void TrackPlayheadComponent::timerCallback()
 {
+  auto& transport = this->track->edit.getTransport();
+  if (transport.isPlaying())
+  {
+    if (transport.isRecording() &&
+        ext::isArmed(*this->track))
+    {
+      this->colourId = ColourId::red;
+    }
+    else
+    {
+      this->colourId = ColourId::green;
+    }
+  }
+  else
+  {
+    this->colourId = ColourId::blue;
+  }
+
+  this->repaint();
 }
 
 BLOOPER_NAMESPACE_END

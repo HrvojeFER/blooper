@@ -1,6 +1,8 @@
 #include <blooper/components/stats/TransportStatusComponent.hpp>
 
+#include <blooper/internal/abstract/id.hpp>
 #include <blooper/internal/ext/component.hpp>
+#include <blooper/internal/ext/edit.hpp>
 #include <blooper/internal/utils/style.hpp>
 
 #include <blooper/context/behaviour/EditManager.hpp>
@@ -14,63 +16,102 @@ TransportStatusComponent::TransportStatusComponent(
     : ComponentBase(
           context,
           move(state)),
-      options(move(options))
+      options(move(options)),
+
+      transport(nullptr)
 {
-  auto& masterTransport =
-      this->getContext()
-          .getEditManager()
-          .getMasterTransport();
-
-
-  this->playing.referTo(
-      masterTransport.state,
-      te::IDs::playing,
-      nullptr,
-      false);
-
-
   this->label = addJuceChild<juce::Label>(*this, "Transport Status");
 
-  this->updateLabel();
+  this->updateFocus();
 
 
-  masterTransport.state.addListener(this);
+  this->getContext().getEditManager().addListener(this);
+
+  this->startTimerHz(defaultGuiTimerHz);
 }
 
 TransportStatusComponent::~TransportStatusComponent()
 {
-  auto& masterTransport =
-      this->getContext()
-          .getEditManager()
-          .getMasterTransport();
+  this->stopTimer();
 
-
-  masterTransport.state.removeListener(this);
+  this->getContext().getEditManager().removeListener(this);
 }
 
 
+void TransportStatusComponent::updateFocus()
+{
+  this->transport =
+      std::addressof(
+          this->getContext()
+              .getFocusedEdit()
+              ->getTransport());
+
+  this->updateLabel();
+}
+
 void TransportStatusComponent::updateLabel()
 {
-  if (this->playing)
-  {
-    this->label->setColour(
-        juce::Label::textColourId,
-        this->findColour(ColourId::green));
+  JuceColourId textColourId;
+  JuceString   transportStatus;
 
-    this->label->setText(
-        "Playing",
-        juce::dontSendNotification);
+  if (!this->transport)
+  {
+    textColourId = juce::Label::textColourId;
+    transportStatus = "No Edit in focus";
+  }
+  else if (this->transport->isPlaying())
+  {
+    if (this->transport->isRecording())
+    {
+      textColourId = ColourId::red;
+      transportStatus =
+          "Recording at: " +
+          JuceString{
+              ext::getPositionBeats(
+                  *this->transport),
+              3};
+    }
+    else
+    {
+      textColourId = ColourId::green;
+      transportStatus =
+          "Playing at: " +
+          JuceString{
+              ext::getPositionBeats(
+                  *this->transport),
+              3};
+    }
   }
   else
   {
-    this->label->setColour(
-        juce::Label::textColourId,
-        this->findColour(ColourId::blue));
-
-    this->label->setText(
-        "Paused",
-        juce::dontSendNotification);
+    textColourId = ColourId::blue;
+    transportStatus =
+        "Paused at: " +
+        JuceString{
+            ext::getPositionBeats(
+                *this->transport),
+            3};
   }
+
+
+  this->label->setColour(
+      juce::Label::textColourId,
+      this->findColour(textColourId));
+
+  this->label->setText(
+      transportStatus,
+      juce::dontSendNotification);
+
+  this->label->setTooltip(
+      transportStatus +
+      "\n" +
+      "Master playing at: " +
+      JuceString{
+          ext::getPositionBeats(
+              this->getContext()
+                  .getEditManager()
+                  .getMasterEdit()),
+          3});
 
 
   if (this->options.shouldResizeItself)
@@ -107,20 +148,21 @@ void TransportStatusComponent::valueTreePropertyChanged(
     juce::ValueTree&        tree,
     const juce::Identifier& identifier)
 {
-  auto& masterTransport =
-      this->getContext()
-          .getEditManager()
-          .getMasterTransport();
-
-
-  if (tree == masterTransport.state)
+  if (tree == this->getContext().getEditManager().getState())
   {
-    if (identifier == te::IDs::playing)
+    if (identifier == id::focusedEdit)
     {
-      this->playing.forceUpdateOfCachedValue();
-      this->updateLabel();
+      this->updateFocus();
     }
   }
+}
+
+
+// Timer
+
+void TransportStatusComponent::timerCallback()
+{
+  this->updateLabel();
 }
 
 BLOOPER_NAMESPACE_END

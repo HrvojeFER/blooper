@@ -44,6 +44,11 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto makeConceptPredicate =
     ([](auto&& c) {
       maybeUnused(BLOOPER_FORWARD(c));
+
+      static_assert(
+          decltype(meta::is_concept(c)){},
+          "makeConceptPredicate requires a concept");
+
       return
           [](auto&& o) {
             maybeUnused(BLOOPER_FORWARD(o));
@@ -56,6 +61,11 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto makeTagPredicate =
     ([](auto&& t) {
       maybeUnused(BLOOPER_FORWARD(t));
+
+      static_assert(
+          decltype(meta::is_type(t)){},
+          "makeTypePredicate requires a type");
+
       return
           [](auto&& o) {
             maybeUnused(BLOOPER_FORWARD(o));
@@ -68,6 +78,11 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto makeTypePredicate =
     ([](auto&& t) {
       maybeUnused(BLOOPER_FORWARD(t));
+
+      static_assert(
+          decltype(meta::is_type(t)){},
+          "makeTypePredicate requires a type");
+
       return
           [](auto&& o) {
             maybeUnused(BLOOPER_FORWARD(o));
@@ -92,9 +107,14 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto makeStaticPipe =
     ([](auto&& t) {
       maybeUnused(BLOOPER_FORWARD(t));
+
+      static_assert(
+          decltype(meta::is_type(t)){},
+          "makeStaticPipe requires a type");
+
       return
           [](auto&& o) {
-            return static_cast<decltype(meta::origin(BLOOPER_FORWARD(t)))>(
+            return static_cast<decltype(meta::source(BLOOPER_FORWARD(t)))>(
                 BLOOPER_FORWARD(o));
           };
     });
@@ -102,10 +122,16 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto makeDynamicPipe =
     ([](auto&& t) {
       maybeUnused(BLOOPER_FORWARD(t));
+
+      static_assert(
+          decltype((meta::traits::is_pointer ^
+                    meta::after ^
+                    meta::is_type)(t)){},
+          "makeDynamicPipe requires a pointer type");
+
       return
-          [](auto&& o) {
-            return dynamic_cast<decltype(meta::origin(BLOOPER_FORWARD(t)))>(
-                BLOOPER_FORWARD(o));
+          [](auto o) {
+            return dynamic_cast<decltype(meta::source(BLOOPER_FORWARD(t)))>(o);
           };
     });
 

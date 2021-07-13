@@ -35,6 +35,7 @@ class TrackButtonComponent::Pimpl final :
   {
     auto& parentTrack = *this->parent->track;
 
+    ext::prepareForPlaying(parentTrack);
     ext::toggleMuted(parentTrack);
   }
 

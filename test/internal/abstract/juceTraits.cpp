@@ -45,6 +45,21 @@ ENV_TEST_CASE(juceTraits, edit)
           meta::type_c<te::Track>));
 }
 
+ENV_TEST_CASE(juceTraits, clip)
+{
+  EXPECT_TRUE(
+      isJuceClip(
+          meta::type_c<te::Clip>));
+
+  EXPECT_TRUE(
+      isJuceClip(
+          meta::type_c<te::WaveAudioClip>));
+
+  EXPECT_TRUE(
+      isJuceClip(
+          meta::type_c<te::MidiClip>));
+}
+
 ENV_TEST_CASE(juceTraits, plugin)
 {
   EXPECT_TRUE(

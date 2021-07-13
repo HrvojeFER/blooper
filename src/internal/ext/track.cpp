@@ -1,6 +1,6 @@
-#include <blooper/internal/abstract/time.hpp>
 #include <blooper/internal/ext/track.hpp>
-#include <blooper/internal/ext/clip.hpp>
+
+#include <blooper/internal/ext/edit.hpp>
 
 BLOOPER_EXT_NAMESPACE_BEGIN
 
@@ -16,6 +16,10 @@ bool ToggleTrackArmedAction::perform()
   for (auto instance : track.edit.getAllInputDevices())
     if (instance->isOnTargetTrack(track))
       instance->setRecordingEnabled(track, shouldBeArmed);
+
+  // IDK how or why, but this fixes bugs when tracks don't get armed
+  // properly
+  track.edit.restartPlayback();
 
   track.state.setProperty(
       id::armed,
@@ -47,6 +51,8 @@ inline te::Clip* leaveOnlyFirstClip(te::ClipTrack& track)
   if (candidate == nullptr)
   {
     candidate = clips.getFirst();
+    if (candidate == nullptr) return nullptr;
+
     moveToLoopStart(*candidate);
   }
 
@@ -192,7 +198,7 @@ Interval setTrackInterval(
   }
 
   track.state.setProperty(
-      id::mode,
+      id::interval,
       Converter::toVar(interval),
       nullptr);
 
@@ -365,6 +371,47 @@ void unpackRecordedTakes(te::Track& track)
       }
     }
   }
+}
+
+double getProgress(te::Track& track)
+{
+  auto& transport = track.edit.getTransport();
+
+  const auto mode = getTrackMode(track);
+
+  switch (mode)
+  {
+    case TrackMode::sync:
+      {
+        const auto interval = getTrackInterval(track);
+        const auto intervalBeats = getBeats(interval);
+
+        return std::fmod(getPositionBeats(transport), intervalBeats) /
+               intervalBeats;
+      }
+
+    case TrackMode::free:
+      if (const auto clipTrack = isClipTrack(track))
+      {
+        if (const auto firstClip = clipTrack->getClips().getFirst())
+        {
+          const auto lengthBeats = firstClip->getLengthInBeats();
+
+          return std::fmod(getPositionBeats(transport), lengthBeats) /
+                 lengthBeats;
+        }
+      }
+      break;
+
+    case TrackMode::oneShot:
+      // TODO better
+      return getPositionBeats(transport) / loopEndBeat;
+
+    default:
+      return 0.0;
+  }
+
+  return 0.0;
 }
 
 BLOOPER_EXT_NAMESPACE_END

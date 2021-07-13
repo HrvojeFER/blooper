@@ -318,7 +318,7 @@ makeJuceChild(
       meta::and_(
           isAnyComponent(BLOOPER_TYPEID(parent)),
           isJuceComponent(meta::type_c<TChild>)),
-      "makeChild requires a parent component and "
+      "makeJuceChild requires a parent component and "
       "a child component");
 
   return std::make_unique<TChild>(
@@ -333,6 +333,14 @@ template<
 makeChild(
     TParent& parent,
     TArgs&&... args)
+    -> decltype(makeJuceChild<TChild>(
+        parent,
+        parent.getContext(),
+        parent.getState()
+            .getOrCreateChildWithName(
+                TChild::stateId,
+                nullptr),
+        BLOOPER_FORWARD(args)...))
 {
   static_assert(
       isAnyComponent(meta::type_c<TChild>),
@@ -359,6 +367,10 @@ makeChild(
     TParent&   parent,
     TOptions&& options,
     TArgs&&... args)
+    -> decltype(makeChild<TChild>(
+        parent,
+        BLOOPER_FORWARD(args)...,
+        BLOOPER_FORWARD(options)))
 {
   return makeChild<TChild>(
       parent,
@@ -392,6 +404,9 @@ template<
 addChild(
     TParent& parent,
     TArgs&&... args)
+    -> decltype(makeChild<TChild>(
+        parent,
+        BLOOPER_FORWARD(args)...))
 {
   auto child =
       makeChild<TChild>(
@@ -412,6 +427,10 @@ addChild(
     TParent&   parent,
     TOptions&& options,
     TArgs&&... args)
+    -> decltype(makeChild<TChild>(
+        parent,
+        BLOOPER_FORWARD(args)...,
+        BLOOPER_FORWARD(options)))
 {
   return addChild<TChild>(
       parent,

@@ -36,8 +36,6 @@ class TrackPlayheadComponent :
  private:
   JuceTrackRef track;
 
-  JuceCached<Interval> interval;
-
 
   JuceColourId colourId;
 

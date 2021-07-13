@@ -24,6 +24,11 @@ inline constexpr auto defaultBpm{120};
 inline constexpr auto loopStartBeat{0.0};
 inline constexpr auto loopEndBeat{16.0};
 
+inline constexpr auto timeSigNumerator{4};
+inline constexpr auto timeSigDenominator{4};
+
+inline constexpr auto tempoStartTime{0.0};
+
 
 // context
 
