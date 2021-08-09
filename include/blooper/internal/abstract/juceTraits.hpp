@@ -232,6 +232,29 @@ using JuceAudioTrackConstRef [[maybe_unused]] = JuceConstRef<JuceAudioTrack>;
 [[maybe_unused]] inline constexpr auto isJuceTrack =
     meta::traits::is_convertible_to ^ meta::type_c<te::Track&&>;
 
+[[maybe_unused]] inline constexpr auto isJuceTrackRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<te::Track&>,
+        meta::traits::dereferenced);
+
+[[maybe_unused]] inline constexpr auto isJuceTrackConstRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<const te::Track&>,
+        meta::traits::dereferenced);
+
+[[maybe_unused]] inline constexpr auto isJuceAudioTrack =
+    meta::traits::is_convertible_to ^ meta::type_c<te::AudioTrack&&>;
+
+[[maybe_unused]] inline constexpr auto isJuceAudioTrackRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<te::AudioTrack&>,
+        meta::traits::dereferenced);
+
+[[maybe_unused]] inline constexpr auto isJuceAudioTrackConstRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<const te::AudioTrack&>,
+        meta::traits::dereferenced);
+
 // Clip
 
 using JuceClip [[maybe_unused]] =
@@ -244,6 +267,16 @@ using JuceClipConstRef [[maybe_unused]] =
     JuceConstRef<JuceClip>;
 
 
+using JuceAudioClip [[maybe_unused]] =
+    te::AudioClipBase;
+
+using JuceAudioClipRef [[maybe_unused]] =
+    JuceRef<JuceAudioClip>;
+
+using JuceAudioClipConstRef [[maybe_unused]] =
+    JuceConstRef<JuceAudioClip>;
+
+
 using JuceWaveAudioClip [[maybe_unused]] =
     te::WaveAudioClip;
 
@@ -252,9 +285,6 @@ using JuceWaveAudioClipRef [[maybe_unused]] =
 
 using JuceWaveAudioClipConstRef [[maybe_unused]] =
     JuceConstRef<JuceWaveAudioClip>;
-
-using JuceWaveAudioTakeRef [[maybe_unused]] =
-    te::ProjectItemID;
 
 
 using JuceMidiClip [[maybe_unused]] =
@@ -266,12 +296,48 @@ using JuceMidiClipRef [[maybe_unused]] =
 using JuceMidiClipConstRef [[maybe_unused]] =
     JuceConstRef<JuceMidiClip>;
 
+
+[[maybe_unused]] inline constexpr auto isJuceClip =
+    meta::traits::is_convertible_to ^ meta::type_c<te::Clip&&>;
+
+[[maybe_unused]] inline constexpr auto isJuceClipRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<te::Clip&>,
+        meta::traits::dereferenced);
+
+[[maybe_unused]] inline constexpr auto isJuceClipConstRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<const te::Clip&>,
+        meta::traits::dereferenced);
+
+
+[[maybe_unused]] inline constexpr auto isJuceAudioClip =
+    meta::traits::is_convertible_to ^ meta::type_c<te::AudioClipBase&&>;
+
+[[maybe_unused]] inline constexpr auto isJuceAudioClipRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<te::AudioClipBase&>,
+        meta::traits::dereferenced);
+
+[[maybe_unused]] inline constexpr auto isJuceAudioClipConstRef =
+    meta::compose(
+        meta::traits::is_convertible_to ^ meta::type_c<const te::AudioClipBase&>,
+        meta::traits::dereferenced);
+
+
+// Takes
+
+using JuceAudioTakeRef [[maybe_unused]] =
+    te::ProjectItemID;
+
 using JuceMidiTakeRef [[maybe_unused]] =
     te::MidiList*;
 
 
-[[maybe_unused]] inline constexpr auto isJuceClip =
-    meta::traits::is_convertible_to ^ meta::type_c<te::Clip&&>;
+[[maybe_unused]] inline constexpr auto isJuceTakeRef =
+    meta::satisfies_any(
+        meta::traits::is_convertible_to ^ meta::type_c<te::ProjectItemID&&>,
+        meta::traits::is_convertible_to ^ meta::type_c<te::MidiList*&&>);
 
 
 // Plugin

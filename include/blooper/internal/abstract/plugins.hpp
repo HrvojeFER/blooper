@@ -101,11 +101,11 @@ template<
     meta::satisfies_all(
         meta::reverse_partial(
             meta::traits::is_constructible,
-            meta::type_c<typename THeldPluginTraits::pluginRefType>,
             meta::type_c<typename TPluginContentComponentTraits::
                              componentTraits::contextualTraits::contextType&>,
             meta::type_c<typename TPluginContentComponentTraits::
-                             componentTraits::statefulTraits::stateType>),
+                             componentTraits::statefulTraits::stateType>,
+            meta::type_c<typename THeldPluginTraits::pluginRefType>),
         isAnyPluginContentComponent);
 
 
@@ -396,9 +396,9 @@ class [[maybe_unused]] AnyPluginContentComponentBase :
 
  public:
   [[maybe_unused]] explicit AnyPluginContentComponentBase(
-      heldPluginRefType plugin,
       contextType&      context,
-      stateType         state)
+      stateType         state,
+      heldPluginRefType plugin)
       : componentBaseType(
             context,
             move(state)),
@@ -588,6 +588,121 @@ BLOOPER_STATIC_ASSERT(
         meta::type_c<ExternalPluginContentComponentBase>),
     "ExternalPluginContentComponentBase must satisfy "
     "AnyPluginContentComponentBase.");
+
+
+// Explicit aliases
+
+using AbstractPluginContentComponent [[maybe_unused]] =
+    AnyAbstractPluginContentComponent<PluginContentTraits>;
+
+using PluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<PluginContentTraits>;
+
+using ExternalPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        ExternalPluginTraits>;
+
+// effects
+
+using VolumeAndPanPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::VolumeAndPanPlugin>>;
+
+using EqualiserPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::EqualiserPlugin>>;
+
+// TODO: fix
+//using ReverbPluginContentComponentBase [[maybe_unused]] =
+//    AnyPluginContentComponentBase<
+//        PluginContentTraits,
+//        AnyPluginTraits<te::ReverbPlugin>>;
+
+using DelayPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::DelayPlugin>>;
+
+using ChorusPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::ChorusPlugin>>;
+
+using PhaserPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::PhaserPlugin>>;
+
+using CompressorPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::CompressorPlugin>>;
+
+using PitchShiftPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::PitchShiftPlugin>>;
+
+using LowPassPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::LowPassPlugin>>;
+
+using MidiModifierPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::MidiModifierPlugin>>;
+
+using MidiPatchBayPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::MidiPatchBayPlugin>>;
+
+using PatchBayPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::PatchBayPlugin>>;
+
+using AuxSendPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::AuxSendPlugin>>;
+
+using AuxReturnPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::AuxReturnPlugin>>;
+
+using TextPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::TextPlugin>>;
+
+using FreezePointPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::FreezePointPlugin>>;
+
+using InsertPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::InsertPlugin>>;
+
+// synths
+
+// TODO: fix
+//using FourOscPluginContentComponentBase [[maybe_unused]] =
+//    AnyPluginContentComponentBase<
+//        PluginContentTraits,
+//        AnyPluginTraits<te::FourOscPlugin>>;
+
+using SamplerPluginContentComponentBase [[maybe_unused]] =
+    AnyPluginContentComponentBase<
+        PluginContentTraits,
+        AnyPluginTraits<te::SamplerPlugin>>;
 
 
 // Explicit instantiation

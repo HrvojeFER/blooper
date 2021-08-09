@@ -35,9 +35,9 @@ PluginEditorComponent::PluginEditorComponent(
     JucePluginRef        plugin,
     Options              options)
     : PluginContentComponentBase(
-          move(plugin),
           context,
-          move(state)),
+          move(state),
+          move(plugin)),
       options(move(options)),
 
       content(

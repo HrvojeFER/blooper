@@ -29,6 +29,9 @@
 #include <blooper/internal/abstract/components.hpp>
 
 #include <blooper/internal/abstract/windows.hpp>
+
+#include <blooper/internal/abstract/tracks.hpp>
+#include <blooper/internal/abstract/clips.hpp>
 #include <blooper/internal/abstract/plugins.hpp>
 
 #endif // BLOOPER_ABSTRACT_HPP

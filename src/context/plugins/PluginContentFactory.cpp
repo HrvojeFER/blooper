@@ -3,7 +3,7 @@
 #include <blooper/internal/ext/plugin.hpp>
 
 // TODO
-#include <blooper/context/plugins/builtin/builtin.hpp>
+//  #include <blooper/context/plugins/builtin/builtin.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -50,9 +50,9 @@ NotImplementedPluginContentComponent::NotImplementedPluginContentComponent(
     JucePluginRef        plugin,
     Options              options)
     : PluginContentComponentBase(
-          move(plugin),
           context,
-          move(state)),
+          move(state),
+          move(plugin)),
       options(move(options))
 {
 }
@@ -90,9 +90,9 @@ ExternalPluginContentComponent::ExternalPluginContentComponent(
     JuceExternalPluginRef plugin,
     Options               options)
     : ExternalPluginContentComponentBase(
-          move(plugin),
           context,
-          move(state)),
+          move(state),
+          move(plugin)),
       options(move(options)),
 
       content()
