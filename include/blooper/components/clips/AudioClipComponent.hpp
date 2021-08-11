@@ -27,10 +27,16 @@ class AudioClipComponent :
   AudioClipComponentOptions options;
 
 
+ private:
+  std::unique_ptr<te::SmartThumbnail> thumbnail;
+
+
   // Component
 
  public:
   void resized() override;
+
+  void paint(juce::Graphics& g) override;
 
 
   // Declarations

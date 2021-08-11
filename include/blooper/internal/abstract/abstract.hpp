@@ -22,6 +22,7 @@
 #include <blooper/internal/abstract/matchers.hpp>
 
 #include <blooper/internal/abstract/time.hpp>
+#include <blooper/internal/abstract/midi.hpp>
 
 #include <blooper/internal/abstract/stateful.hpp>
 #include <blooper/internal/abstract/contextual.hpp>

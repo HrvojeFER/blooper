@@ -235,18 +235,21 @@ class [[maybe_unused]] TakeRef final :
   }
 };
 
-class [[maybe_unused]] AudioTakeRef final :
+template<typename TClip = te::AudioClipBase>
+class [[maybe_unused]] AudioTakeRef :
     public virtual AbstractTakeRef,
-    public TakeRefBase<te::AudioClipBase>
+    public TakeRefBase<TClip>
 {
+  using base = TakeRefBase<TClip>;
+
  public:
   AudioTakeRef() noexcept = default;
 
   AudioTakeRef(
-      te::AudioClipBase* clip,
-      int                index,
-      te::ProjectItemID  audioFileId) noexcept
-      : TakeRefBase(clip, index),
+      TClip*            clip,
+      int               index,
+      te::ProjectItemID audioFileId) noexcept
+      : base(clip, index),
         audioFileId(move(audioFileId))
   {
   }
@@ -254,18 +257,18 @@ class [[maybe_unused]] AudioTakeRef final :
   te::ProjectItemID audioFileId{};
 
 
-  [[nodiscard]] inline bool isValid() const noexcept final
+  [[nodiscard]] inline bool isValid() const noexcept
   {
-    return TakeRefBase::isValid() && this->audioFileId.isValid();
+    return base::isValid() && this->audioFileId.isValid();
   }
 
-  [[nodiscard]] inline bool isInvalid() const noexcept final
+  [[nodiscard]] inline bool isInvalid() const noexcept
   {
-    return TakeRefBase::isInvalid() && this->audioFileId.isInvalid();
+    return base::isInvalid() && this->audioFileId.isInvalid();
   }
 
 
-  [[nodiscard]] inline bool isComp() const noexcept final
+  [[nodiscard]] inline bool isComp() const noexcept
   {
     if (auto waveClip = dynamic_cast<te::WaveAudioClip*>(this->clip))
     {
@@ -277,7 +280,7 @@ class [[maybe_unused]] AudioTakeRef final :
 
 
   juce::ReferenceCountedObjectPtr<te::Clip>
-  unpackInto(te::ClipTrack& track) const final
+  unpackInto(te::ClipTrack& track) const
   {
     if (!dynamic_cast<te::WaveAudioClip*>(this->clip)) return {};
     if (this->isComp()) return {};
@@ -307,6 +310,12 @@ class [[maybe_unused]] AudioTakeRef final :
 
     return move(insertedClip);
   }
+};
+
+class [[maybe_unused]] WaveAudioTakeRef final :
+    public virtual AbstractTakeRef,
+    public AudioTakeRef<te::WaveAudioClip>
+{
 };
 
 class [[maybe_unused]] MidiTakeRef final :
@@ -788,7 +797,7 @@ BLOOPER_STATIC_ASSERT(
 
 
 using WaveAudioTakeTraits [[maybe_unused]] =
-    AnyTakeTraits<AudioTakeRef>;
+    AnyTakeTraits<WaveAudioTakeRef>;
 
 using WaveAudioTakeRef [[maybe_unused]] =
     WaveAudioTakeTraits::takeRefType;
@@ -811,7 +820,7 @@ BLOOPER_STATIC_ASSERT(
 using WaveAudioTakeContentTraits [[maybe_unused]] =
     AnyTakeContentTraits<
         WaveAudioTakeTraits,
-        ComponentTraits>;
+        CoreComponentTraits>;
 
 using AbstractWaveAudioTakeContentComponent [[maybe_unused]] =
     WaveAudioTakeContentTraits::abstractType;

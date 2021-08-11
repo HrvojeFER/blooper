@@ -340,6 +340,23 @@ using JuceMidiTakeRef [[maybe_unused]] =
         meta::traits::is_convertible_to ^ meta::type_c<te::MidiList*&&>);
 
 
+// Thumbnails
+
+using JuceThumbnail [[maybe_unused]] =
+    te::SmartThumbnail;
+using JuceThumbnailRef [[maybe_unused]] =
+    JuceThumbnail*;
+using JuceThumbnailConstRef [[maybe_unused]] =
+    const JuceThumbnail*;
+
+using JuceRecordingThumbnail [[maybe_unused]] =
+    te::RecordingThumbnailManager::Thumbnail;
+using JuceRecordingThumbnailRef [[maybe_unused]] =
+    JuceRef<JuceRecordingThumbnail>;
+using JuceRecordingThumbnailConstRef [[maybe_unused]] =
+    JuceConstRef<JuceRecordingThumbnail>;
+
+
 // Plugin
 
 using JucePlugin [[maybe_unused]] =

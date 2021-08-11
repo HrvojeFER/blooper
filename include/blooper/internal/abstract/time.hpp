@@ -72,6 +72,17 @@ enum class TrackMode : int
   free [[maybe_unused]] = 3,
 };
 
+
+class AbstractTimeProgressConverter
+{
+ public:
+  [[nodiscard]] virtual double
+  convertToProgress(double time) const noexcept = 0;
+
+  [[nodiscard]] virtual double
+  convertToTime(double progress) const noexcept = 0;
+};
+
 BLOOPER_NAMESPACE_END
 
 namespace juce
@@ -128,4 +139,4 @@ struct VariantConverter<blooper::Tick>
 };
 } // namespace juce
 
-#endif //BLOOPER_TIME_HPP
+#endif // BLOOPER_TIME_HPP
