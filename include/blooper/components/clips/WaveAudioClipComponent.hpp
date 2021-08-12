@@ -10,19 +10,19 @@ struct AudioClipComponentOptions
 {
 };
 
-class AudioClipComponent :
+class WaveAudioClipComponent :
     public ComponentBase
 {
  public:
-  BLOOPER_STATE_ID(AudioClipComponent);
+  BLOOPER_STATE_ID(WaveAudioClipComponent);
 
 
-  explicit AudioClipComponent(
+  explicit WaveAudioClipComponent(
       AbstractContext&          context,
       State                     state,
       AudioClipComponentOptions options = {});
 
-  ~AudioClipComponent() override;
+  ~WaveAudioClipComponent() override;
 
   AudioClipComponentOptions options;
 
@@ -42,7 +42,7 @@ class AudioClipComponent :
   // Declarations
 
  private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioClipComponent)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveAudioClipComponent)
 };
 
 BLOOPER_NAMESPACE_END

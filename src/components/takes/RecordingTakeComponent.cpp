@@ -34,8 +34,8 @@ RecordingTakeComponent::~RecordingTakeComponent()
 RecordingTakeComponent::BoundsAndTime
 RecordingTakeComponent::getBoundsAndTime() const
 {
-  if (!this->options.converter) return {false};
-  auto& converter = *this->options.converter;
+  if (!this->options.timeXConverter) return {false};
+  auto& timeXConverter = *this->options.timeXConverter;
 
   if (this->getTakeRef().isInvalid()) return {false};
   auto& edit = this->getTakeRef().clip->edit;
@@ -78,23 +78,19 @@ RecordingTakeComponent::getBoundsAndTime() const
   }
 
 
-  auto timeToX = [this, &converter](double time) -> int {
-    if (!this->getParentComponent()) return 0;
-    auto& parent = *this->getParentComponent();
-
-    return static_cast<int>(
-               converter.convertToProgress(time)) *
-               parent.getWidth() -
-           this->getX();
+  auto timeToX = [this, &timeXConverter](double time) -> int {
+    return std::clamp(
+        timeXConverter.convertToX(time),
+        this->getX(),
+        this->getX() + this->getWidth());
   };
 
-  auto xToTime = [this, &converter](int x) {
-    if (!this->getParentComponent()) return 0.0;
-    auto& parent = *this->getParentComponent();
-
-    return converter.convertToTime(
-        static_cast<double>(x + this->getX()) /
-        parent.getWidth());
+  auto xToTime = [this, &timeXConverter](int x) {
+    return timeXConverter.convertToTime(
+        std::clamp(
+            x,
+            this->getX(),
+            this->getX() + this->getWidth()));
   };
 
   result.bounds =

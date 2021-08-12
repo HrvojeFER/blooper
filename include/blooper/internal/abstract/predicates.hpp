@@ -96,7 +96,7 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& v, auto&& e = meta::equal) {
       return
           [v = BLOOPER_FORWARD(v),
-           e = BLOOPER_FORWARD(e)](auto&& o) {
+           e = BLOOPER_FORWARD(e)](auto&& o) mutable {
             return e(BLOOPER_FORWARD(o), v);
           };
     });

@@ -6,11 +6,12 @@
 #include <blooper/internal/abstract/takes.hpp>
 #include <blooper/internal/abstract/clips.hpp>
 
+#include <blooper/components/takes/TakeComponentOptions.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
-struct MidiTakeComponentOptions
+struct MidiTakeComponentOptions : TakeComponentOptions
 {
-  AbstractTimeProgressConverter* converter{nullptr};
 };
 
 class MidiTakeComponent :

@@ -6,14 +6,12 @@
 #include <blooper/internal/abstract/takes.hpp>
 #include <blooper/internal/abstract/clips.hpp>
 
+#include <blooper/components/takes/TakeComponentOptions.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
-struct RecordingTakeComponentOptions
+struct RecordingTakeComponentOptions : TakeComponentOptions
 {
-  bool shouldResizeItself = true;
-  bool shouldResizeParentWhenResized = true;
-
-  AbstractTimeProgressConverter* converter{nullptr};
 };
 
 class RecordingTakeComponent :

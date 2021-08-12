@@ -31,8 +31,8 @@ void MidiTakeComponent::paint(juce::Graphics& g)
 {
   base::paint(g);
 
-  if (!this->options.converter) return;
-  auto& converter = *this->options.converter;
+  if (!this->options.timeXConverter) return;
+  auto& timeXConverter = *this->options.timeXConverter;
 
   if (this->getTakeRef().isInvalid()) return;
   auto& midi = *this->getTakeRef().midi;
@@ -43,14 +43,11 @@ void MidiTakeComponent::paint(juce::Graphics& g)
   auto noteHeight = this->getHeight() / midiNoteNumberCount;
 
 
-  auto timeToX = [this, &converter](double time) -> int {
-    if (!this->getParentComponent()) return 0;
-    auto& parent = *this->getParentComponent();
-
-    return static_cast<int>(
-               converter.convertToProgress(time)) *
-               parent.getWidth() -
-           this->getX();
+  auto timeToX = [this, &timeXConverter](double time) -> int {
+    return std::clamp(
+        timeXConverter.convertToX(time),
+        this->getX(),
+        this->getX() + this->getWidth());
   };
 
   for (auto note : midi.getNotes())

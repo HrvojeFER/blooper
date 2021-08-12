@@ -245,7 +245,7 @@ class [[maybe_unused]] AudioTakeRef :
  public:
   AudioTakeRef() noexcept = default;
 
-  AudioTakeRef(
+  [[maybe_unused]] AudioTakeRef(
       TClip*            clip,
       int               index,
       te::ProjectItemID audioFileId) noexcept
@@ -257,18 +257,18 @@ class [[maybe_unused]] AudioTakeRef :
   te::ProjectItemID audioFileId{};
 
 
-  [[nodiscard]] inline bool isValid() const noexcept
+  [[nodiscard]] inline bool isValid() const noexcept override
   {
     return base::isValid() && this->audioFileId.isValid();
   }
 
-  [[nodiscard]] inline bool isInvalid() const noexcept
+  [[nodiscard]] inline bool isInvalid() const noexcept override
   {
     return base::isInvalid() && this->audioFileId.isInvalid();
   }
 
 
-  [[nodiscard]] inline bool isComp() const noexcept
+  [[nodiscard]] inline bool isComp() const noexcept override
   {
     if (auto waveClip = dynamic_cast<te::WaveAudioClip*>(this->clip))
     {
@@ -280,7 +280,7 @@ class [[maybe_unused]] AudioTakeRef :
 
 
   juce::ReferenceCountedObjectPtr<te::Clip>
-  unpackInto(te::ClipTrack& track) const
+  unpackInto(te::ClipTrack& track) const override
   {
     if (!dynamic_cast<te::WaveAudioClip*>(this->clip)) return {};
     if (this->isComp()) return {};
@@ -827,7 +827,7 @@ using AbstractWaveAudioTakeContentComponent [[maybe_unused]] =
 
 using HeldWaveAudioTakeContentTraits [[maybe_unused]] =
     AnyHeldTakeContentTraits<
-        WaveAudioTakeContentTraits,
+        AbstractTakeContentTraits,
         WaveAudioTakeTraits>;
 
 using WaveAudioTakeContentComponentBase [[maybe_unused]] =
@@ -842,6 +842,13 @@ BLOOPER_STATIC_ASSERT(
     isAnyTakeContentComponent(
         meta::type_c<AbstractWaveAudioTakeContentComponent>),
     "AbstractWaveAudioTakeContentComponent must satisfy AnyTakeContentComponent.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyTakeContentComponentBase<
+        AbstractTakeContentTraits,
+        WaveAudioTakeTraits>(
+        meta::type_c<WaveAudioTakeContentComponentBase>),
+    "WaveAudioTakeContentComponentBase must satisfy AnyTakeContentComponentBase.");
 
 
 using MidiTakeTraits [[maybe_unused]] =
@@ -875,7 +882,7 @@ using AbstractMidiTakeContentComponent [[maybe_unused]] =
 
 using HeldMidiTakeContentTraits [[maybe_unused]] =
     AnyHeldTakeContentTraits<
-        MidiTakeContentTraits,
+        AbstractTakeContentTraits,
         MidiTakeTraits>;
 
 using MidiTakeContentComponentBase [[maybe_unused]] =
@@ -893,7 +900,7 @@ BLOOPER_STATIC_ASSERT(
 
 BLOOPER_STATIC_ASSERT(
     isAnyTakeContentComponentBase<
-        MidiTakeContentTraits,
+        AbstractTakeContentTraits,
         MidiTakeTraits>(
         meta::type_c<MidiTakeContentComponentBase>),
     "MidiTakeContentComponentBase must satisfy AnyTakeContentComponentBase.");

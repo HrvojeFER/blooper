@@ -1,8 +1,8 @@
-#include <blooper/components/clips/AudioClipComponent.hpp>
+#include <blooper/components/clips/WaveAudioClipComponent.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-AudioClipComponent::AudioClipComponent(
+WaveAudioClipComponent::WaveAudioClipComponent(
     AbstractContext&          context,
     State                     state,
     AudioClipComponentOptions options)
@@ -13,10 +13,10 @@ AudioClipComponent::AudioClipComponent(
 {
 }
 
-AudioClipComponent::~AudioClipComponent() = default;
+WaveAudioClipComponent::~WaveAudioClipComponent() = default;
 
 
-void AudioClipComponent::paint(juce::Graphics& g)
+void WaveAudioClipComponent::paint(juce::Graphics& g)
 {
   ClipComponent::paint(g);
 
@@ -33,7 +33,7 @@ void AudioClipComponent::paint(juce::Graphics& g)
         0);
 }
 
-void AudioClipComponent::drawWaveform(Graphics& g, te::AudioClipBase& c, te::SmartThumbnail& thumb, Colour colour, int left, int right, int y, int h, int xOffset)
+void WaveAudioClipComponent::drawWaveform(Graphics& g, te::AudioClipBase& c, te::SmartThumbnail& thumb, Colour colour, int left, int right, int y, int h, int xOffset)
 {
   auto getTimeRangeForDrawing = [this](const int left, const int right) -> te::EditTimeRange {
     if (auto p = getParentComponent())
@@ -83,7 +83,7 @@ void AudioClipComponent::drawWaveform(Graphics& g, te::AudioClipBase& c, te::Sma
   }
 }
 
-void AudioClipComponent::drawChannels(Graphics& g, te::SmartThumbnail& thumb, Rectangle<int> area, bool useHighRes, te::EditTimeRange time, bool useLeft, bool useRight, float leftGain, float rightGain)
+void WaveAudioClipComponent::drawChannels(Graphics& g, te::SmartThumbnail& thumb, Rectangle<int> area, bool useHighRes, te::EditTimeRange time, bool useLeft, bool useRight, float leftGain, float rightGain)
 {
   if (useLeft && useRight && thumb.getNumChannels() > 1)
   {
@@ -100,7 +100,7 @@ void AudioClipComponent::drawChannels(Graphics& g, te::SmartThumbnail& thumb, Re
   }
 }
 
-void AudioClipComponent::updateThumbnail()
+void WaveAudioClipComponent::updateThumbnail()
 {
   if (auto* wac = getWaveAudioClip())
   {
@@ -128,7 +128,7 @@ void AudioClipComponent::updateThumbnail()
 
 // Component
 
-void AudioClipComponent::resized()
+void WaveAudioClipComponent::resized()
 {
 }
 

@@ -83,6 +83,16 @@ class AbstractTimeProgressConverter
   convertToTime(double progress) const noexcept = 0;
 };
 
+class AbstractTimeXConverter
+{
+ public:
+  [[nodiscard]] virtual int
+  convertToX(double time) const noexcept = 0;
+
+  [[nodiscard]] virtual double
+  convertToTime(int x) const noexcept = 0;
+};
+
 BLOOPER_NAMESPACE_END
 
 namespace juce

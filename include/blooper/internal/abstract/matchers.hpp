@@ -17,7 +17,7 @@ BLOOPER_NAMESPACE_BEGIN
       maybeUnused(BLOOPER_FORWARD(p));
 
       return
-          [f = BLOOPER_FORWARD(f)](auto&& o) {
+          [f = BLOOPER_FORWARD(f)](auto&& o) mutable {
             maybeUnused(f);
 
             if constexpr (decltype(BLOOPER_FORWARD(p)(BLOOPER_FORWARD(o))){})
@@ -32,7 +32,7 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& p, auto&& f) {
       return
           [p = BLOOPER_FORWARD(p),
-           f = BLOOPER_FORWARD(f)](auto&& o) -> decltype(auto) {
+           f = BLOOPER_FORWARD(f)](auto&& o) mutable -> decltype(auto) {
             using ot = std::decay_t<decltype(f(BLOOPER_FORWARD(o)))>;
 
             if (p(BLOOPER_FORWARD(o)))
@@ -46,7 +46,7 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& p, auto&& f) {
       return
           [p = BLOOPER_FORWARD(p),
-           f = BLOOPER_FORWARD(f)](auto&& o) -> decltype(auto) {
+           f = BLOOPER_FORWARD(f)](auto&& o) mutable -> decltype(auto) {
             using ot = std::decay_t<decltype(f(p(BLOOPER_FORWARD(o))))>;
 
             if (auto&& pr = p(BLOOPER_FORWARD(o)))
@@ -61,7 +61,7 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& p, auto&& f) {
       return
           [p = BLOOPER_FORWARD(p),
-           f = BLOOPER_FORWARD(f)](auto&& o) -> decltype(auto) {
+           f = BLOOPER_FORWARD(f)](auto&& o) mutable -> decltype(auto) {
             using ot = std::decay_t<decltype(f(BLOOPER_FORWARD(o)))>;
 
             if (p(BLOOPER_FORWARD(o)))
@@ -75,7 +75,7 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& p, auto&& f) {
       return
           [p = BLOOPER_FORWARD(p),
-           f = BLOOPER_FORWARD(f)](auto&& o) -> decltype(auto) {
+           f = BLOOPER_FORWARD(f)](auto&& o) mutable -> decltype(auto) {
             using ot = std::decay_t<decltype(f(p(BLOOPER_FORWARD(o))))>;
 
             if (auto&& pr = p(BLOOPER_FORWARD(o)))
@@ -91,7 +91,7 @@ BLOOPER_NAMESPACE_BEGIN
       maybeUnused(BLOOPER_FORWARD(p));
 
       return
-          [f = BLOOPER_FORWARD(f)](auto&& o) {
+          [f = BLOOPER_FORWARD(f)](auto&& o) mutable {
             maybeUnused(f);
 
             if constexpr (decltype(BLOOPER_FORWARD(p)(BLOOPER_FORWARD(o))){})
@@ -107,7 +107,7 @@ BLOOPER_NAMESPACE_BEGIN
 
       return
           [p = BLOOPER_FORWARD(p),
-           f = BLOOPER_FORWARD(f)](auto&& o) {
+           f = BLOOPER_FORWARD(f)](auto&& o) mutable {
             using ot = std::decay_t<decltype(f)>;
 
             if (p(BLOOPER_FORWARD(o)))
@@ -226,7 +226,7 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto matcherConstexprCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
       return [first = BLOOPER_FORWARD(first),
-              second = BLOOPER_FORWARD(second)](auto&& object) {
+              second = BLOOPER_FORWARD(second)](auto&& object) mutable {
         constexpr auto first_result_type =
             BLOOPER_TYPEID(first(BLOOPER_FORWARD(object)));
 
@@ -249,7 +249,7 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto matcherCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
       return [first = BLOOPER_FORWARD(first),
-              second = BLOOPER_FORWARD(second)](auto&& object) {
+              second = BLOOPER_FORWARD(second)](auto&& object) mutable {
         static_assert(
             meta::equal(
                 BLOOPER_TYPEID(first(BLOOPER_FORWARD(object))),
@@ -280,7 +280,7 @@ BLOOPER_NAMESPACE_BEGIN
 [[maybe_unused]] inline constexpr auto matcherVoidCompose =
     ([](auto&& first, auto&& second) -> decltype(auto) {
       return [first = BLOOPER_FORWARD(first),
-              second = BLOOPER_FORWARD(second)](auto&& object) {
+              second = BLOOPER_FORWARD(second)](auto&& object) mutable {
         first(BLOOPER_FORWARD(object));
         second(BLOOPER_FORWARD(object));
       };
@@ -309,10 +309,10 @@ BLOOPER_NAMESPACE_BEGIN
     ([](auto&& first, auto&&... rest) -> decltype(auto) {
       return [matchers = meta::make_tuple(
                   BLOOPER_FORWARD(first),
-                  BLOOPER_FORWARD(rest)...)](auto&& object) {
+                  BLOOPER_FORWARD(rest)...)](auto&& object) mutable {
         meta::for_each(
             matchers,
-            [object = BLOOPER_FORWARD(object)](auto&& matcher) {
+            [object = BLOOPER_FORWARD(object)](auto&& matcher) mutable {
               matcher(object);
             });
       };
@@ -320,4 +320,4 @@ BLOOPER_NAMESPACE_BEGIN
 
 BLOOPER_NAMESPACE_END
 
-#endif //BLOOPER_MATCHERS_HPP
+#endif // BLOOPER_MATCHERS_HPP
