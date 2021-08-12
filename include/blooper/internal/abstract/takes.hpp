@@ -599,6 +599,10 @@ class [[maybe_unused]] AnyAbstractTakeContentComponent :
 
   [[maybe_unused, nodiscard]] inline virtual takeRefType&
   getTakeRef() noexcept = 0;
+
+
+  [[nodiscard]] inline virtual BoundsAndTime
+  getBoundsAndTime() const;
 };
 
 template<typename TTakeContentTraits, typename THeldTakeTraits>

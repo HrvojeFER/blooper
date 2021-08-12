@@ -34,6 +34,9 @@ class MidiTakeComponent :
   MidiTakeComponentOptions options;
 
 
+  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
+
+
  private:
   [[nodiscard]] inline const MidiClip* getClip() const noexcept;
 

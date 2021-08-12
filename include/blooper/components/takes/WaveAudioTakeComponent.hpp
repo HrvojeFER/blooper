@@ -33,6 +33,9 @@ class WaveAudioTakeComponent :
   WaveAudioTakeComponentOptions options;
 
 
+  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
+
+
  private:
   std::unique_ptr<JuceThumbnail> thumbnail;
 
@@ -85,12 +88,12 @@ class WaveAudioTakeComponent :
 
 inline const WaveAudioClip* WaveAudioTakeComponent::getClip() const noexcept
 {
-  return this->getTakeRef().clip;
+  return this->getHeldTakeRef().clip;
 }
 
 inline WaveAudioClip* WaveAudioTakeComponent::getClip() noexcept
 {
-  return this->getTakeRef().clip;
+  return this->getHeldTakeRef().clip;
 }
 
 BLOOPER_NAMESPACE_END

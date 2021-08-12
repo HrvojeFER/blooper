@@ -15,10 +15,27 @@ WaveAudioTakeComponent::WaveAudioTakeComponent(
           move(take)),
       options(move(options))
 {
+  // ...
+  BLOOPER_ASSERT(this->getTakeRef().isValid());
+
   this->updateThumbnail();
 }
 
 WaveAudioTakeComponent::~WaveAudioTakeComponent() = default;
+
+
+BoundsAndTime WaveAudioTakeComponent::getBoundsAndTime() const
+{
+  auto& clip = *this->getHeldTakeRef().clip;
+
+  return {
+      true,
+      false,
+      this->getBounds(),
+      {clip.getPosition().getStartOfSource(),
+       clip.getPosition().getEnd()},
+  };
+}
 
 
 // TODO: in look and feel
@@ -136,17 +153,17 @@ void WaveAudioTakeComponent::drawChannels(
   }
 }
 
+// TODO react
 void WaveAudioTakeComponent::updateThumbnail()
 {
-  auto clip = this->getClip();
-  if (!clip) return;
-
-  auto& engine = this->getContext().getEngine();
+  auto& clip = *this->getHeldTakeRef().clip;
+  auto& edit = clip.edit;
+  auto& engine = clip.edit.engine;
 
   auto projectItem =
       engine
           .getProjectManager()
-          .getProjectItem(this->getTakeRef().audioFileId);
+          .getProjectItem(this->getHeldTakeRef().audioFileId);
   if (!projectItem) return;
 
   auto file = projectItem->getSourceFile();
@@ -166,7 +183,7 @@ void WaveAudioTakeComponent::updateThumbnail()
             engine,
             audioFile,
             *this,
-            &clip->edit);
+            std::addressof(edit));
   }
   else
   {
@@ -184,29 +201,24 @@ void WaveAudioTakeComponent::resized()
 
 void WaveAudioTakeComponent::paint(juce::Graphics& g)
 {
-  auto clipPtr = this->getClip();
-  if (!clipPtr) return;
-  auto& clip = *clipPtr;
-
   auto thumbPtr = this->thumbnail.get();
   if (!thumbPtr) return;
   auto& thumb = *thumbPtr;
+
+  auto boundsAndTime = this->getBoundsAndTime();
+  if (!boundsAndTime.isValid) return;
 
   WaveAudioTakeComponent::drawWaveform(
       g,
       thumb,
 
-      {0,
-       0,
-       this->getWidth(),
-       this->getHeight()},
+      boundsAndTime.bounds,
       this->findColour(ColourId::background)
           .withAlpha(0.5f),
 
       // TODO time better?
-      {clip.getPosition().getStartOfSource(),
-       clip.getPosition().getEnd()},
-      this->getTakeRef());
+      boundsAndTime.time,
+      this->getHeldTakeRef());
 }
 
 BLOOPER_NAMESPACE_END

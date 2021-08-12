@@ -2,7 +2,8 @@
 #define BLOOPER_MIDI_CLIP_COMPONENT_HPP
 #pragma once
 
-#include <blooper/internal/abstract/components.hpp>
+#include <blooper/internal/abstract/takes.hpp>
+#include <blooper/internal/abstract/clips.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -11,8 +12,10 @@ struct MidiClipComponentOptions
 };
 
 class MidiClipComponent :
-    public ComponentBase
+    public MidiClipContentComponentBase
 {
+  using base = MidiClipContentComponentBase;
+
  public:
   BLOOPER_STATE_ID(MidiClipComponent);
 
@@ -20,11 +23,19 @@ class MidiClipComponent :
   explicit MidiClipComponent(
       AbstractContext&         context,
       State                    state,
+      MidiClipRef              clip,
       MidiClipComponentOptions options = {});
 
   ~MidiClipComponent() override;
 
   MidiClipComponentOptions options;
+
+
+ private:
+  std::unique_ptr<class MidiTakeComponent> currentTakeComponent;
+
+
+  void updateCurrentTake();
 
 
   // Component

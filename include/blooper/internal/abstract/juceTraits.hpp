@@ -43,6 +43,16 @@ using JuceTimer [[maybe_unused]] = juce::Timer;
 // Math
 
 using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
+using JuceTimeRange [[maybe_unused]] = te::EditTimeRange;
+
+struct [[maybe_unused]] BoundsAndTime
+{
+  [[maybe_unused]] bool isValid{true};
+  [[maybe_unused]] bool hasLooped{false};
+
+  [[maybe_unused]] juce::Rectangle<int> bounds{};
+  [[maybe_unused]] te::EditTimeRange    time{};
+};
 
 
 // State

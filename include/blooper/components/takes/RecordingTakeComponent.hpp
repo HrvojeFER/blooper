@@ -37,22 +37,13 @@ class RecordingTakeComponent :
   RecordingTakeComponentOptions options;
 
 
+  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
+
+
  private:
   JuceRecordingThumbnailRef thumbnail;
 
   double punchInTime;
-
-
-  struct BoundsAndTime
-  {
-    bool                  isValid{true};
-    [[maybe_unused]] bool hasLooped{false};
-
-    juce::Rectangle<int> bounds{};
-    te::EditTimeRange    time{};
-  };
-
-  [[nodiscard]] BoundsAndTime getBoundsAndTime() const;
 
 
   void drawThumbnail(

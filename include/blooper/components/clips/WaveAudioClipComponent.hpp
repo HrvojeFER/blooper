@@ -2,41 +2,46 @@
 #define BLOOPER_AUDIO_CLIP_COMPONENT_HPP
 #pragma once
 
-#include <blooper/internal/abstract/components.hpp>
+#include <blooper/internal/abstract/takes.hpp>
+#include <blooper/internal/abstract/clips.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
-struct AudioClipComponentOptions
+struct WaveAudioClipComponentOptions
 {
 };
 
 class WaveAudioClipComponent :
-    public ComponentBase
+    public WaveAudioClipContentComponentBase
 {
+  using base = WaveAudioClipContentComponentBase;
+
  public:
   BLOOPER_STATE_ID(WaveAudioClipComponent);
 
 
   explicit WaveAudioClipComponent(
-      AbstractContext&          context,
-      State                     state,
-      AudioClipComponentOptions options = {});
+      AbstractContext&              context,
+      State                         state,
+      JuceWaveAudioClipRef          clip,
+      WaveAudioClipComponentOptions options = {});
 
   ~WaveAudioClipComponent() override;
 
-  AudioClipComponentOptions options;
+  WaveAudioClipComponentOptions options;
 
 
  private:
-  std::unique_ptr<te::SmartThumbnail> thumbnail;
+  std::unique_ptr<class WaveAudioTakeComponent> currentTakeComponent;
+
+
+  void updateCurrentTake();
 
 
   // Component
 
  public:
   void resized() override;
-
-  void paint(juce::Graphics& g) override;
 
 
   // Declarations

@@ -21,6 +21,21 @@ MidiTakeComponent::MidiTakeComponent(
 MidiTakeComponent::~MidiTakeComponent() = default;
 
 
+[[nodiscard]] BoundsAndTime MidiTakeComponent::getBoundsAndTime() const
+{
+  if (!this->getHeldTakeRef().isValid()) return {false};
+  auto& clip = *this->getHeldTakeRef().clip;
+
+  return {
+      true,
+      false,
+      this->getBounds(),
+      {clip.getPosition().getStart(),
+       clip.getPosition().getEnd()},
+  };
+}
+
+
 // Component
 
 void MidiTakeComponent::resized()
@@ -35,8 +50,8 @@ void MidiTakeComponent::paint(juce::Graphics& g)
   auto& timeXConverter = *this->options.timeXConverter;
 
   if (this->getTakeRef().isInvalid()) return;
-  auto& midi = *this->getTakeRef().midi;
-  auto& clip = *this->getTakeRef().clip;
+  auto& midi = *this->getHeldTakeRef().midi;
+  auto& clip = *this->getHeldTakeRef().clip;
   auto& edit = clip.edit;
   auto& tempo = edit.tempoSequence;
 

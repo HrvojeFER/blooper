@@ -5,44 +5,40 @@ BLOOPER_NAMESPACE_BEGIN
 MidiClipComponent::MidiClipComponent(
     AbstractContext&         context,
     State                    state,
+    MidiClipRef              clip,
     MidiClipComponentOptions options)
-    : ComponentBase(
+    : MidiClipComponent::base(
           context,
-          move(state)),
+          move(state),
+          move(clip)),
       options(move(options))
 {
+  this->updateCurrentTake();
 }
 
 MidiClipComponent::~MidiClipComponent() = default;
 
 
-void MidiClipComponent::paint (Graphics& g)
+void MidiClipComponent::updateCurrentTake()
 {
-  ClipComponent::paint (g);
+  auto currentTakeIndex = this->getClip().getCurrentTake();
+  if (currentTakeIndex ==
+      this->currentTakeComponent->getTakeRef().getIndex())
+    return;
 
-  if (auto mc = getMidiClip())
-  {
-    auto& seq = mc->getSequence();
-    for (auto n : seq.getNotes())
-    {
-      double sBeat = mc->getStartBeat() + n->getStartBeat();
-      double eBeat = mc->getStartBeat() + n->getEndBeat();
+  auto takesIds = this->getClip().getTakes();
+  auto currentTakeId = takesIds[currentTakeIndex];
 
-      auto s = editViewState.beatToTime (sBeat);
-      auto e = editViewState.beatToTime (eBeat);
+  MidiTakeRef currentTake{
+      std::addressof(this->getClip()),
+      currentTakeIndex,
+      currentTakeId};
 
-      if (auto p = getParentComponent())
-      {
-        double t1 = editViewState.timeToX (s, p->getWidth()) - getX();
-        double t2 = editViewState.timeToX (e, p->getWidth()) - getX();
-
-        double y = (1.0 - double (n->getNoteNumber()) / 127.0) * getHeight();
-
-        g.setColour (Colours::white.withAlpha (n->getVelocity() / 127.0f));
-        g.drawLine (float (t1), float (y), float (t2), float (y));
-      }
-    }
-  }
+  this->removeChildComponent(this->currentTakeComponent.get());
+  this->currentTakeComponent =
+      addChild<MidiTakeComponent>(
+          *this,
+          move(currentTake));
 }
 
 
@@ -50,6 +46,10 @@ void MidiClipComponent::paint (Graphics& g)
 
 void MidiClipComponent::resized()
 {
+  auto availableArea = this->getLocalBounds();
+
+  if (this->currentTakeComponent)
+    this->currentTakeComponent->setBounds(availableArea);
 }
 
 BLOOPER_NAMESPACE_END
