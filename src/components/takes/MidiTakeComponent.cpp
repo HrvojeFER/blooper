@@ -1,7 +1,7 @@
 #include <blooper/components/takes/MidiTakeComponent.hpp>
 
 #include <blooper/internal/abstract/midi.hpp>
-#include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -16,83 +16,79 @@ MidiTakeComponent::MidiTakeComponent(
           move(take)),
       options(move(options))
 {
+  if (this->options.shouldResizeItself)
+    this->getClip().state.addListener(this);
 }
 
-MidiTakeComponent::~MidiTakeComponent() = default;
-
-
-[[nodiscard]] BoundsAndTime MidiTakeComponent::getBoundsAndTime() const
+MidiTakeComponent::~MidiTakeComponent()
 {
-  if (!this->getHeldTakeRef().isValid()) return {false};
-  auto& clip = *this->getHeldTakeRef().clip;
+  this->getClip().state.removeListener(this);
+}
 
-  return {
-      true,
-      false,
-      this->getBounds(),
-      {clip.getPosition().getStart(),
-       clip.getPosition().getEnd()},
-  };
+
+// ValueTreeListener
+
+void MidiTakeComponent::valueTreePropertyChanged(
+    JuceState&                 state,
+    const JuceStateIdentifier& id)
+{
+  if (state == this->getClip().state)
+  {
+    if (id == te::IDs::offset ||
+        id == te::IDs::start ||
+        id == te::IDs::length)
+    {
+      this->setBounds(
+          util::withHorizontalRange(
+              this->getBounds(),
+              this->getTimePixelMapping(
+                      dynamic_cast<AbstractTimePixelConverter*>(
+                          this->getParentComponent()))
+                  .pixels));
+
+      if (this->options.shouldResizeParentWhenResized &&
+          this->getParentComponent())
+        this->getParentComponent()->resized();
+    }
+  }
 }
 
 
 // Component
 
-void MidiTakeComponent::resized()
-{
-}
-
 void MidiTakeComponent::paint(juce::Graphics& g)
 {
   base::paint(g);
 
-  if (!this->options.timeXConverter) return;
-  auto& timeXConverter = *this->options.timeXConverter;
-
-  if (this->getTakeRef().isInvalid()) return;
   auto& midi = *this->getHeldTakeRef().midi;
   auto& clip = *this->getHeldTakeRef().clip;
   auto& edit = clip.edit;
   auto& tempo = edit.tempoSequence;
 
+  auto mapping = this->getTimePixelMapping();
   auto noteHeight = this->getHeight() / midiNoteNumberCount;
 
-
-  auto timeToX = [this, &timeXConverter](double time) -> int {
-    return std::clamp(
-        timeXConverter.convertToX(time),
-        this->getX(),
-        this->getX() + this->getWidth());
-  };
-
+  // TODO include other events
   for (auto note : midi.getNotes())
   {
-    auto noteStartYInverted = (note->getNoteNumber() + 1) * noteHeight;
-    auto noteStartY = this->getHeight() - (noteStartYInverted);
-
-    auto noteStart = tempo.beatsToTime(note->getRangeBeats().getStart());
-    auto noteStartX = timeToX(noteStart);
-    auto noteEnd = tempo.beatsToTime(note->getRangeBeats().getEnd());
-    auto noteEndX = timeToX(noteEnd);
-
-    auto x = noteStartX;
-    auto width = noteEndX - noteStartX;
-    auto y = noteStartY;
-    auto height = noteHeight;
-
-    auto magnitude =
-        static_cast<float>(note->getVelocity() - minVelocity) /
-        velocityValueCount;
-
     g.setColour(
         this->findColour(ColourId::white)
-            .withAlpha(magnitude));
+            .withAlpha(
+                static_cast<float>(note->getVelocity() - minVelocity) /
+                velocityValueCount));
+
+    auto noteXPixels =
+        mapping.convertToPixels(
+            {tempo.beatsToTime(note->getRangeBeats().getStart()),
+             tempo.beatsToTime(note->getRangeBeats().getEnd())});
 
     g.fillRect(
-        static_cast<float>(x),
-        static_cast<float>(y),
-        static_cast<float>(width),
-        static_cast<float>(height));
+        static_cast<float>(noteXPixels.getStart()),
+        static_cast<float>(
+            this->getHeight() -
+            (note->getNoteNumber() + 1) * noteHeight),
+        static_cast<float>(noteXPixels.getLength()),
+        static_cast<float>(noteHeight));
   }
 }
 

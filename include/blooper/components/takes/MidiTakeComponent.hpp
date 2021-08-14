@@ -34,20 +34,17 @@ class MidiTakeComponent :
   MidiTakeComponentOptions options;
 
 
-  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
-
+  // ValueTreeListener
 
  private:
-  [[nodiscard]] inline const MidiClip* getClip() const noexcept;
-
-  [[nodiscard]] inline MidiClip* getClip() noexcept;
+  [[maybe_unused]] void valueTreePropertyChanged(
+      JuceState&                 state,
+      const JuceStateIdentifier& id) override;
 
 
   // Component
 
  public:
-  void resized() override;
-
   void paint(juce::Graphics& g) override;
 
 
@@ -56,17 +53,6 @@ class MidiTakeComponent :
  private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiTakeComponent)
 };
-
-
-inline const MidiClip* MidiTakeComponent::getClip() const noexcept
-{
-  return this->getTakeRef().clip;
-}
-
-inline MidiClip* MidiTakeComponent::getClip() noexcept
-{
-  return this->getTakeRef().clip;
-}
 
 BLOOPER_NAMESPACE_END
 

@@ -1,5 +1,9 @@
 #include <blooper/components/clips/MidiClipComponent.hpp>
 
+#include <blooper/internal/ext/component.hpp>
+
+#include <blooper/components/takes/MidiTakeComponent.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 MidiClipComponent::MidiClipComponent(
@@ -26,13 +30,17 @@ void MidiClipComponent::updateCurrentTake()
       this->currentTakeComponent->getTakeRef().getIndex())
     return;
 
-  auto takesIds = this->getClip().getTakes();
-  auto currentTakeId = takesIds[currentTakeIndex];
+  auto currentTakeMidi = this->getClip().getTakeSequence(currentTakeIndex);
 
   MidiTakeRef currentTake{
       std::addressof(this->getClip()),
       currentTakeIndex,
-      currentTakeId};
+      currentTakeMidi};
+
+  MidiTakeComponentOptions options{
+      false,
+      false,
+  };
 
   this->removeChildComponent(this->currentTakeComponent.get());
   this->currentTakeComponent =

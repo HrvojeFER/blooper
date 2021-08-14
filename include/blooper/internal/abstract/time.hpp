@@ -2,7 +2,11 @@
 #define BLOOPER_TIME_HPP
 #pragma once
 
-#include <blooper/internal/macros/namespaces.hpp>
+#include <blooper/internal/macros/macros.hpp>
+
+#include <blooper/internal/abstract/prelude.hpp>
+#include <blooper/internal/abstract/meta.hpp>
+#include <blooper/internal/abstract/traits.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -20,8 +24,7 @@ generateToken() noexcept
 {
   static juce::Atomic<Token> currentValue = 0;
 
-  currentValue += 1;
-  return currentValue.get();
+  return currentValue += 1;
 }
 
 
@@ -73,25 +76,83 @@ enum class TrackMode : int
 };
 
 
-class AbstractTimeProgressConverter
+class AbstractTimePixelConverter;
+
+[[maybe_unused]] inline constexpr auto isAnyTimePixelConverter =
+    meta::attribute(
+        [](auto&& toCheck)
+            -> decltype(meta::and_(
+                meta::traits::is_convertible(
+                    meta::typeid_(toCheck.getTimePixelMapping(
+                        std::declval<AbstractTimePixelConverter*>())),
+                    meta::type_c<TimePixelMapping>),
+                meta::traits::is_convertible(
+                    meta::typeid_(toCheck.getTimePixelMapping()),
+                    meta::type_c<TimePixelMapping>))) {}) ^
+    meta::after ^
+    meta::check(
+        [](auto&& toCheck)
+            -> decltype(toCheck.getTimePixelMapping(
+                            std::declval<AbstractTimePixelConverter*>()),
+                        toCheck.getTimePixelMapping()) {});
+
+class AbstractTimePixelConverter
 {
  public:
-  [[nodiscard]] virtual double
-  convertToProgress(double time) const noexcept = 0;
+  [[maybe_unused]] inline AbstractTimePixelConverter() = default;
 
-  [[nodiscard]] virtual double
-  convertToTime(double progress) const noexcept = 0;
+  [[maybe_unused]] virtual inline ~AbstractTimePixelConverter() = default;
+
+
+  [[maybe_unused, nodiscard]] virtual JuceTimeRange
+  getAbsoluteTimeRange() const noexcept = 0;
+
+
+  [[nodiscard]] virtual JuceTimeRange
+  getTimeRange() const noexcept = 0;
+
+  [[nodiscard]] virtual JucePixelRange
+  getPixelRange() const noexcept = 0;
+
+
+  [[nodiscard]] virtual JuceTimeRange
+  getTimeRange(AbstractTimePixelConverter* in) const noexcept
+  {
+    if (!in) return this->getTimeRange();
+
+    return in->getTimeRange().constrainRange(
+        this->getTimeRange());
+  }
+
+  [[nodiscard]] virtual JucePixelRange
+  getPixelRange(AbstractTimePixelConverter* in) const noexcept
+  {
+    if (!in) return this->getPixelRange();
+
+    return in->getTimePixelMapping()
+        .withTime(this->getTimeRange(in))
+        .pixels;
+  }
+
+
+  [[nodiscard]] virtual TimePixelMapping
+  getTimePixelMapping(AbstractTimePixelConverter* in) const
+  {
+    return {this->getTimeRange(),
+            this->getPixelRange(in)};
+  }
+
+  [[nodiscard]] virtual TimePixelMapping
+  getTimePixelMapping() const noexcept
+  {
+    return {this->getTimeRange(),
+            this->getPixelRange()};
+  }
 };
 
-class AbstractTimeXConverter
-{
- public:
-  [[nodiscard]] virtual int
-  convertToX(double time) const noexcept = 0;
-
-  [[nodiscard]] virtual double
-  convertToTime(int x) const noexcept = 0;
-};
+BLOOPER_STATIC_ASSERT(
+    isAnyTimePixelConverter(meta::type_c<AbstractTimePixelConverter>),
+    "AbstractTimeXConverter must satisfy TimeXConverter.");
 
 BLOOPER_NAMESPACE_END
 

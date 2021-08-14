@@ -11,8 +11,6 @@ struct TakeComponentOptions
 {
   bool shouldResizeItself = true;
   bool shouldResizeParentWhenResized = true;
-
-  AbstractTimeXConverter* timeXConverter{nullptr};
 };
 
 BLOOPER_NAMESPACE_END

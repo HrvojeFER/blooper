@@ -47,7 +47,7 @@ void RecordingClipComponent::drawThumbnail (Graphics& g, Colour waveformColour) 
 
   Rectangle<int> bounds;
   Range<double> times;
-  getBoundsAndTime (bounds, times);
+  getRangeAndTime (bounds, times);
   auto w = bounds.getWidth();
 
   if (w > 0 && w < 10000)
@@ -57,7 +57,7 @@ void RecordingClipComponent::drawThumbnail (Graphics& g, Colour waveformColour) 
   }
 }
 
-bool RecordingClipComponent::getBoundsAndTime (Rectangle<int>& bounds, Range<double>& times) const
+bool RecordingClipComponent::getRangeAndTime (Rectangle<int>& bounds, Range<double>& times) const
 {
   auto editTimeToX = [this] (double t)
   {

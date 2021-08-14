@@ -43,15 +43,112 @@ using JuceTimer [[maybe_unused]] = juce::Timer;
 // Math
 
 using JuceBounds [[maybe_unused]] = juce::Rectangle<int>;
+
+using JucePixelRange [[maybe_unused]] = juce::Range<int>;
 using JuceTimeRange [[maybe_unused]] = te::EditTimeRange;
 
-struct [[maybe_unused]] BoundsAndTime
+struct [[maybe_unused]] TimePixelMapping
 {
-  [[maybe_unused]] bool isValid{true};
-  [[maybe_unused]] bool hasLooped{false};
+  [[maybe_unused]] JuceTimeRange  time{};
+  [[maybe_unused]] JucePixelRange pixels{};
 
-  [[maybe_unused]] juce::Rectangle<int> bounds{};
-  [[maybe_unused]] te::EditTimeRange    time{};
+
+  [[maybe_unused, nodiscard]] inline int
+  constrainPixel(int _pixel) const noexcept
+  {
+    return this->pixels.clipValue(_pixel);
+  }
+
+  [[maybe_unused, nodiscard]] inline double
+  constrainTime(double _time) const noexcept
+  {
+    return this->time.clipValue(_time);
+  }
+
+  [[maybe_unused, nodiscard]] inline JucePixelRange
+  constrainPixels(JucePixelRange _pixel) const noexcept
+  {
+    return this->pixels.constrainRange(_pixel);
+  }
+
+  [[maybe_unused, nodiscard]] inline JuceTimeRange
+  constrainTime(JuceTimeRange _time) const noexcept
+  {
+    return this->time.constrainRange(_time);
+  }
+
+  [[maybe_unused, nodiscard]] inline TimePixelMapping
+  constrain(TimePixelMapping _mapping) const noexcept
+  {
+    return {this->constrainTime(_mapping.time),
+            this->constrainPixels(_mapping.pixels)};
+  }
+
+
+  [[maybe_unused, nodiscard]] inline double
+  convertToTime(int _pixel) const noexcept
+  {
+    return static_cast<double>(
+               static_cast<double>(
+                   _pixel -
+                   this->pixels.getStart()) /
+               this->pixels.getLength()) *
+               time.getLength() +
+           time.getStart();
+  }
+
+  [[maybe_unused, nodiscard]] inline int
+  convertToPixel(double _time) const noexcept
+  {
+    return static_cast<int>(
+               static_cast<double>(
+                   _time -
+                   this->time.getStart()) /
+               this->time.getLength()) *
+               this->pixels.getLength() +
+           this->pixels.getStart();
+  }
+
+
+  [[maybe_unused, nodiscard]] inline JuceTimeRange
+  convertToTime(JucePixelRange _pixels) const noexcept
+  {
+    return {convertToTime(_pixels.getStart()),
+            convertToTime(_pixels.getEnd())};
+  }
+
+  [[maybe_unused, nodiscard]] inline JucePixelRange
+  convertToPixels(JuceTimeRange _time) const noexcept
+  {
+    return {convertToPixel(_time.getStart()),
+            convertToPixel(_time.getEnd())};
+  }
+
+
+  [[maybe_unused, nodiscard]] inline TimePixelMapping
+  withPixels(JucePixelRange _pixels) const noexcept
+  {
+    return {this->convertToTime(_pixels), _pixels};
+  }
+
+  [[maybe_unused, nodiscard]] inline TimePixelMapping
+  withTime(JuceTimeRange _time) const noexcept
+  {
+    return {_time, this->convertToPixels(_time)};
+  }
+
+
+  [[maybe_unused, nodiscard]] inline TimePixelMapping
+  translateTime(double _time) const noexcept
+  {
+    return this->withTime(this->time + _time);
+  }
+
+  [[maybe_unused, nodiscard]] inline TimePixelMapping
+  translatePixels(int _pixels) const noexcept
+  {
+    return this->withPixels(this->pixels + _pixels);
+  }
 };
 
 
@@ -353,11 +450,18 @@ using JuceMidiTakeRef [[maybe_unused]] =
 // Thumbnails
 
 using JuceThumbnail [[maybe_unused]] =
-    te::SmartThumbnail;
+    te::TracktionThumbnail;
 using JuceThumbnailRef [[maybe_unused]] =
     JuceThumbnail*;
 using JuceThumbnailConstRef [[maybe_unused]] =
     const JuceThumbnail*;
+
+using JuceComponentThumbnail [[maybe_unused]] =
+    te::SmartThumbnail;
+using JuceComponentThumbnailRef [[maybe_unused]] =
+    JuceComponentThumbnail*;
+using JuceComponentThumbnailConstRef [[maybe_unused]] =
+    const JuceComponentThumbnail*;
 
 using JuceRecordingThumbnail [[maybe_unused]] =
     te::RecordingThumbnailManager::Thumbnail;

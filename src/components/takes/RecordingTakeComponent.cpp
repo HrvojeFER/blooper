@@ -1,6 +1,6 @@
 #include <blooper/components/takes/RecordingTakeComponent.hpp>
 
-#include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -13,14 +13,13 @@ RecordingTakeComponent::RecordingTakeComponent(
           context,
           move(state),
           move(take)),
-      options(move(options)),
-
-      punchInTime(0)
+      options(move(options))
 {
-  this->updateThumbnailAndPunchTime();
+  this->updateThumbnail();
   this->updatePosition();
 
-  this->startTimerHz(defaultGuiTimerHz);
+  if (this->options.shouldResizeItself)
+    this->startTimerHz(defaultGuiTimerHz);
 }
 
 RecordingTakeComponent::~RecordingTakeComponent()
@@ -29,112 +28,28 @@ RecordingTakeComponent::~RecordingTakeComponent()
 }
 
 
-// TODO: range
+void RecordingTakeComponent::drawWaveform(
+    JuceGraphics&  g,
+    JuceThumbnail& thumb,
+    JuceTimeRange  time,
 
-RecordingTakeComponent::BoundsAndTime
-RecordingTakeComponent::getBoundsAndTime() const
+    JuceBounds bounds,
+    JuceColour waveformColour)
 {
-  if (!this->options.timeXConverter) return {false};
-  auto& timeXConverter = *this->options.timeXConverter;
-
-  if (this->getTakeRef().isInvalid()) return {false};
-  auto& edit = this->getTakeRef().clip->edit;
-
-  if (!edit.getTransport().getCurrentPlayhead()) return {false};
-  auto& playhead = *edit.getTransport().getCurrentPlayhead();
-
-  if (!this->thumbnail) return {false};
-  auto& thumb = *this->thumbnail;
-
-
-  BoundsAndTime result{};
-
-  auto availableArea = getLocalBounds();
-
-  const auto timeStarted = thumb.punchInTime;
-  const auto unloopedPosition = timeStarted + thumb.thumb.getTotalLength();
-
-  const auto loopRange = playhead.getLoopTimes();
-  const auto recordedTime = unloopedPosition - loopRange.start;
-  const auto numLoops = static_cast<int>(recordedTime / loopRange.getLength());
-
-  auto start = timeStarted;
-  auto end = unloopedPosition;
-
-  if (playhead.isLooping() && end >= loopRange.end)
-  {
-    result.hasLooped = true;
-
-    start = std::min(start, loopRange.start);
-    end = playhead.getPosition();
-  }
-  else if (edit.recordingPunchInOut)
-  {
-    const double in = thumbnail->punchInTime;
-    const double out = edit.getTransport().getLoopRange().getEnd();
-
-    start = std::clamp(start, in, out);
-    end = std::clamp(end, in, out);
-  }
-
-
-  auto timeToX = [this, &timeXConverter](double time) -> int {
-    return std::clamp(
-        timeXConverter.convertToX(time),
-        this->getX(),
-        this->getX() + this->getWidth());
-  };
-
-  auto xToTime = [this, &timeXConverter](int x) {
-    return timeXConverter.convertToTime(
-        std::clamp(
-            x,
-            this->getX(),
-            this->getX() + this->getWidth()));
-  };
-
-  result.bounds =
-      availableArea
-          .withX(std::max(availableArea.getX(), timeToX(start)))
-          .withRight(std::min(availableArea.getRight(), timeToX(end)));
-
-  const juce::Range<double> editTimes(
-      xToTime(result.bounds.getX()),
-      xToTime(result.bounds.getRight()));
-
-  result.time =
-      (editTimes + numLoops * loopRange.getLength()) - timeStarted;
-
-  return move(result);
-}
-
-
-void RecordingTakeComponent::drawThumbnail(
-    juce::Graphics& g,
-    juce::Colour    waveformColour) const
-{
-  if (this->thumbnail == nullptr) return;
-  auto& thumb = this->thumbnail->thumb;
-
-  auto boundsAndTime = this->getBoundsAndTime();
-  if (!boundsAndTime.isValid) return;
-
   g.setColour(waveformColour);
   thumb.drawChannels(
       g,
-      boundsAndTime.bounds,
+      move(bounds),
 
       true,
-      boundsAndTime.time,
+      move(time),
       1.0f);
 }
 
 
-void RecordingTakeComponent::updateThumbnailAndPunchTime()
+void RecordingTakeComponent::updateThumbnail()
 {
-  auto clipPtr = this->getTakeRef().clip;
-  if (!clipPtr) return;
-  auto& clip = *clipPtr;
+  auto& clip = this->getClip();
 
   auto audioTrackPtr = dynamic_cast<te::AudioTrack*>(clip.getTrack());
   if (!audioTrackPtr) return;
@@ -151,8 +66,6 @@ void RecordingTakeComponent::updateThumbnailAndPunchTime()
   {
     if (device->getRecordingFile().exists())
     {
-      this->punchInTime = device->getPunchInTime();
-
       this->thumbnail =
           engine
               .getRecordingThumbnailManager()
@@ -163,39 +76,71 @@ void RecordingTakeComponent::updateThumbnailAndPunchTime()
 
 void RecordingTakeComponent::updatePosition()
 {
-  if (!this->options.shouldResizeItself) return;
+  this->setBounds(
+      util::withHorizontalRange(
+          this->getBounds(),
+          this->getTimePixelMapping().pixels));
 
-  auto boundsAndTime = this->getBoundsAndTime();
-  if (!boundsAndTime.isValid) return;
+  if (this->options.shouldResizeParentWhenResized &&
+      this->getParentComponent())
+    this->getParentComponent()->resized();
+}
 
-  if (this->options.shouldResizeItself)
+
+// AbstractTimePixelConverter
+
+JuceTimeRange RecordingTakeComponent::getAbsoluteTimeRange() const noexcept
+{
+  auto& thumb = *this->thumbnail;
+
+  auto& edit = this->getClip().edit;
+  auto& transport = edit.getTransport();
+
+  TimePixelMapping result{};
+
+  const auto timeStarted = thumb.punchInTime;
+  const auto unloopedPosition = timeStarted + thumb.thumb.getTotalLength();
+  const auto loopRange = transport.getLoopRange();
+
+  auto start = timeStarted;
+  auto end = unloopedPosition;
+
+  if (transport.looping && end >= loopRange.end)
   {
-    this->setBounds(boundsAndTime.bounds);
-
-    if (this->options.shouldResizeParentWhenResized &&
-        this->getParentComponent())
-      this->getParentComponent()->resized();
+    start = std::min(start, loopRange.start);
+    end = transport.position;
   }
+  else if (edit.recordingPunchInOut)
+  {
+    const double in = thumbnail->punchInTime;
+    const double out = edit.getTransport().getLoopRange().getEnd();
+
+    start = std::clamp(start, in, out);
+    end = std::clamp(end, in, out);
+  }
+
+  return {start, end};
 }
 
 
 // Component
 
-void RecordingTakeComponent::resized()
-{
-}
-
 void RecordingTakeComponent::paint(juce::Graphics& g)
 {
-  g.fillAll(
-      this->findColour(ColourId::background)
-          .withAlpha(0.5f));
+  g.fillAll(this->findColour(ColourId::background)
+                .withAlpha(0.5f));
 
   g.setColour(this->findColour(ColourId::black));
   g.drawRect(this->getLocalBounds());
 
-  this->drawThumbnail(
+  const auto mapping = this->getTimePixelMapping();
+
+  RecordingTakeComponent::drawWaveform(
       g,
+      this->thumbnail->thumb,
+      mapping.time,
+
+      util::withHorizontalRange(this->getLocalBounds(), mapping.pixels),
       this->findColour(ColourId::red)
           .withAlpha(0.5f));
 }

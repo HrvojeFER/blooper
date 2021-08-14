@@ -1,5 +1,5 @@
-#ifndef BLOOPER_AUDIO_TAKE_COMPONENT_HPP
-#define BLOOPER_AUDIO_TAKE_COMPONENT_HPP
+#ifndef BLOOPER_WAVE_AUDIO_TAKE_COMPONENT_HPP
+#define BLOOPER_WAVE_AUDIO_TAKE_COMPONENT_HPP
 #pragma once
 
 #include <blooper/internal/abstract/takes.hpp>
@@ -33,50 +33,47 @@ class WaveAudioTakeComponent :
   WaveAudioTakeComponentOptions options;
 
 
-  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
-
-
  private:
-  std::unique_ptr<JuceThumbnail> thumbnail;
-
-
-  [[nodiscard]] inline const WaveAudioClip* getClip() const noexcept;
-
-  [[nodiscard]] inline WaveAudioClip* getClip() noexcept;
+  std::unique_ptr<JuceComponentThumbnail> thumbnail;
 
 
   static void drawWaveform(
-      juce::Graphics&     g,
-      te::SmartThumbnail& thumb,
+      JuceGraphics&     g,
+      JuceThumbnail&    thumb,
+      WaveAudioTakeRef& take,
+      JuceTimeRange     time,
 
-      juce::Rectangle<int> area,
-      juce::Colour         colour,
-
-      te::EditTimeRange       time,
-      const WaveAudioTakeRef& take);
+      JuceBounds bounds,
+      JuceColour colour);
 
   static void drawChannels(
-      juce::Graphics&     g,
-      te::SmartThumbnail& thumb,
+      JuceGraphics&  g,
+      JuceThumbnail& thumb,
+      JuceTimeRange  time,
 
-      juce::Rectangle<int> area,
+      JuceBounds bounds,
+      bool       useHighRes,
+      bool       useLeft,
+      bool       useRight,
+      float      leftGain,
+      float      rightGain);
 
-      te::EditTimeRange time,
-      bool              useHighRes,
-      bool              useLeft,
-      bool              useRight,
-      float             leftGain,
-      float             rightGain);
 
   void updateThumbnail();
+
+
+  // ValueTreeListener
+
+ private:
+  [[maybe_unused]] void valueTreePropertyChanged(
+      JuceState&                 state,
+      const JuceStateIdentifier& id) override;
 
 
   // Component
 
  public:
-  void resized() override;
-
-  void paint(juce::Graphics& g) override;
+  void paint(JuceGraphics& g) override;
 
 
   // Declarations
@@ -85,17 +82,6 @@ class WaveAudioTakeComponent :
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveAudioTakeComponent)
 };
 
-
-inline const WaveAudioClip* WaveAudioTakeComponent::getClip() const noexcept
-{
-  return this->getHeldTakeRef().clip;
-}
-
-inline WaveAudioClip* WaveAudioTakeComponent::getClip() noexcept
-{
-  return this->getHeldTakeRef().clip;
-}
-
 BLOOPER_NAMESPACE_END
 
-#endif // BLOOPER_AUDIO_TAKE_COMPONENT_HPP
+#endif // BLOOPER_WAVE_AUDIO_TAKE_COMPONENT_HPP

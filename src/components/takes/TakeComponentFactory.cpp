@@ -25,7 +25,7 @@ static inline constexpr auto makeTakeComponentFactory =
               decltype(meta::source(optionsType)){
                   options.shouldResizeItself,
                   options.shouldResizeParentWhenResized,
-                  options.timeXConverter});
+                  options.timePixelConverter});
         };
       };
     });

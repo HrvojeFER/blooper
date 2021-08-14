@@ -132,6 +132,22 @@ BLOOPER_UTIL_NAMESPACE_BEGIN
       from.getFixedAspectRatio());
 }
 
+[[maybe_unused]] inline auto withHorizontalRange(
+    JuceBounds     bounds,
+    JucePixelRange range) noexcept
+{
+  bounds.setHorizontalRange(range);
+  return move(bounds);
+}
+
+[[maybe_unused]] inline auto withVerticalRange(
+    JuceBounds     bounds,
+    JucePixelRange range) noexcept
+{
+  bounds.setVerticalRange(range);
+  return move(bounds);
+}
+
 
 [[maybe_unused, nodiscard]] inline std::pair<
     std::unique_ptr<ScopedMessageLoopBlocker>,

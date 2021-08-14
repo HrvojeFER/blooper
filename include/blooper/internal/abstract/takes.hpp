@@ -8,6 +8,11 @@
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>
 
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/abstract/id.hpp>
+
+#include <blooper/internal/abstract/time.hpp>
+
 #include <blooper/internal/abstract/stateful.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
 
@@ -428,6 +433,7 @@ struct [[maybe_unused]] AnyTakeTraits
 [[maybe_unused]] inline constexpr auto isAnyTakeContentComponent =
     meta::satisfies_all(
         isAnyComponent,
+        isAnyTimePixelConverter,
         meta::attribute(
             [](auto&& toCheck)
                 -> decltype(meta::and_(
@@ -462,6 +468,9 @@ template<
                 isAnyComponentTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      componentTraits>),
+                isAnyTimePixelConverter(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     abstractTimePixelConverterType>),
                 isAnyTakeContentComponent(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>))) {}) ^
@@ -472,6 +481,8 @@ template<
                                          takeTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          componentTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         abstractTimePixelConverterType>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          abstractType>) {});
 
@@ -501,6 +512,9 @@ struct [[maybe_unused]] AnyTakeContentTraits
       isAnyComponentTraits(meta::type_c<componentTraits>),
       "AnyTakeContentTraits requires AnyComponentTraits.");
 
+
+  using abstractTimePixelConverterType [[maybe_unused]] =
+      AbstractTimePixelConverter;
 
   using abstractType [[maybe_unused]] =
       AnyAbstractTakeContentComponent<
@@ -563,7 +577,8 @@ struct [[maybe_unused]] AnyHeldTakeContentTraits
 
 template<typename TTakeContentTraits>
 class [[maybe_unused]] AnyAbstractTakeContentComponent :
-    public virtual TTakeContentTraits::componentTraits::abstractType
+    public virtual TTakeContentTraits::componentTraits::abstractType,
+    public virtual TTakeContentTraits::abstractTimePixelConverterType
 {
   using abstractComponentType [[maybe_unused]] =
       typename TTakeContentTraits::componentTraits::abstractType;
@@ -571,6 +586,16 @@ class [[maybe_unused]] AnyAbstractTakeContentComponent :
   static_assert(
       isAnyComponent(meta::type_c<abstractComponentType>),
       "AnyAbstractTakeContentComponent requires AnyComponent.");
+
+  using contextType [[maybe_unused]] =
+      typename TTakeContentTraits::
+          componentTraits::
+              contextualTraits::
+                  contextType;
+
+  static_assert(
+      isAnyContext(meta::type_c<contextType>),
+      "AnyAbstractTakeContentComponent requires AnyContext.");
 
 
   using takeRefType [[maybe_unused]] =
@@ -588,6 +613,14 @@ class [[maybe_unused]] AnyAbstractTakeContentComponent :
       "AnyAbstractTakeContentComponent requires AnyTakeConstRef.");
 
 
+  using abstractTimePixelConverterType =
+      typename TTakeContentTraits::abstractTimePixelConverterType;
+
+  static_assert(
+      isAnyTimePixelConverter(meta::type_c<abstractTimePixelConverterType>),
+      "AnyAbstractTakeContentComponent requires AnyTimePixelConverter.");
+
+
  public:
   [[maybe_unused]] inline AnyAbstractTakeContentComponent() = default;
 
@@ -601,8 +634,63 @@ class [[maybe_unused]] AnyAbstractTakeContentComponent :
   getTakeRef() noexcept = 0;
 
 
-  [[nodiscard]] inline virtual BoundsAndTime
-  getBoundsAndTime() const;
+  [[maybe_unused, nodiscard]] inline const JuceClip&
+  getClip() const noexcept
+  {
+    this->getTakeRef().getClip();
+  }
+
+  [[maybe_unused, nodiscard]] inline JuceClip&
+  getClip() noexcept
+  {
+    this->getTakeRef().getClip();
+  }
+
+
+  [[nodiscard]] JuceTimeRange
+  getAbsoluteTimeRange() const noexcept override
+  {
+    return this->getClip().getPosition().time;
+  }
+
+
+  [[maybe_unused, nodiscard]] JuceTimeRange
+  getTimeRange() const noexcept override
+  {
+    auto parentConverter =
+        dynamic_cast<AbstractTimePixelConverter*>(
+            this->getParentComponent());
+
+    if (!parentConverter) return this->getAbsoluteTimeRange();
+
+    return parentConverter->getTimePixelMapping()
+        .withPixels(this->getBounds().getHorizontalRange())
+        .time.constrainRange(this->getAbsoluteTimeRange());
+  }
+
+  [[maybe_unused, nodiscard]] JucePixelRange
+  getPixelRange() const noexcept override
+  {
+    auto parentConverter =
+        dynamic_cast<AbstractTimePixelConverter*>(
+            this->getParentComponent());
+
+    if (!parentConverter) return this->getLocalBounds().getHorizontalRange();
+
+    return parentConverter->getTimePixelMapping()
+               .withTime(this->getTimeRange())
+               .pixels -
+           this->getBounds().getX();
+  }
+
+  [[maybe_unused, nodiscard]] JuceTimeRange
+  getTimeRange(AbstractTimePixelConverter* in) const noexcept override
+  {
+    if (!in) return this->getTimeRange();
+
+    return in->getTimeRange().constrainRange(
+        this->getAbsoluteTimeRange());
+  }
 };
 
 template<typename TTakeContentTraits, typename THeldTakeTraits>
@@ -694,8 +782,9 @@ class [[maybe_unused]] AnyTakeContentComponentBase :
             move(state)),
         take(move(take))
   {
-    BLOOPER_ASSERT(this->take.isValid());
   }
+
+  [[maybe_unused]] ~AnyTakeContentComponentBase() override = default;
 
 
   [[maybe_unused, nodiscard]] inline const takeConstRefType&
@@ -853,6 +942,10 @@ BLOOPER_STATIC_ASSERT(
         WaveAudioTakeTraits>(
         meta::type_c<WaveAudioTakeContentComponentBase>),
     "WaveAudioTakeContentComponentBase must satisfy AnyTakeContentComponentBase.");
+
+BLOOPER_STATIC_ASSERT(
+    isAnyTimePixelConverter(meta::type_c<WaveAudioTakeContentComponentBase>),
+    "WaveAudioTakeContentComponentBase must satisfy AnyTimePixelConverter.");
 
 
 using MidiTakeTraits [[maybe_unused]] =

@@ -15,7 +15,7 @@ struct RecordingTakeComponentOptions : TakeComponentOptions
 };
 
 class RecordingTakeComponent :
-    public WaveAudioTakeContentComponentBase,
+    public virtual WaveAudioTakeContentComponentBase,
 
     private JuceTimer
 {
@@ -37,30 +37,34 @@ class RecordingTakeComponent :
   RecordingTakeComponentOptions options;
 
 
-  [[nodiscard]] BoundsAndTime getBoundsAndTime() const override;
-
-
  private:
   JuceRecordingThumbnailRef thumbnail;
 
-  double punchInTime;
+
+  static void drawWaveform(
+      JuceGraphics&  g,
+      JuceThumbnail& thumb,
+      JuceTimeRange  time,
+
+      JuceBounds bounds,
+      JuceColour waveformColour);
 
 
-  void drawThumbnail(
-      juce::Graphics& g,
-      juce::Colour    waveformColour) const;
-
-
-  void updateThumbnailAndPunchTime();
+  void updateThumbnail();
 
   void updatePosition();
+
+
+  // AbstractTimePixelConverter
+
+ public:
+  [[nodiscard]] JuceTimeRange
+  getAbsoluteTimeRange() const noexcept override;
 
 
   // Component
 
  public:
-  void resized() override;
-
   void paint(juce::Graphics& g) override;
 
 

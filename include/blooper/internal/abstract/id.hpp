@@ -45,6 +45,8 @@ BLOOPER_ID(masterTrackPanelSize);
 BLOOPER_ID(controlSurfacePanelSize);
 BLOOPER_ID(browserPanelSize);
 
+BLOOPER_ID(pixelPerSecond);
+
 // Behaviour
 
 BLOOPER_ID(rootBrowserFolder);

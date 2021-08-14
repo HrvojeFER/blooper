@@ -1,6 +1,6 @@
 #include <blooper/components/takes/WaveAudioTakeComponent.hpp>
 
-#include <blooper/internal/utils/style.hpp>
+#include <blooper/internal/utils/gui.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -15,42 +15,30 @@ WaveAudioTakeComponent::WaveAudioTakeComponent(
           move(take)),
       options(move(options))
 {
-  // ...
-  BLOOPER_ASSERT(this->getTakeRef().isValid());
-
   this->updateThumbnail();
+
+  if (this->options.shouldResizeItself)
+    this->getClip().state.addListener(this);
 }
 
-WaveAudioTakeComponent::~WaveAudioTakeComponent() = default;
-
-
-BoundsAndTime WaveAudioTakeComponent::getBoundsAndTime() const
+WaveAudioTakeComponent::~WaveAudioTakeComponent()
 {
-  auto& clip = *this->getHeldTakeRef().clip;
-
-  return {
-      true,
-      false,
-      this->getBounds(),
-      {clip.getPosition().getStartOfSource(),
-       clip.getPosition().getEnd()},
-  };
+  this->getClip().state.removeListener(this);
 }
 
 
-// TODO: in look and feel
+// TODO: in look and feel?
 
 void WaveAudioTakeComponent::drawWaveform(
-    juce::Graphics&     g,
-    te::SmartThumbnail& thumb,
+    JuceGraphics&     g,
+    JuceThumbnail&    thumb,
+    WaveAudioTakeRef& take,
+    JuceTimeRange     time,
 
-    juce::Rectangle<int> area,
-    juce::Colour         colour,
-
-    te::EditTimeRange       time,
-    const WaveAudioTakeRef& take)
+    JuceBounds bounds,
+    JuceColour colour)
 {
-  if (!take.isValid()) return;
+  BLOOPER_ASSERT(take.isValid());
   auto& clip = *take.clip;
 
   const float gain = clip.getGain();
@@ -61,53 +49,30 @@ void WaveAudioTakeComponent::drawWaveform(
 
   g.setColour(colour);
 
-  if (clip.usesTimeStretchedProxy())
-  {
-    if (!thumb.isOutOfDate()) return;
+  WaveAudioTakeComponent::drawChannels(
+      g,
+      thumb,
+      move(time),
 
-    WaveAudioTakeComponent::drawChannels(
-        g,
-        thumb,
-        move(area),
-
-        move(time),
-        false,
-
-        clip.isLeftChannelActive(),
-        clip.isRightChannelActive(),
-        gainL,
-        gainR);
-  }
-  else if (clip.getLoopLength() == 0)
-  {
-    WaveAudioTakeComponent::drawChannels(
-        g,
-        thumb,
-        move(area),
-
-        {time.getStart() * clip.getSpeedRatio(),
-         time.getEnd() * clip.getSpeedRatio()},
-
-        false,
-        clip.isLeftChannelActive(),
-        clip.isRightChannelActive(),
-        gainL,
-        gainR);
-  }
+      move(bounds),
+      false,
+      clip.isLeftChannelActive(),
+      clip.isRightChannelActive(),
+      gainL,
+      gainR);
 }
 
 void WaveAudioTakeComponent::drawChannels(
-    juce::Graphics&     g,
-    te::SmartThumbnail& thumb,
+    JuceGraphics&  g,
+    JuceThumbnail& thumb,
+    JuceTimeRange  time,
 
-    juce::Rectangle<int> area,
-
-    te::EditTimeRange time,
-    bool              useHighRes,
-    bool              useLeft,
-    bool              useRight,
-    float             leftGain,
-    float             rightGain)
+    JuceBounds bounds,
+    bool       useHighRes,
+    bool       useLeft,
+    bool       useRight,
+    float      leftGain,
+    float      rightGain)
 {
   // TODO: channels better
   if (useLeft &&
@@ -116,18 +81,17 @@ void WaveAudioTakeComponent::drawChannels(
   {
     thumb.drawChannel(
         g,
-        area.removeFromTop(
-            area.getHeight() / 2),
+        move(bounds),
         useHighRes,
-        time,
+        move(time),
         0,
         leftGain);
 
     thumb.drawChannel(
         g,
-        move(area),
+        move(bounds),
         useHighRes,
-        time,
+        move(time),
         1,
         rightGain);
   }
@@ -135,9 +99,9 @@ void WaveAudioTakeComponent::drawChannels(
   {
     thumb.drawChannel(
         g,
-        move(area),
+        move(bounds),
         useHighRes,
-        time,
+        move(time),
         0,
         leftGain);
   }
@@ -145,9 +109,9 @@ void WaveAudioTakeComponent::drawChannels(
   {
     thumb.drawChannel(
         g,
-        move(area),
+        move(bounds),
         useHighRes,
-        time,
+        move(time),
         1,
         rightGain);
   }
@@ -193,32 +157,52 @@ void WaveAudioTakeComponent::updateThumbnail()
 }
 
 
-// Component
+// ValueTreeListener
 
-void WaveAudioTakeComponent::resized()
+void WaveAudioTakeComponent::valueTreePropertyChanged(
+    JuceState&                 state,
+    const JuceStateIdentifier& id)
 {
+  if (state == this->getClip().state)
+  {
+    if (id == te::IDs::offset ||
+        id == te::IDs::start ||
+        id == te::IDs::length)
+    {
+      this->setBounds(
+          util::withHorizontalRange(
+              this->getBounds(),
+              this->getTimePixelMapping(
+                      dynamic_cast<AbstractTimePixelConverter*>(
+                          this->getParentComponent()))
+                  .pixels));
+
+      if (this->options.shouldResizeParentWhenResized &&
+          this->getParentComponent())
+        this->getParentComponent()->resized();
+    }
+  }
 }
+
+// Component
 
 void WaveAudioTakeComponent::paint(juce::Graphics& g)
 {
-  auto thumbPtr = this->thumbnail.get();
+  const auto thumbPtr = this->thumbnail.get();
   if (!thumbPtr) return;
   auto& thumb = *thumbPtr;
 
-  auto boundsAndTime = this->getBoundsAndTime();
-  if (!boundsAndTime.isValid) return;
+  const auto mapping = this->getTimePixelMapping();
 
   WaveAudioTakeComponent::drawWaveform(
       g,
       thumb,
+      this->getHeldTakeRef(),
+      mapping.time,
 
-      boundsAndTime.bounds,
-      this->findColour(ColourId::background)
-          .withAlpha(0.5f),
-
-      // TODO time better?
-      boundsAndTime.time,
-      this->getHeldTakeRef());
+      util::withHorizontalRange(this->getLocalBounds(), mapping.pixels),
+      this->findColour(ColourId::yellow)
+          .withAlpha(0.5f));
 }
 
 BLOOPER_NAMESPACE_END
