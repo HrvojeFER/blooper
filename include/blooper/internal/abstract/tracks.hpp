@@ -8,6 +8,9 @@
 #include <blooper/internal/abstract/traits.hpp>
 #include <blooper/internal/abstract/juceTraits.hpp>
 
+#include <blooper/internal/abstract/const.hpp>
+#include <blooper/internal/abstract/time.hpp>
+
 #include <blooper/internal/abstract/stateful.hpp>
 #include <blooper/internal/abstract/contextual.hpp>
 
@@ -105,6 +108,9 @@ template<
                 isAnyComponentTraits(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      componentTraits>),
+                isAnyTimePixelConverter(
+                    meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                     abstractTimePixelConverterType>),
                 isAnyTrackContentComponent(
                     meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                      abstractType>),
@@ -119,6 +125,8 @@ template<
                                          trackTraits>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          componentTraits>,
+                        meta::type_c<typename std::decay_t<decltype(toCheck)>::
+                                         abstractTimePixelConverterType>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
                                          abstractType>,
                         meta::type_c<typename std::decay_t<decltype(toCheck)>::
@@ -150,6 +158,9 @@ struct [[maybe_unused]] AnyTrackContentTraits
       isAnyComponentTraits(meta::type_c<componentTraits>),
       "AnyTrackContentTraits requires AnyComponentTraits.");
 
+
+  using abstractTimePixelConverterType [[maybe_unused]] =
+      AbstractTimePixelConverterComponent;
 
   using abstractType [[maybe_unused]] =
       AnyAbstractTrackContentComponent<
@@ -216,7 +227,8 @@ struct [[maybe_unused]] AnyHeldTrackContentTraits
 
 template<typename TTrackContentTraits>
 class [[maybe_unused]] AnyAbstractTrackContentComponent :
-    public virtual TTrackContentTraits::componentTraits::abstractType
+    public virtual TTrackContentTraits::componentTraits::abstractType,
+    public virtual TTrackContentTraits::abstractTimePixelConverterType
 {
   using abstractComponentType [[maybe_unused]] =
       typename TTrackContentTraits::componentTraits::abstractType;
@@ -248,6 +260,14 @@ class [[maybe_unused]] AnyAbstractTrackContentComponent :
       "AnyAbstractTrackContentComponent requires AnyTrackConstRef.");
 
 
+  using abstractTimePixelConverterType =
+      typename TTrackContentTraits::abstractTimePixelConverterType;
+
+  static_assert(
+      isAnyTimePixelConverter(meta::type_c<abstractTimePixelConverterType>),
+      "AnyAbstractTakeContentComponent requires AnyTimePixelConverter.");
+
+
  public:
   [[maybe_unused]] inline AnyAbstractTrackContentComponent() = default;
 
@@ -266,6 +286,16 @@ class [[maybe_unused]] AnyAbstractTrackContentComponent :
 
   [[maybe_unused, nodiscard]] inline virtual trackRefType
   getTrackRef() noexcept = 0;
+
+
+  [[nodiscard]] JuceTimeRange
+  getAbsoluteTimeRange() const noexcept override
+  {
+    return this->getTrack()
+        .edit
+        .tempoSequence
+        .beatsToTime({loopStartBeat, loopEndBeat});
+  }
 };
 
 template<typename TTrackContentTraits, typename THeldTrackTraits>

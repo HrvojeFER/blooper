@@ -2,17 +2,19 @@
 
 #include <blooper/internal/utils/gui.hpp>
 
+#include <blooper/internal/ext/thumbnail.hpp>
+
 BLOOPER_NAMESPACE_BEGIN
 
 RecordingTakeComponent::RecordingTakeComponent(
     AbstractContext&              context,
     State                         state,
-    WaveAudioTakeRef              take,
+    AudioTrackRef                 track,
     RecordingTakeComponentOptions options)
     : RecordingTakeComponent::base(
           context,
           move(state),
-          move(take)),
+          move(track)),
       options(move(options))
 {
   this->updateThumbnail();
@@ -49,29 +51,9 @@ void RecordingTakeComponent::drawWaveform(
 
 void RecordingTakeComponent::updateThumbnail()
 {
-  auto& clip = this->getClip();
-
-  auto audioTrackPtr = dynamic_cast<te::AudioTrack*>(clip.getTrack());
-  if (!audioTrackPtr) return;
-  auto& audioTrack = *audioTrackPtr;
-
-  auto& engine = this->getContext().getEngine();
-  auto& edit = clip.edit;
-
-  for (auto* device :
-       audioTrack
-           .edit
-           .getEditInputDevices()
-           .getDevicesForTargetTrack(audioTrack))
-  {
-    if (device->getRecordingFile().exists())
-    {
-      this->thumbnail =
-          engine
-              .getRecordingThumbnailManager()
-              .getThumbnailFor(device->getRecordingFile());
-    }
-  }
+  this->thumbnail =
+      ext::getRecordingThumbnail(
+          this->getHeldTrack());
 }
 
 void RecordingTakeComponent::updatePosition()
@@ -91,35 +73,11 @@ void RecordingTakeComponent::updatePosition()
 
 JuceTimeRange RecordingTakeComponent::getAbsoluteTimeRange() const noexcept
 {
-  auto& thumb = *this->thumbnail;
+  if (!this->thumbnail) return {0.0, 0.0};
 
-  auto& edit = this->getClip().edit;
-  auto& transport = edit.getTransport();
-
-  TimePixelMapping result{};
-
-  const auto timeStarted = thumb.punchInTime;
-  const auto unloopedPosition = timeStarted + thumb.thumb.getTotalLength();
-  const auto loopRange = transport.getLoopRange();
-
-  auto start = timeStarted;
-  auto end = unloopedPosition;
-
-  if (transport.looping && end >= loopRange.end)
-  {
-    start = std::min(start, loopRange.start);
-    end = transport.position;
-  }
-  else if (edit.recordingPunchInOut)
-  {
-    const double in = thumbnail->punchInTime;
-    const double out = edit.getTransport().getLoopRange().getEnd();
-
-    start = std::clamp(start, in, out);
-    end = std::clamp(end, in, out);
-  }
-
-  return {start, end};
+  return ext::getTimeRange(
+      *this->thumbnail,
+      this->getTrack().edit);
 }
 
 
@@ -133,14 +91,14 @@ void RecordingTakeComponent::paint(juce::Graphics& g)
   g.setColour(this->findColour(ColourId::black));
   g.drawRect(this->getLocalBounds());
 
-  const auto mapping = this->getTimePixelMapping();
-
   RecordingTakeComponent::drawWaveform(
       g,
       this->thumbnail->thumb,
-      mapping.time,
+      this->getTimePixelMapping().time,
 
-      util::withHorizontalRange(this->getLocalBounds(), mapping.pixels),
+      util::withHorizontalRange(
+          this->getLocalBounds(),
+          this->getTimePixelMapping().pixels),
       this->findColour(ColourId::red)
           .withAlpha(0.5f));
 }

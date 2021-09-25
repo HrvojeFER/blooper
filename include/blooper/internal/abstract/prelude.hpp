@@ -71,6 +71,17 @@ implies(T1&& v1, T2&& v2) noexcept(noexcept(
   return !(b1 && !b2);
 }
 
+
+template<typename... T>
+struct [[maybe_unused]] basePack : public T...
+{
+};
+
+template<typename... T>
+struct [[maybe_unused]] virtualBasePack : public virtual T...
+{
+};
+
 BLOOPER_NAMESPACE_END
 
 #endif // BLOOPER_PRELUDE_HPP

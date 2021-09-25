@@ -2,6 +2,7 @@
 #define BLOOPER_WAVE_AUDIO_TAKE_COMPONENT_HPP
 #pragma once
 
+#include <blooper/internal/abstract/time.hpp>
 #include <blooper/internal/abstract/takes.hpp>
 #include <blooper/internal/abstract/clips.hpp>
 

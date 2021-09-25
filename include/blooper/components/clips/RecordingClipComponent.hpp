@@ -2,7 +2,7 @@
 #define BLOOPER_RECORDING_CLIP_COMPONENT_HPP
 #pragma once
 
-#include <blooper/internal/abstract/components.hpp>
+#include <blooper/internal/abstract/tracks.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -11,8 +11,11 @@ struct RecordingClipComponentOptions
 };
 
 class RecordingClipComponent :
-    public ComponentBase
+    public AudioTrackContentComponentBase
 {
+  using base = AudioTrackContentComponentBase;
+
+
  public:
   BLOOPER_STATE_ID(RecordingClipComponent);
 
@@ -20,11 +23,16 @@ class RecordingClipComponent :
   explicit RecordingClipComponent(
       AbstractContext&              context,
       State                         state,
+      AudioTrackRef                 track,
       RecordingClipComponentOptions options = {});
 
   ~RecordingClipComponent() override;
 
   RecordingClipComponentOptions options;
+
+
+ private:
+  std::unique_ptr<class RecordingTakeComponent> takeComponent;
 
 
   // Component

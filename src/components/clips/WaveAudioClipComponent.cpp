@@ -12,9 +12,9 @@ WaveAudioClipComponent::WaveAudioClipComponent(
     JuceWaveAudioClipRef          clip,
     WaveAudioClipComponentOptions options)
     : WaveAudioClipComponent::base(
-          context,
-          move(state),
-          move(clip)),
+    context,
+    move(state),
+    move(clip)),
       options(move(options))
 {
   this->updateCurrentTake();

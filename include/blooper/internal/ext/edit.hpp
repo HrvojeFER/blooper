@@ -141,6 +141,12 @@ setPositionBeats(const te::Edit& edit, double beats)
       edit.tempoSequence.beatsToTime(beats));
 }
 
+[[maybe_unused]] inline auto
+getLoopTimes(const te::Edit& edit) noexcept
+{
+  return edit.tempoSequence.beatsToTime({loopStartBeat, loopEndBeat});
+}
+
 
 [[maybe_unused]] inline bool isPlaying(const te::Edit& edit)
 {

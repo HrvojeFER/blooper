@@ -392,7 +392,6 @@ class [[maybe_unused]] AnyClipContentComponentBase :
     return this->getHeldClip();
   }
 
-
   [[maybe_unused, nodiscard]] inline clipConstRefType
   getClipRef() const noexcept final
   {

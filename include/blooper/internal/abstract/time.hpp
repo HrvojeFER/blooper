@@ -7,6 +7,7 @@
 #include <blooper/internal/abstract/prelude.hpp>
 #include <blooper/internal/abstract/meta.hpp>
 #include <blooper/internal/abstract/traits.hpp>
+#include <blooper/internal/abstract/juceTraits.hpp>
 
 BLOOPER_NAMESPACE_BEGIN
 
@@ -153,6 +154,60 @@ class AbstractTimePixelConverter
 BLOOPER_STATIC_ASSERT(
     isAnyTimePixelConverter(meta::type_c<AbstractTimePixelConverter>),
     "AbstractTimeXConverter must satisfy TimeXConverter.");
+
+
+class [[maybe_unused]] AbstractTimePixelConverterComponent :
+    public virtual JuceComponent,
+    public virtual AbstractTimePixelConverter
+{
+ public:
+  [[maybe_unused]] inline AbstractTimePixelConverterComponent() = default;
+
+  [[maybe_unused]] virtual inline ~AbstractTimePixelConverterComponent() = default;
+
+
+  [[maybe_unused, nodiscard]] JuceTimeRange
+  getTimeRange() const noexcept override
+  {
+    auto parentConverter =
+        dynamic_cast<AbstractTimePixelConverter*>(
+            this->getParentComponent());
+
+    if (!parentConverter) return this->getAbsoluteTimeRange();
+
+    return parentConverter->getTimePixelMapping()
+        .withPixels(this->getBounds().getHorizontalRange())
+        .time.constrainRange(this->getAbsoluteTimeRange());
+  }
+
+  [[maybe_unused, nodiscard]] JucePixelRange
+  getPixelRange() const noexcept override
+  {
+    auto parentConverter =
+        dynamic_cast<AbstractTimePixelConverter*>(
+            this->getParentComponent());
+
+    if (!parentConverter) return this->getLocalBounds().getHorizontalRange();
+
+    return parentConverter->getTimePixelMapping()
+               .withTime(this->getTimeRange())
+               .pixels -
+           this->getBounds().getX();
+  }
+
+  [[maybe_unused, nodiscard]] JuceTimeRange
+  getTimeRange(AbstractTimePixelConverter* in) const noexcept override
+  {
+    if (!in) return this->getTimeRange();
+
+    return in->getTimeRange().constrainRange(
+        this->getAbsoluteTimeRange());
+  }
+};
+
+BLOOPER_STATIC_ASSERT(
+    isAnyTimePixelConverter(meta::type_c<AbstractTimePixelConverterComponent>),
+    "AbstractTimePixelConverterComponent must satisfy TimeXConverter.");
 
 BLOOPER_NAMESPACE_END
 

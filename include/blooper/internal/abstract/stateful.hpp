@@ -12,11 +12,61 @@
 
 BLOOPER_NAMESPACE_BEGIN
 
+class AbstractStateListener : public juce::ValueTree::Listener
+{
+ public:
+  virtual void valueTreeChanged(juce::ValueTree& treeThatChanged) = 0;
+
+
+  void valueTreePropertyChanged(
+      juce::ValueTree&        treeWhosePropertyHasChanged,
+      const juce::Identifier& property) override
+  {
+    this->valueTreeChanged(treeWhosePropertyHasChanged);
+  }
+
+  void valueTreeChildAdded(
+      juce::ValueTree& parentTree,
+      juce::ValueTree& childWhichHasBeenAdded) override
+  {
+    this->valueTreeChanged(parentTree);
+  }
+
+  void valueTreeChildRemoved(
+      juce::ValueTree& parentTree,
+      juce::ValueTree& childWhichHasBeenRemoved,
+      int              indexFromWhichChildWasRemoved) override
+  {
+    this->valueTreeChanged(parentTree);
+  }
+
+  void valueTreeChildOrderChanged(
+      juce::ValueTree& parentTreeWhoseChildrenHaveMoved,
+      int              oldIndex,
+      int              newIndex) override
+  {
+    this->valueTreeChanged(parentTreeWhoseChildrenHaveMoved);
+  }
+
+  void valueTreeParentChanged(
+      juce::ValueTree& treeWhoseParentHasChanged) override
+  {
+    this->valueTreeChanged(treeWhoseParentHasChanged);
+  }
+
+  void valueTreeRedirected(
+      juce::ValueTree& treeWhichHasBeenChanged) override
+  {
+    this->valueTreeChanged(treeWhichHasBeenChanged);
+  }
+};
+
+
 [[maybe_unused]] inline constexpr auto isAnyState =
     meta::always(meta::true_c);
 
 using State [[maybe_unused]] = JuceState;
-using StateIdentifier [[maybe_unused]] = JuceStateIdentifier;
+using StateIdentifier [[maybe_unused]] = AbstractStateListener;
 using StateListener [[maybe_unused]] = JuceStateListener;
 
 

@@ -149,7 +149,7 @@ template<typename TComponentTraits>
 class [[maybe_unused]] AnyAbstractComponent :
     public virtual TComponentTraits::contextualTraits::abstractType,
     public virtual TComponentTraits::statefulTraits::abstractType,
-    public TComponentTraits::juceBaseType
+    public virtual TComponentTraits::juceBaseType
 {
   using contextType [[maybe_unused]] =
       typename TComponentTraits::contextualTraits::contextType;

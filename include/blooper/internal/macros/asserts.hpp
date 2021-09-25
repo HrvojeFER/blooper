@@ -18,4 +18,6 @@
 
 #define BLOOPER_ASSERT(...) jassert(__VA_ARGS__)
 
-#endif //BLOOPER_ASSERTS_HPP
+#define BLOOPER_ASSERT_FALSE jassertfalse
+
+#endif // BLOOPER_ASSERTS_HPP

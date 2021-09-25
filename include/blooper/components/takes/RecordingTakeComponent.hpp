@@ -5,6 +5,7 @@
 #include <blooper/internal/abstract/time.hpp>
 #include <blooper/internal/abstract/takes.hpp>
 #include <blooper/internal/abstract/clips.hpp>
+#include <blooper/internal/abstract/tracks.hpp>
 
 #include <blooper/components/takes/TakeComponentOptions.hpp>
 
@@ -15,11 +16,11 @@ struct RecordingTakeComponentOptions : TakeComponentOptions
 };
 
 class RecordingTakeComponent :
-    public virtual WaveAudioTakeContentComponentBase,
+    public virtual AudioTrackContentComponentBase,
 
     private JuceTimer
 {
-  using base = WaveAudioTakeContentComponentBase;
+  using base = AudioTrackContentComponentBase;
 
 
  public:
@@ -29,7 +30,7 @@ class RecordingTakeComponent :
   explicit RecordingTakeComponent(
       AbstractContext&              context,
       State                         state,
-      WaveAudioTakeRef              take,
+      AudioTrackRef                 track,
       RecordingTakeComponentOptions options = {});
 
   ~RecordingTakeComponent() override;

@@ -85,7 +85,7 @@ class TakeRefBase :
 
   [[maybe_unused]] TClip* clip{nullptr};
 
-  [[maybe_unused]] int index{-1};
+  [[maybe_unused]] int index{recordingTakeIndex};
 
 
   [[nodiscard]] inline bool isValid() const noexcept override
@@ -514,7 +514,7 @@ struct [[maybe_unused]] AnyTakeContentTraits
 
 
   using abstractTimePixelConverterType [[maybe_unused]] =
-      AbstractTimePixelConverter;
+      AbstractTimePixelConverterComponent;
 
   using abstractType [[maybe_unused]] =
       AnyAbstractTakeContentComponent<
@@ -651,45 +651,6 @@ class [[maybe_unused]] AnyAbstractTakeContentComponent :
   getAbsoluteTimeRange() const noexcept override
   {
     return this->getClip().getPosition().time;
-  }
-
-
-  [[maybe_unused, nodiscard]] JuceTimeRange
-  getTimeRange() const noexcept override
-  {
-    auto parentConverter =
-        dynamic_cast<AbstractTimePixelConverter*>(
-            this->getParentComponent());
-
-    if (!parentConverter) return this->getAbsoluteTimeRange();
-
-    return parentConverter->getTimePixelMapping()
-        .withPixels(this->getBounds().getHorizontalRange())
-        .time.constrainRange(this->getAbsoluteTimeRange());
-  }
-
-  [[maybe_unused, nodiscard]] JucePixelRange
-  getPixelRange() const noexcept override
-  {
-    auto parentConverter =
-        dynamic_cast<AbstractTimePixelConverter*>(
-            this->getParentComponent());
-
-    if (!parentConverter) return this->getLocalBounds().getHorizontalRange();
-
-    return parentConverter->getTimePixelMapping()
-               .withTime(this->getTimeRange())
-               .pixels -
-           this->getBounds().getX();
-  }
-
-  [[maybe_unused, nodiscard]] JuceTimeRange
-  getTimeRange(AbstractTimePixelConverter* in) const noexcept override
-  {
-    if (!in) return this->getTimeRange();
-
-    return in->getTimeRange().constrainRange(
-        this->getAbsoluteTimeRange());
   }
 };
 
@@ -872,9 +833,9 @@ using TakeContentComponentBase [[maybe_unused]] =
     TakeContentTraits::baseType;
 
 BLOOPER_STATIC_ASSERT(
-    isAnyTakeContentTraits(
-        meta::type_c<TakeContentTraits::contentTraits>),
-    "TakeContentTraits must satisfy AnyTakeContentTraits.");
+    isAnyHeldTakeContentTraits(
+        meta::type_c<TakeContentTraits>),
+    "TakeContentTraits must satisfy AnyHeldTakeContentTraits.");
 
 BLOOPER_STATIC_ASSERT(
     isAnyTakeContentComponent(
@@ -1016,6 +977,7 @@ extern template class AnyTakeContentComponentBase<
 extern template class AnyTakeContentComponentBase<
     AbstractTakeContentTraits,
     MidiTakeTraits>;
+
 
 BLOOPER_NAMESPACE_END
 

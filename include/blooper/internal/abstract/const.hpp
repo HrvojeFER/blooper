@@ -149,6 +149,10 @@ inline constexpr auto defaultBrowserPanelOpen{false};
 inline constexpr auto minimalBlooperColourId{100000000};
 
 
+// takes
+
+inline constexpr auto recordingTakeIndex{-1};
+
 #ifdef __JETBRAINS_IDE__
   #pragma clang diagnostic pop
 #endif
