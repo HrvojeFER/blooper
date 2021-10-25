@@ -105,7 +105,6 @@ _deps
 # Vim stuff
 
 *.swp
-~*.*
 *.*~
 
 # Cmake gitignore doesn't add this one
