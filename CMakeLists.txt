@@ -225,7 +225,7 @@ if(BLOOPER_BUILD_STANDALONE)
     JUCE_APPLICATION_VERSION_STRING="${PROJECT_VERSION}"
   )
 
-  # TODO add these to Env
+  # TODO: add these to Env
   if(ENV_MSVC)
     # speed up:
     # https://devblogs.microsoft.com/cppblog/recommendations-to-speed-c-builds-in-visual-studio/
