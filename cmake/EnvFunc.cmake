@@ -1493,10 +1493,7 @@ function(env_target_hook _dep)
 
   foreach(_target IN LISTS PARSED_INTO)
     if(NOT TARGET ${_target})
-      env_log(
-        Adding custom \"${_target}\" and
-        hooking \"${_dep}\" into it.
-      )
+      env_log(Adding custom \"${_target}\" and hooking \"${_dep}\" into it.)
 
       add_custom_target(${_target})
       add_dependencies(${_target} ${_dep})
@@ -1700,10 +1697,7 @@ function(env_scaffold _src_dir)
 
 
     if(_sources)
-      env_log(
-        Adding for \"${_name}\"
-        a static library \"${_prefixed}\".
-      )
+      env_log(Adding for \"${_name}\" a static library \"${_prefixed}\".)
 
       add_library(${_prefixed} STATIC IMPORTED GLOBAL)
       env_target_include(${_prefixed} PUBLIC ${_include_dirs})
@@ -1717,10 +1711,7 @@ function(env_scaffold _src_dir)
       env_target_set_pie(${_prefixed})
 
     else()
-      env_log(
-        Adding for \"${_name}\"
-        an interface library \"${_prefixed}\".
-      )
+      env_log(Adding for \"${_name}\" an interface library \"${_prefixed}\".)
 
       add_library(${_prefixed} INTERFACE IMPORTED GLOBAL)
       env_target_link(${_prefixed} INTERFACE ${_libs})
@@ -2304,8 +2295,6 @@ function(env_project_targets)
 
   env_project_pch(${PARSED_DEPS})
 
-  # TODO: sources target
-
   file(
     GLOB_RECURSE
     _sources
@@ -2353,6 +2342,7 @@ function(env_project_targets)
   endif()
 
   env_project_ci()
+
 
   env_project_examples()
   env_project_docs()
