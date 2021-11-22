@@ -101,6 +101,14 @@
       "inherits": ["clang", "release"]
     }
   ],
-  "buildPresets": [],
+  "buildPresets": [
+    {
+      "hidden": true,
+      "name": "standalone",
+      "displayName": "Standalone Base",
+      "description": "Base preset for the standalone audio app build",
+      "targets": ["blooper::standalone"]
+    }
+  ],
   "testPresets": []
 }
